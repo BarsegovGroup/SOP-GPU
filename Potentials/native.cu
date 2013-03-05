@@ -60,7 +60,7 @@ void initNative(){
 		native.h_nativeCount[j] ++;
 		if(native.h_nativeCount[i] > native.max_native || native.h_nativeCount[j] > native.max_native){
 			printf("ERROR: Maximum number of native contacts exceeded the limit of %d.\n", native.max_native);
-			exit(0);
+			exit(-1);
 		}
 		totalNative++;
 	}

@@ -56,8 +56,8 @@ void initDCD(){
 			particleCount = particleCount + sop.additionalAminosCount;
 		}
 		if(dcd_file == NULL){
-			printf("Cant open file '%s'.\n", dcd_filenames[traj]);
-			exit(0);
+			printf("Can't open file '%s'.\n", dcd_filenames[traj]);
+			exit(-1);
 		}
 		dcd_write_header(dcd_file, dcd_filenames[traj], particleCount, dcdOutputManager.frequency,
 				dcdOutputManager.frequency, dcdOutputManager.frequency, integrator->h);

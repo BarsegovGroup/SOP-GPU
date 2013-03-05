@@ -61,7 +61,7 @@ void initCovalent(){
 		covalent.h_covalentCount[j] ++;
 		if(covalent.h_covalentCount[i] > covalent.max_covalent || covalent.h_covalentCount[j] > covalent.max_covalent){
 			printf("ERROR: Maximum number of covalent bonds exceeded the limit of %d.\n", covalent.max_covalent);
-			exit(0);
+			exit(-1);
 		}
 		totalCovalent++;
 	}
@@ -92,7 +92,7 @@ void initCovalent(){
 		printf("\n");
 	}
 	#endif
-	//exit(0);
+	//exit(-1);
 
 	// Copying data to device and binding texture
 	cudaMemcpy(covalent.d_bonds, covalent.h_bonds, covalent.max_covalent*gsop.aminoCount*sizeof(GCovalentBond), cudaMemcpyHostToDevice);

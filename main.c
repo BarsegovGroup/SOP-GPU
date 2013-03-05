@@ -67,7 +67,7 @@ int main(int argc, char *argv[]){
 
 	if(argc < 1){
 		printf("ERROR: Configuration file should be specified.\n");
-		exit(0);
+		exit(-1);
 	}
 
 	restart = 0;
@@ -81,7 +81,7 @@ int main(int argc, char *argv[]){
 			//printf("Reading restart parameters...\n");
 			restart = 1;
 			printf("Restart is not currently supported. Sorry.\n");
-			exit(0);
+			exit(-1);
 		}
 	}
 
@@ -94,13 +94,13 @@ int main(int argc, char *argv[]){
 	if(createTopology){
 		printf("Please, use gsop-top utility to create topology.\n");
 		//createModel(); // this is not working in current version - will be done by independent code.
-		exit(0);
+		exit(-1);
 	}
 
 	if(top_filename == NULL){
 		printf("Creating topology file...\n");
 		createModel();
-		exit(0);
+		exit(-1);
 	} else {
 		loadTOP(top_filename);
 	}

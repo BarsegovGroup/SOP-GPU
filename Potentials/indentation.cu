@@ -23,7 +23,7 @@ void createIndentationPotential(){
 	if(indentationOn == 1 || getYesNoParameter(INDENTATION_ON_STRING, 0, 1) == 1){
 		if(Ntr > 1){
 			printf("Many-runs-per-GPU mode is not supported by indentation potential.\n");
-			exit(0);
+			exit(-1);
 		}
 		indentationOn = 1;
 		sprintf(indentationPotential.name, "Indentation");
@@ -100,7 +100,7 @@ void initIndentation(){
 		x += 0.1;
 	}
 	fclose(tempFile);
-	exit(0);*/
+	exit(-1);*/
 
 	indentation.tipZeta = getFloatParameter(INDENTATION_TIP_ZETA_STRING, 5000.0, 1);
 	char indentation_filename[100];

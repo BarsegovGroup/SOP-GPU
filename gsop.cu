@@ -16,13 +16,15 @@
 #include "Updaters/output_manager.cu"
 #include "Updaters/dcd_manager.cu"
 #include "Integrators/langevin.cu"
+#include "Integrators/bdhitea.cu"
+
 //#include "externalForce.cu"
 
 void initGPU();
 void initFF();
 void runGPU();
 void bindTextures();
-void checkCUDAError();
+void __checkCUDAError(const char *file, int line);
 
 extern void savePDB(char* pdb_filename);
 
@@ -75,7 +77,7 @@ void initGPU(){
 	}
 	printf("Will align structures to width of %d.\n", gsop.width);
 
-	initCoordinates(); // Alocate memory for coordinates
+	initCoordinates(); // Allocate memory for coordinates
 	initForces(); // Allocate memory for forces
 }
 
@@ -112,7 +114,12 @@ void initFF(){
 	createPairlistUpdater(); // Verlet list
 	createDCDOutputManager(); // Save coordinates (dcd + pdb restart)
 
-	createLangevinIntegrator(); // Create integrator
+	// Create integrator
+	if (getYesNoParameter(BDHITEA_ON_STRING,0,1)){
+		createTeaIntegrator();
+	}else{
+		createLangevinIntegrator();
+	}
 
 	initEnergies(); // Allocate memory for energy output (move to initGPU() ?)
 
@@ -263,10 +270,10 @@ void bindTextures(){
 #endif
 }
 
-void checkCUDAError(){
+void __checkCUDAError(const char *file, int line){
 	cudaError_t error = cudaGetLastError();
 	if(error != cudaSuccess){
-		printf("CUDA error: %s\n", cudaGetErrorString(error));
-		exit(0);
+		printf("CUDA error: %s [%s:%d]\n", cudaGetErrorString(error), file, line);
+		exit(-1);
 	}
 }

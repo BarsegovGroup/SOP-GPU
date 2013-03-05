@@ -29,7 +29,7 @@ void createPullingPotential(){
 		//potentialsCount++;
 		if(getFloatParameter(PULLING_DELTAX_STRING, 0, 1) == 0 && getFloatParameter(PULLING_FCONST_STRING, 0, 1) == 0){
 			printf("ERROR: Either 'deltax' or 'fconst' parameter should be specified to initiate pulling.\n");
-			exit(0);
+			exit(-1);
 		}
 		if(getFloatParameter(PULLING_DELTAX_STRING, 0, 1) != 0){
 			sprintf(pullingUpdater.name, "Pulling");
@@ -58,7 +58,7 @@ void initPulling(){
 
 	if(pulling.deltax == 0 && pulling.fconst == 0){
 		printf("ERROR: Either 'deltax' or 'fconst' parameter should be specified to initiate pulling.\n");
-		exit(0);
+		exit(-1);
 	}
 
 	pulling.fixedCount = getIntegerParameter(PULLING_FIXED_COUNT_STRING, 0, 0);
@@ -72,7 +72,7 @@ void initPulling(){
 		pulling.fixed[i] = getIntegerParameter(paramName, 0, 0);
 		/*if(fixed_beads[i] < 0 || fixed_beads[i] >= sop.aminoCount){
 			printf("ERROR: Fixed bead %d not exists. Protein has only %d amino-acids. Bead numbers should start with zero.\n", fixed_beads[i], sop.aminoCount);
-			exit(0);
+			exit(-1);
 		}*/
 		printf("Resid %d is fixed.\n", pulling.fixed[i]);
 	}
@@ -81,7 +81,7 @@ void initPulling(){
 		pulling.pulled[i] = getIntegerParameter(paramName, 0, 0);
 		/*if(pulled_beads[i] < 0 || pulled_beads[i] >= sop.aminoCount){
 			printf("ERROR: Pulled bead %d not exists. Protein has only %d amino-acids. Bead numbers should start with zero.\n", pulled_beads[i], sop.aminoCount);
-			exit(0);
+			exit(-1);
 		}*/
 		printf("Pulling resid %d.\n", pulling.pulled[i]);
 	}
@@ -137,7 +137,7 @@ void initPulling(){
 				pulling.pullVector[0].z);
 	} else {
 		printf("ERROR: 'pullDirection' parameter should be set to 'endToEnd' or 'vector'.\n", pullVector.x, pullVector.y, pullVector.z);
-		exit(0);
+		exit(-1);
 	}
 
 	for(traj = 0; traj < Ntr; traj++){

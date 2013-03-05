@@ -55,7 +55,7 @@ void initPairlist(){
 		if(pairList.h_possiblePairsCount[i] > pairList.max_possiblePairs ||
 				pairList.h_possiblePairsCount[j] > pairList.max_possiblePairs){
 			printf("ERROR: Maximum number of possible pairs exceeded the limit of %d.\n", pairList.max_possiblePairs);
-			exit(0);
+			exit(-1);
 		}
 	}
 

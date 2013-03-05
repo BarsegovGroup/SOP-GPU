@@ -23,9 +23,9 @@ __global__ void generate_possiblepairs(){
 		for(int i = 0; i < c_gsop.aminoCount; i++){
 			if(i != d_i){
 #ifdef NOTEXTURE
-		float4 r2 = c_gsop.d_coord[i];
+				float4 r2 = c_gsop.d_coord[i];
 #else
-		float4 r2 = tex1Dfetch(t_coord, i);
+				float4 r2 = tex1Dfetch(t_coord, i);
 #endif
 				// Compute the distance
 				r2.x -= r1.x;

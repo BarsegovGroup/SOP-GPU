@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <math.h>
 
+#define version "1.08"
 #define FILENAME_LENGTH 100
 
 /*float R_limit_bond;
@@ -53,7 +54,7 @@ int main(int argc, char *argv[]){
 
 	if(argc < 1){
 		printf("ERROR: Configuration file should be specified.\n");
-		exit(0);
+		exit(-1);
 	}
 
 	parseFile(argv[1]);

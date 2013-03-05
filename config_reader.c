@@ -37,7 +37,7 @@ void parseFile(char* filename){
 		printf("Parsing '%s' parameters file...\n", filename);
 	} else {
 		printf("ERROR: Parameters file '%s' can not be found. Program will exit.\n", filename);
-		exit(0);
+		exit(-1);
 	}
 	paramCount = 0;
 	char buffer[buf_size];
@@ -87,7 +87,7 @@ int getParameter(char* paramValue, const char* paramName, const char* defaultVal
 		printf("Using default value for parameter %s: '%s' = '%s'\n", paramName, paramName, defaultValue);
 	} else {
 		printf("Parameter '%s' should be specified in a configuration file. Program will exit.\n", paramName);
-		exit(0);
+		exit(-1);
 	}
 	return 0;
 }
@@ -100,7 +100,7 @@ int getIntegerParameter(const char* paramName, int defaultValue, int allowDefaul
 	int result = atoi(paramValue);
 	if(result == 0 && strcmp(paramValue, "0") != 0){
 		printf("ERROR: Wrong value of %s in a configuration file ('%s'). Should be integer. Program will exit.\n", paramName, paramValue);
-		exit(0);
+		exit(-1);
 	}
 	if(error != 0){
 		return 0;
@@ -116,7 +116,7 @@ long long int getLongIntegerParameter(const char* paramName, long defaultValue, 
 	long long int result = atol(paramValue);
 	if(result == 0 && strcmp(paramValue, "0") != 0){
 		printf("ERROR: Wrong value of %s in a configuration file ('%s'). Should be long integer. Program will exit.\n", paramName, paramValue);
-		exit(0);
+		exit(-1);
 	}
 	if(error != 0){
 		return 0;
@@ -133,7 +133,7 @@ float getFloatParameter(const char* paramName, float defaultValue, int allowDefa
 	if(result == 0.0 && strcmp(paramValue, "0") != 0 && strcmp(paramValue, "0.0") != 0 && strcmp(paramValue, "0.0f") != 0 &&
 			strcmp(paramValue, "0.000000") != 0){
 		printf("ERROR: Wrong value of %s in a configuration file ('%s'). Should be float. Program will exit.\n", paramName, paramValue);
-		exit(0);
+		exit(-1);
 	}
 	if(error != 0){
 		return 0.0;
@@ -164,20 +164,20 @@ int getYesNoParameter(const char* paramName, int defaultValue, int allowDefault)
 }
 
 int getVectorParameter(const char* paramName, float* x, float* y, float* z, float defaultX, float defaultY, float defaultZ, int allowDefault){
-        char paramValue[value_length];
-        char defaultString[value_length];
+		char paramValue[value_length];
+		char defaultString[value_length];
 		sprintf(defaultString, "%f %f %f\0", defaultX, defaultY, defaultZ);
-        int error = getParameter(paramValue, paramName, defaultString, allowDefault);
-        if(error != 0){
+		int error = getParameter(paramValue, paramName, defaultString, allowDefault);
+		if(error != 0){
 			return error;
-        }
-        char* pch = strtok(paramValue, " \t");
-        x[0] = atof(pch);
-        pch = strtok(NULL, " \t");
-        y[0] = atof(pch);
-        pch = strtok(NULL, " \t");
-        z[0] = atof(pch);
-        return 0;
+		}
+		char* pch = strtok(paramValue, " \t");
+		x[0] = atof(pch);
+		pch = strtok(NULL, " \t");
+		y[0] = atof(pch);
+		pch = strtok(NULL, " \t");
+		z[0] = atof(pch);
+		return 0;
 }
 
 int getMaskedParameter(char* result, const char* paramName, const char* defaultValue, int allowDefault){
@@ -208,9 +208,7 @@ void replaceString(char* resultString, const char* initialString, const char* re
 	//printf("Looking for %s in %s.\n", stringToReplace, initialString);
 	int i;
 	int len1, len2;
-	for(i = 0; i < strlen(resultString); i++){
-		resultString[i] = 0;
-	}
+	resultString[0] = 0;
 	//printf("Result string: %s\n", resultString);
 	if(strstr(initialString, stringToReplace) != NULL){
 		len1 = strlen(initialString) - strlen(strstr(initialString, stringToReplace));

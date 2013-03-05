@@ -4,6 +4,10 @@
  *  Created on: Feb 17, 2010
  *      Author: zhmurov
  */
+
+#ifndef HT_CU_
+#define HT_CU_
+
 #include "ran2.c"
 
 #define PRNGNAME "HybridTaus";
@@ -104,3 +108,6 @@ __device__ inline float4 rforce(int d_i){
 	c_ht.d_seeds[d_i] = seed;
 	return result;
 }
+
+#endif /* HT_CU_ */
+

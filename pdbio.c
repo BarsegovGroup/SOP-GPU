@@ -138,26 +138,26 @@ void readPDB(char* pdb_filename, PDB* pdbdata){
 	fclose(file);
 	} else {
 		perror(pdb_filename);
-		exit(0);
+		exit(-1);
 	}
 }
 
 void readCoord(char* filename){
 	//printf("Reading coordinates from '%s'.\n", filename);
-	char buffer[buf_size];
+	char buffer[buf_size+1];
 	FILE* file = fopen(filename, "r");
 	if(file == NULL){
 		printf("ERROR: Coordinates file %s can not be found.\n", filename);
-		exit(0);
+		exit(-1);
 	}
 	int index = 0;
 	while(fgets(buffer, buf_size, file) != NULL){
-		char* pch = strtok(buffer, " ");
-		if(strcmp(pch, "ATOM") == 0){
-			char x[8], y[8], z[8];
-			strncpy(x, &buffer[30], 8);
-			strncpy(y, &buffer[38], 8);
-			strncpy(z, &buffer[46], 8);
+		//char* pch = strtok(buffer, " ");
+		if(strncmp(buffer, "ATOM", 4) == 0){
+			char x[9], y[9], z[9];
+			strncpy(x, &buffer[30], 9);
+			strncpy(y, &buffer[38], 9);
+			strncpy(z, &buffer[46], 9);
 			sop.aminos[index].x = atof(x);
 			sop.aminos[index].y = atof(y);
 			sop.aminos[index].z = atof(z);
@@ -170,7 +170,7 @@ void readCoord(char* filename){
 	if(index == 0){
 		printf("ERROR: Can't read pdb file.\n");
 		fclose(file);
-		exit(0);
+		exit(-1);
 	}
 	fclose(file);
 	//printf("Done reading coordinates.\n");

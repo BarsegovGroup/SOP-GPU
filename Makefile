@@ -50,3 +50,4 @@ clean:
 install:
 	cp $(BIN) /usr/bin/$(BIN)
 	cp sop-top	/usr/bin/sop-top
+

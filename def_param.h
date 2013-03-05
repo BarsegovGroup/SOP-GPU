@@ -7,7 +7,7 @@
 #include "structure.h"
 #include "config_reader.h"
 
-#define version "1.07"
+#define version "1.08"
 #define MODE_CAPSID 1
 
 //#include "sop.h"

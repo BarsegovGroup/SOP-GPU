@@ -188,18 +188,18 @@ FILE* dcd_open_read(FILE* dcd_file, char *dcd_filename){
 
 void dcd_read_header(FILE* dcd_file, char *dcd_filename, int* N, int* NFILE, int* NPRIV, int* NSAVC, float* DELTA){
 	int iin;
-	char cin[4];
+	char cin[5];
 	fread(&iin, 4, 1, dcd_file);
 	if(iin != 84){
 		printf("Error! Wrong DCD file: DCD supposed to have '84' in first 4 bytes, but it hasn't.\n");
-		exit(0);
+		exit(-1);
 	}
 	fread(&cin, 4, 1, dcd_file);
-	char cord_char[4];
+	char cord_char[5];
 	sprintf(cord_char, "CORD");
 	if(strcmp(cin, cord_char)){
 		printf("Error! Wrong DCD file: no 'CORD' sequence at the beginning of the file. Found: %s.\n", cin);
-		exit(0);
+		exit(-1);
 	}
 
 	fread(NFILE, 4, 1, dcd_file);
@@ -221,7 +221,7 @@ void dcd_read_header(FILE* dcd_file, char *dcd_filename, int* N, int* NFILE, int
 	fread(&iin, 4, 1, dcd_file);
 	//2;
 	fread(&iin, 4, 1, dcd_file);
-	char title[80];
+	char title[81];
 	fread(&title, 80, 1, dcd_file);
 	printf("Title1: %s\n", title);
 	fread(&title, 80, 1, dcd_file);
@@ -277,3 +277,4 @@ void pad(char *s, int len){
 	}
 	s[i] = '\0';
 }
+

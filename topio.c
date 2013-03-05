@@ -51,8 +51,8 @@ void loadTOP(char* filename){
 			}
 		}
 	} else {
-		printf("ERROR: cant find topology file '%s'.\n", filename);
-		exit(0);
+		printf("ERROR: can't find topology file '%s'.\n", filename);
+		exit(-1);
 	}
 
 

@@ -89,7 +89,8 @@ __device__ __constant__ GSOP c_gsop;
 texture<float4, 1, cudaReadModeElementType> t_coord; // Coordinates
 #endif
 
-extern void checkCUDAError();
+extern void __checkCUDAError(const char *file, int line);
 extern void copyCoordDeviceToHost();
+#define checkCUDAError() __checkCUDAError(__FILE__, __LINE__)
 
 #endif
