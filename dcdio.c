@@ -80,7 +80,7 @@ FILE* dcd_open_append(FILE* dcd_file, char *dcd_filename){
 void dcd_write_header(FILE* dcd_file, char *dcd_filename, int N, int NFILE, int NPRIV, int NSAVC, double DELTA){
 	int iout;
 	float fout;
-	char cout[4];
+	char cout[5];
 	iout = 84;
 	fwrite(&iout, 4, 1, dcd_file);
 	sprintf(cout, "CORD");

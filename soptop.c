@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define version "1.08"
+#define version "trunk"
 #define FILENAME_LENGTH 100
 
 /*float R_limit_bond;

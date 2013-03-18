@@ -60,7 +60,7 @@ void initDCD(){
 			exit(-1);
 		}
 		dcd_write_header(dcd_file, dcd_filenames[traj], particleCount, dcdOutputManager.frequency,
-				dcdOutputManager.frequency, dcdOutputManager.frequency, integrator->h);
+				dcdOutputManager.frequency, dcdOutputManager.frequency, 0.0); // The integrator is not initialized yet, so we consider timestep to be equal to zero
 		//printf("%d.3\n", traj);
 		//printf("Coordinates will be saved as '%s'.\n", dcd_filenames[traj]);
 		fflush(dcd_file);
