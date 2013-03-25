@@ -11,7 +11,7 @@ CFLAGS				:= -O3
 LDFLAGS				:= -lrt -lm -lcudart
 # compilers
 #NVCC				:= $(CUDA_INSTALL_PATH)/bin/nvcc --compiler-options -fpermissive -arch sm_20 --ptxas-options=-v
-NVCC				:= $(CUDA_INSTALL_PATH)/bin/nvcc --compiler-options -fpermissive -arch sm_11 --ptxas-options=-v -use_fast_math 
+NVCC				:= $(CUDA_INSTALL_PATH)/bin/nvcc --compiler-options -fpermissive -arch sm_11 --ptxas-options=-v -use_fast_math
 CC					:= g++
 LINKER				:= g++ -fPIC
 # files
@@ -26,7 +26,7 @@ CU_SOURCES			:= gsop.cu
 C_OBJS				:= $(patsubst %.c, $(OBJDIR)/%.c.o, $(C_SOURCES))
 CU_OBJS				:= $(patsubst %.cu, $(OBJDIR)/%.cu.o, $(CU_SOURCES))
  
-$(BIN): makedirs clean $(CU_OBJS) gsop-top
+$(BIN): makedirs clean $(CU_OBJS) sop-top
 	$(LINKER) -o $(BIN) $(CU_OBJS) $(C_SOURCES) $(LDFLAGS) $(INCLUDES) $(LIBS)
  
 $(OBJDIR)/%.c.o: $(C_SOURCES)
@@ -35,9 +35,9 @@ $(OBJDIR)/%.c.o: $(C_SOURCES)
 $(OBJDIR)/%.cu.o: $(CU_SOURCES)
 	$(NVCC) $(INCLUDES) -o $@ -c $<
 	
-gsop-top:
+sop-top:
 	$(CC) -o sop-top soptop.c config_reader.c topio.c
- 
+
 makedirs:
 	mkdir -p $(OBJDIR)
 
@@ -50,4 +50,8 @@ clean:
 install:
 	cp $(BIN) /usr/bin/$(BIN)
 	cp sop-top	/usr/bin/sop-top
+
+all: sop-top sop-gpu
+
+.PHONY: all install run makedirs
 

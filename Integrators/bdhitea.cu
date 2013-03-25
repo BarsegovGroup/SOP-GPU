@@ -135,7 +135,8 @@ void updateTea(){
 			} else {
 				tea.h_beta_ij[t] = (1. - sqrt(1. - a)) / a; // eq. (26)
 			}
-//			printf("%.3f ", epsilon);
+			tea.h_epsilon[t] = epsilon; // We slowly overwrite the beginning of h_epsilon with per-trajectory epsilons to later output them
+//			printf("%lf ", epsilon);
 		}
 //		printf("]\n");
 		cudaMemcpy(tea.d_beta_ij, tea.h_beta_ij, Ntr * sizeof(float), cudaMemcpyHostToDevice);

@@ -15,12 +15,13 @@ FILE* dat_file;
 char** dat_filenames;
 char tempFilename[100];
 
-inline void computeEnergies(int traj);
-inline void computeNativeNumber(int traj);
-inline void computeRg(int traj);
+void computeEnergies(int traj);
+void computeNativeNumber(int traj);
+void computeRg(int traj);
+void computeTEAeps(int traj);
 
-inline void printDataToScreen();
-inline void printDataToFile(int traj);
+void printDataToScreen();
+void printDataToFile(int traj);
 
 extern void replaceString(char* resultString, const char* initialString, const char* replacementString, const char* stringToReplace);
 
@@ -67,7 +68,7 @@ void closeDAT(){
 	}*/
 }
 
-inline void printStep(){
+void printStep(){
 	if(step % outputManager.frequency == 0){
 		copyCoordDeviceToHost();
 		int p;
@@ -95,6 +96,7 @@ inline void printStep(){
 			if(mode != MODE_CAPSID){
 				computeRg(traj);
 			}
+			computeTEAeps(traj);
 			if(traj == 0){
 				printDataToScreen();
 			}
@@ -108,7 +110,7 @@ inline void printStep(){
 	}
 }
 
-inline void computeEnergies(int traj){
+void computeEnergies(int traj){
 	int i;
 	outputData.tempav = 0.0; // Average temperature
 	outputData.epot_LJ = 0.0; // Total LJ energy
@@ -145,7 +147,7 @@ inline void computeEnergies(int traj){
 	outputData.epot_tot = outputData.epot_LJ + outputData.epot_fene;
 }
 
-inline void computeNativeNumber(int traj){
+void computeNativeNumber(int traj){
 	int i,j,k;
 	outputData.nat_num = 0;
 	for(k = 0; k < sop.nativeCount; k++){
@@ -163,7 +165,7 @@ inline void computeNativeNumber(int traj){
 	}
 }
 
-inline void computeRg(int traj){
+void computeRg(int traj){
 	int i, j;
 	double rgsq;
 	rgsq = 0.0;
@@ -178,6 +180,14 @@ inline void computeRg(int traj){
 
 	rgsq = rgsq/(double)(sop.aminoCount*sop.aminoCount);
 	outputData.rg = sqrt(rgsq);
+}
+
+void computeTEAeps(int traj){
+	if (integratorTea){
+		outputData.tea_eps = tea.h_epsilon[traj];
+	}else{
+		outputData.tea_eps = 0./0.;
+	}
 }
 
 /*inline void computeEndToEnd(int traj){
@@ -264,14 +274,14 @@ inline void printDataToScreen(){
 						outputData.step, outputData.nat_num,
 						outputData.V, outputData.R, outputData.temp);
 	}*/
-	printf("TimeStep\tTemp    \tPotent  \tNative  \tLonRan  \tLJ      \tFENE    \tNative# \tRg\n");
+	printf("TimeStep\tTemp    \tPotent  \tNative  \tLonRan  \tLJ      \tFENE    \tNative# \tRg    \tTEA-eps\n");
 	printf("%12ld\t%8.3f\t"
 					"%8.2f\t%8.2f\t%8.2f\t%8.2f\t%8.2f\t"
-					"%3d\t%8.3f\n",
+					"%3d\t%8.3f\t%2.9f\n",
 					outputData.step, outputData.tempav,
 					outputData.epot_tot, outputData.epot_native,
 					outputData.epot_longrange, outputData.epot_LJ, outputData.epot_fene,
-					outputData.nat_num, outputData.rg);
+					outputData.nat_num, outputData.rg, outputData.tea_eps);
 }
 
 inline void printDataToFile(int traj){

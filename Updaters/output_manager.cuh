@@ -34,6 +34,7 @@ struct OutputData{
 	float rg;
 	//float V;
 	//float R;
+	float tea_eps;
 };
 
 OutputData outputData;

@@ -11,12 +11,12 @@
 #include "Potentials/pairs.cu"
 #include "Potentials/indentation.cu"
 #include "Potentials/pulling.cu"
+#include "Integrators/langevin.cu"
+#include "Integrators/bdhitea.cu"
 #include "Updaters/pairlist.cu"
 #include "Updaters/possiblepairlist.cu"
 #include "Updaters/output_manager.cu"
 #include "Updaters/dcd_manager.cu"
-#include "Integrators/langevin.cu"
-#include "Integrators/bdhitea.cu"
 
 //#include "externalForce.cu"
 
@@ -45,10 +45,10 @@ extern void shiftRandomSeeds(uint4* d_newseeds, int N);
 unsigned int cpuTimer;
 double gpuTime = 0.0;
 double cpuTime = 0.0;
-extern double pairlistTime = 0.0;
-extern double covalentTime = 0.0;
-extern double nativeTime = 0.0;
-extern double pairsTime = 0.0;
+double pairlistTime = 0.0;
+double covalentTime = 0.0;
+double nativeTime = 0.0;
+double pairsTime = 0.0;
 
 long int lastStepCoordCopied = -1;
 
@@ -59,6 +59,7 @@ SOPIntegrator* integrator;
 
 int potentialsCount;
 int updatersCount;
+int integratorTea;
 
 /*
  * Prepare data on Host, copy it into Device, bind textures
@@ -117,8 +118,10 @@ void initFF(){
 	// Create integrator
 	if (getYesNoParameter(BDHITEA_ON_STRING,0,1)){
 		createTeaIntegrator();
+		integratorTea = 1;
 	}else{
 		createLangevinIntegrator();
+		integratorTea = 0;
 	}
 
 	initEnergies(); // Allocate memory for energy output (move to initGPU() ?)
@@ -146,7 +149,6 @@ void runGPU(){
 			stride = updaters[u]->frequency;
 		}
 	}
-	int size = gsop.aminoCount*sizeof(float4);
 	generatePairlist();
 
 	// External loop

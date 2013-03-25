@@ -103,6 +103,7 @@ inline void generatePairlist(){
 	if(step % pairlistMaker.frequency == 0){
 		//printf("Generating new pairlist...");
 		generate_pairs<<<pairList.blockNum, pairList.blockSize>>>();
+		cudaDeviceSynchronize();
 		checkCUDAError();
 		//printf("done.\n");
 

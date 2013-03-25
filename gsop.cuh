@@ -76,11 +76,10 @@ extern float3* ext_force;
 extern SOPPotential** potentials;
 extern SOPUpdater** updaters;
 extern SOPIntegrator* integrator;
-extern SOPTimer** timers;
 
 extern int potentialsCount;
 extern int updatersCount;
-extern int timersCount;
+extern int integratorTea;
 
 extern GSOP gsop;
 __device__ __constant__ GSOP c_gsop;

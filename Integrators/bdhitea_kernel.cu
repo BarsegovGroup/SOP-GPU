@@ -138,7 +138,7 @@ __global__ void integrateTea_epsilon(){
 __device__ inline float4 integrateTea_force(const float4& coord1, const int idx2, const float3& ci, const int idx1){
 	// Calculate the effective force acting on particle with coordinates `coord1` from particle with index `idx2`
 	// eq. (13,14,19)
-#ifdef TEA_TEXTURE
+#ifndef NOTEXTURE
 	float4 dr = tex1Dfetch(t_coord, idx2);
 #else
 	float4 dr = c_tea.coords[idx2];
