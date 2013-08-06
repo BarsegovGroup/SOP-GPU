@@ -63,7 +63,7 @@ __global__ void integrateTea_prepare(){
 				f.z += extF.z;
 			}
 		}
-		// Copy forces and coordinates to auxillary arrays to avoid race conditions during integration phase
+		// Copy forces and coordinates to auxillary arrays to avoid races during integration phase
 		c_tea.mforce[d_i] = f;
 		c_gsop.d_forces[d_i] = make_float4(0.f, 0.f, 0.f, 0.f);
 		c_tea.coords[d_i] = c_gsop.d_coord[d_i];

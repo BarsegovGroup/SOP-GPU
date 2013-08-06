@@ -126,9 +126,9 @@ void updateTea(){
 				exit(-1);
 			}
 			double a = (3.*N-1.)*epsilon*epsilon - (3.*N-2.)*epsilon;
-			if (fabs(a) < 1e-5){ // To avoid 0/0 division in eq. (26) we explicitly handle small a's
+			if (fabs(a) < 1e-7){ // To avoid 0/0 division in eq. (26) we explicitly handle small a's
 				tea.h_beta_ij[t] = .5f;
-				if(tea.capricious){
+				if(tea.capricious && tea.a > 0.0f){
 					printf("HI tensor is too diagonal for trajectory %d: a = %lf, beta: %lf -> 0.5!\n", t, a, (1. - sqrt(1. - a)) / a);
 					exit(-1);
 				}
