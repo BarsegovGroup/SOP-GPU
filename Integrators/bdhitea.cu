@@ -35,10 +35,15 @@ void initTeaIntegrator(){
 	initLangevinIntegrator();
 
 	tea.namino = sop.aminoCount;
-	tea.epsilon_freq = getIntegerParameter(BDHITEA_EPSILONFREQ_STRING, 0, 0);
-	tea.a = getFloatParameter(BDHITEA_A_STRING, 1.2f, 1);
-	tea.capricious = getYesNoParameter(BDHITEA_CAPRICIOUS_STRING, 1, 1);
-	tea.epsmax = getFloatParameter(BDHITEA_EPSMAX_STRING, 413.f, 1); // Epsilon will never exceed 1, so epsmax=413 will never trigger halt by itself
+	tea.epsilon_freq = getIntegerParameter(BDHITEA_EPSILONFREQ_STRING, 0, 0); // How often recalculate epsilon?
+	tea.a = getFloatParameter(BDHITEA_A_STRING, 1.8f, 1); // in Angstroms
+	tea.capricious = getYesNoParameter(BDHITEA_CAPRICIOUS_STRING, 1, 1); // Be paranoid about tensor values?
+	tea.epsmax = getFloatParameter(BDHITEA_EPSMAX_STRING, 999.f, 1); // Epsilon will never exceed 1, so epsmax=999 will never trigger halt by itself; used in capricious mode
+	if (getYesNoParameter(BDHITEA_UNLISTED_STRING, 1, 0)) { // use all-to-all or pairlists?
+        tea.unlisted = tea.namino;
+        if(sop.additionalAminosCount > 0)
+            tea.unlisted += sop.additionalAminosCount;
+    } else tea.unlisted = 0;
 
 	cudaMalloc(&tea.rforce, gsop.aminoCount * sizeof(float4));
 	cudaMalloc(&tea.mforce, gsop.aminoCount * sizeof(float4));
@@ -53,7 +58,7 @@ void initTeaIntegrator(){
 	checkCUDAError();
 
 	createTeaUpdater();
-	printf("TEA integrator initialized, a = %f A, freq = %d steps; capricious mode %s; block size %d\n", tea.a, tea.epsilon_freq, (tea.capricious ? "on" : "off"), BLOCK_SIZE);
+	printf("TEA integrator initialized, a = %f A, freq = %d steps; capricious mode: %s; using pairlist: %s; block size: %d\n", tea.a, tea.epsilon_freq, (tea.capricious ? "on" : "off"), (tea.unlisted ? "no" : "yes"), BLOCK_SIZE);
 }
 
 void integrateTea(){
@@ -64,7 +69,10 @@ void integrateTea(){
 	cudaBindTexture(0, t_rforce, tea.rforce, gsop.aminoCount * sizeof(float4));
 	cudaBindTexture(0, t_mforce, tea.mforce, gsop.aminoCount * sizeof(float4));
 #endif
-	integrateTea_kernel<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+    if (tea.unlisted)
+    	integrateTea_kernel_unlisted<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+    else
+    	integrateTea_kernel<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
 #ifdef TEA_TEXTURE
 	cudaUnbindTexture(t_rforce);
 	cudaUnbindTexture(t_mforce);
@@ -103,7 +111,10 @@ void updateTea(){
 	const int N = sop.aminoCount;
 	if (update_epsilon){
 		// Calculate relative coupling
-		integrateTea_epsilon<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+        if (tea.unlisted)
+    		integrateTea_epsilon_unlisted<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+        else
+    		integrateTea_epsilon<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
 		// Dowload epsilon`s
 		cudaMemcpy(tea.h_epsilon, tea.d_epsilon, gsop.aminoCount * sizeof(float), cudaMemcpyDeviceToHost);
 		checkCUDAError();

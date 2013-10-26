@@ -135,6 +135,24 @@ __global__ void integrateTea_epsilon(){
 	}
 }
 
+__global__ void integrateTea_epsilon_unlisted(){
+	// Like integrateTea_epsilon, but calculate all-vs-all
+	const int d_i = blockIdx.x*blockDim.x + threadIdx.x;
+	if(d_i < c_gsop.aminoCount){
+        const int i0 = ((int)(d_i / c_tea.unlisted))*c_tea.unlisted;
+		int i;
+		float4 coord = c_gsop.d_coord[d_i];
+		float4 sum = make_float4(0.f, 0.f, 0.f, 0.f);
+		for(i = i0; i < i0 + c_tea.namino; i++){
+            if (i != d_i)
+    			sum += integrateTea_epsilon_local(coord, i);
+        }
+		c_tea.d_ci[d_i] = sum;//make_float3(sum.x, sum.y, sum.z);
+		c_tea.d_epsilon[d_i] = sum.w; // Should later be divided by number of non-diagonal degrees-of-freedom in single trajectory
+	}
+}
+
+
 __device__ inline float4 integrateTea_force(const float4& coord1, const int idx2, const float3& ci, const int idx1){
 	// Calculate the effective force acting on particle with coordinates `coord1` from particle with index `idx2`
 	// eq. (13,14,19)
@@ -255,6 +273,65 @@ __global__ void integrateTea_kernel(){
 		printf("b[%d, %d]=%f\n", 3*d_i+2, 3*d_i+2, ci.z/beta_ij);
 #endif
 
+		if(c_gsop.pullingOn){
+			float4 extF = c_pulling.d_extForces[d_i];
+			if(extF.w == 1.0f){
+				f.x = 0.0f;
+				f.y = 0.0f;
+				f.z = 0.0f;
+			}
+			// We have already added pulling force to pulled beads during preparation
+		}
+
+		// Integration step
+		// We've replaced all forces with their `effective` counterparts, so this part of integration process stays the same as in simple langevin integrator
+		const float mult = c_langevin.hOverZeta;
+		const float3 dr = make_float3(mult*f.x, mult*f.y, mult*f.z);
+        coord.x += dr.x;
+		coord.y += dr.y;
+		coord.z += dr.z;
+		c_gsop.d_coord[d_i] = coord;
+		// Update energies
+		coord = c_gsop.d_energies[d_i];
+		coord.w += c_langevin.tempNorm*(dr.x*dr.x + dr.y*dr.y + dr.z*dr.z);
+		c_gsop.d_energies[d_i] = coord;
+	}
+}
+
+
+__global__ void integrateTea_kernel_unlisted(){
+	// Pairist-free version of  integrateTea_kernel
+	const int d_i = blockIdx.x*blockDim.x + threadIdx.x;
+	if(d_i < c_gsop.aminoCount){
+		int i;
+		float4 coord = c_tea.d_ci[d_i]; // Not coord yet!
+		float4 f = c_tea.mforce[d_i];
+		float4 df = c_tea.rforce[d_i];
+		const int tr = d_i / c_tea.namino;
+		const float beta_ij = c_tea.d_beta_ij[tr];
+		float3 ci;
+		// Make ci to be actual C_i
+		coord.w = beta_ij*beta_ij;
+		ci.x = 1.f/sqrtf(1.f + coord.w * coord.x);
+		ci.y = 1.f/sqrtf(1.f + coord.w * coord.y);
+		ci.z = 1.f/sqrtf(1.f + coord.w * coord.z);
+		coord = c_tea.coords[d_i]; // And now it's actually bead coordinates
+		f.x += df.x * ci.x;
+		f.y += df.y * ci.y;
+		f.z += df.z * ci.z;
+		ci.x *= beta_ij;
+		ci.y *= beta_ij;
+		ci.z *= beta_ij;
+
+		// Calculate effective force
+        const int i0 = ((int)(d_i / c_tea.unlisted))*c_tea.unlisted;
+		for(i = i0; i < i0 + c_tea.namino; i++){
+            if (i==d_i) continue;
+			df = integrateTea_force(coord, i, ci, d_i);
+			f.x += df.x;
+			f.y += df.y;
+			f.z += df.z;
+		}
 		if(c_gsop.pullingOn){
 			float4 extF = c_pulling.d_extForces[d_i];
 			if(extF.w == 1.0f){
