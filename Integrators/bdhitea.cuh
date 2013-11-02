@@ -13,7 +13,7 @@
 #define BDHITEA_A_STRING "tea_a" // set hydrodynamic radii of single bead, Angstroms
 #define BDHITEA_EPSILONFREQ_STRING "tea_epsilon_freq" // frequncy of updating ersatz coefficients, steps
 #define BDHITEA_CAPRICIOUS_STRING "tea_capricious" // whether to abort execution on weird values of HI tensor
-#define BDHITEA_UNLISTED_STRING "tea_unlisted" // 
+#define BDHITEA_UNLISTED_STRING "tea_unlisted" // whether to calculate all-to-all interactions, or just the ones in pairlist
 #define BDHITEA_EPSMAX_STRING "tea_epsmax" // Abort simulation if epsilon reaches this value, unitless
 
 // undefine to disable use of textures in TEA
@@ -32,7 +32,7 @@ struct Tea {
 	int namino; // Number of aminos per trajectory, nothing special
 	float a; // Bead hydrodynamic radius, in A
 	int capricious; // If != 0, then the simulation will stop if HI tensor has abnormal values. If zero, the simulation will continue anyway (and it is probably perfectly fine).
-    int unlisted;
+	int unlisted; // If ==0, then beads will interact hydrodynamically with their friends in covalent, native and pairs lists
 	float epsmax; // If epsilon exceeds this value, then abort simulation. Default: never [in capricious mode, epsilon > 1.0 will trigger stop anyway]
 };
 

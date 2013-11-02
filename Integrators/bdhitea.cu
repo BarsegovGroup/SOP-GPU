@@ -40,10 +40,10 @@ void initTeaIntegrator(){
 	tea.capricious = getYesNoParameter(BDHITEA_CAPRICIOUS_STRING, 1, 1); // Be paranoid about tensor values?
 	tea.epsmax = getFloatParameter(BDHITEA_EPSMAX_STRING, 999.f, 1); // Epsilon will never exceed 1, so epsmax=999 will never trigger halt by itself; used in capricious mode
 	if (getYesNoParameter(BDHITEA_UNLISTED_STRING, 1, 0)) { // use all-to-all or pairlists?
-        tea.unlisted = tea.namino;
-        if(sop.additionalAminosCount > 0)
-            tea.unlisted += sop.additionalAminosCount;
-    } else tea.unlisted = 0;
+		tea.unlisted = tea.namino;
+		if(sop.additionalAminosCount > 0)
+			tea.unlisted += sop.additionalAminosCount;
+	} else tea.unlisted = 0;
 
 	cudaMalloc(&tea.rforce, gsop.aminoCount * sizeof(float4));
 	cudaMalloc(&tea.mforce, gsop.aminoCount * sizeof(float4));
@@ -69,10 +69,10 @@ void integrateTea(){
 	cudaBindTexture(0, t_rforce, tea.rforce, gsop.aminoCount * sizeof(float4));
 	cudaBindTexture(0, t_mforce, tea.mforce, gsop.aminoCount * sizeof(float4));
 #endif
-    if (tea.unlisted)
-    	integrateTea_kernel_unlisted<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
-    else
-    	integrateTea_kernel<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+	if (tea.unlisted)
+		integrateTea_kernel_unlisted<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+	else
+		integrateTea_kernel<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
 #ifdef TEA_TEXTURE
 	cudaUnbindTexture(t_rforce);
 	cudaUnbindTexture(t_mforce);
@@ -111,10 +111,10 @@ void updateTea(){
 	const int N = sop.aminoCount;
 	if (update_epsilon){
 		// Calculate relative coupling
-        if (tea.unlisted)
-    		integrateTea_epsilon_unlisted<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
-        else
-    		integrateTea_epsilon<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+		if (tea.unlisted)
+			integrateTea_epsilon_unlisted<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+		else
+			integrateTea_epsilon<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
 		// Dowload epsilon`s
 		cudaMemcpy(tea.h_epsilon, tea.d_epsilon, gsop.aminoCount * sizeof(float), cudaMemcpyDeviceToHost);
 		checkCUDAError();
@@ -126,11 +126,11 @@ void updateTea(){
 			}
 			epsilon /= 3.*N*(3.*N - 3.); // Averaging, off-diagonal elements only
 			if (epsilon > 1.0){
-				epsilon = 1.0;
 				if (tea.capricious){
 					printf("HI tensor is not diagonal enough for trajectory %d: epsilon = %lf -> 1.0!\n", t, epsilon);
 					exit(-1);
 				}
+				epsilon = 1.0;
 			}
 			if (epsilon > tea.epsmax){
 				printf("HI tensor is not diagonal enough for trajectory %d: epsilon = %lf > %f = tea_epsmax!\n", t, epsilon, tea.epsmax);

@@ -93,8 +93,8 @@ __device__ inline float6 integrateTea_RPY(const float4& dr){
 }
 
 __device__ inline float4 integrateTea_epsilon_local(const float4& coord1, const int idx2){
-	// Functions calculates various statistics for sub-tensor responsible for interactions between two given particles
-	// .x, .y, .z --- sum of squares of squares of normalized tensor components, 3 rows, used for C_i in eq. (19)
+	// Function calculates various statistics for sub-tensor responsible for interactions between two given particles
+	// .x, .y, .z --- sum of squares of normalized tensor components, 3 rows, used for C_i in eq. (19)
 	// .w --- sum of normalized tensor components (\sum Dij/Dii), used for \epsilon in eq. (22)
 	float4 dr = c_gsop.d_coord[idx2];
 	dr.x -= coord1.x;
@@ -119,7 +119,6 @@ __global__ void integrateTea_epsilon(){
 		int i;
 		float4 coord = c_gsop.d_coord[d_i];
 		float4 sum = make_float4(0.f, 0.f, 0.f, 0.f);
-		//double4 sum = make_double4(0.f, 0.f, 0.f, 0.f);
 		for(i = 0; i < c_covalent.d_covalentCount[d_i]; i++){ // HI interactions with covalent neighbors
 			GCovalentBond bond = c_covalent.d_bonds[i*c_gsop.aminoCount + d_i];
 			sum += integrateTea_epsilon_local(coord, bond.i2);
@@ -139,14 +138,14 @@ __global__ void integrateTea_epsilon_unlisted(){
 	// Like integrateTea_epsilon, but calculate all-vs-all
 	const int d_i = blockIdx.x*blockDim.x + threadIdx.x;
 	if(d_i < c_gsop.aminoCount){
-        const int i0 = ((int)(d_i / c_tea.unlisted))*c_tea.unlisted;
+		const int i0 = ((int)(d_i / c_tea.unlisted))*c_tea.unlisted;
 		int i;
 		float4 coord = c_gsop.d_coord[d_i];
 		float4 sum = make_float4(0.f, 0.f, 0.f, 0.f);
 		for(i = i0; i < i0 + c_tea.namino; i++){
-            if (i != d_i)
-    			sum += integrateTea_epsilon_local(coord, i);
-        }
+			if (i != d_i)
+				sum += integrateTea_epsilon_local(coord, i);
+		}
 		c_tea.d_ci[d_i] = sum;//make_float3(sum.x, sum.y, sum.z);
 		c_tea.d_epsilon[d_i] = sum.w; // Should later be divided by number of non-diagonal degrees-of-freedom in single trajectory
 	}
@@ -287,7 +286,7 @@ __global__ void integrateTea_kernel(){
 		// We've replaced all forces with their `effective` counterparts, so this part of integration process stays the same as in simple langevin integrator
 		const float mult = c_langevin.hOverZeta;
 		const float3 dr = make_float3(mult*f.x, mult*f.y, mult*f.z);
-        coord.x += dr.x;
+		coord.x += dr.x;
 		coord.y += dr.y;
 		coord.z += dr.z;
 		c_gsop.d_coord[d_i] = coord;
@@ -324,9 +323,9 @@ __global__ void integrateTea_kernel_unlisted(){
 		ci.z *= beta_ij;
 
 		// Calculate effective force
-        const int i0 = ((int)(d_i / c_tea.unlisted))*c_tea.unlisted;
+		const int i0 = ((int)(d_i / c_tea.unlisted))*c_tea.unlisted;
 		for(i = i0; i < i0 + c_tea.namino; i++){
-            if (i==d_i) continue;
+			if (i == d_i) continue;
 			df = integrateTea_force(coord, i, ci, d_i);
 			f.x += df.x;
 			f.y += df.y;
