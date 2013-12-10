@@ -138,7 +138,7 @@ __global__ void integrateTea_epsilon_unlisted(){
 	// Like integrateTea_epsilon, but calculate all-vs-all
 	const int d_i = blockIdx.x*blockDim.x + threadIdx.x;
 	if(d_i < c_gsop.aminoCount){
-		const int i0 = ((int)(d_i / c_tea.unlisted))*c_tea.unlisted;
+		const int i0 = ((int)(d_i / c_tea.namino))*c_tea.namino;
 		int i;
 		float4 coord = c_gsop.d_coord[d_i];
 		float4 sum = make_float4(0.f, 0.f, 0.f, 0.f);
@@ -323,7 +323,7 @@ __global__ void integrateTea_kernel_unlisted(){
 		ci.z *= beta_ij;
 
 		// Calculate effective force
-		const int i0 = ((int)(d_i / c_tea.unlisted))*c_tea.unlisted;
+		const int i0 = ((int)(d_i / c_tea.namino))*c_tea.namino;
 		for(i = i0; i < i0 + c_tea.namino; i++){
 			if (i == d_i) continue;
 			df = integrateTea_force(coord, i, ci, d_i);

@@ -274,14 +274,21 @@ inline void printDataToScreen(){
 						outputData.step, outputData.nat_num,
 						outputData.V, outputData.R, outputData.temp);
 	}*/
-	printf("TimeStep\tTemp    \tPotent  \tNative  \tLonRan  \tLJ      \tFENE    \tNative# \tRg    \tTEA-eps\n");
+	printf("TimeStep\tTemp    \tPotent  \tNative  \tLonRan  \tLJ      \tFENE    \tNative# \tRg");
+	if (integratorTea) 
+		printf("	\tTEA-eps");
+	printf("\n");
 	printf("%12ld\t%8.3f\t"
 					"%8.2f\t%8.2f\t%8.2f\t%8.2f\t%8.2f\t"
-					"%3d\t%8.3f\t%2.9f\n",
+					"%3d\t%8.3f",
 					outputData.step, outputData.tempav,
 					outputData.epot_tot, outputData.epot_native,
 					outputData.epot_longrange, outputData.epot_LJ, outputData.epot_fene,
-					outputData.nat_num, outputData.rg, outputData.tea_eps);
+					outputData.nat_num, outputData.rg);
+	if (integratorTea) 
+		printf("\t%2.9f", outputData.tea_eps);
+	printf("\n");
+
 }
 
 inline void printDataToFile(int traj){

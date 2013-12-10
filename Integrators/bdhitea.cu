@@ -40,9 +40,7 @@ void initTeaIntegrator(){
 	tea.capricious = getYesNoParameter(BDHITEA_CAPRICIOUS_STRING, 1, 1); // Be paranoid about tensor values?
 	tea.epsmax = getFloatParameter(BDHITEA_EPSMAX_STRING, 999.f, 1); // Epsilon will never exceed 1, so epsmax=999 will never trigger halt by itself; used in capricious mode
 	if (getYesNoParameter(BDHITEA_UNLISTED_STRING, 1, 0)) { // use all-to-all or pairlists?
-		tea.unlisted = tea.namino;
-		if(sop.additionalAminosCount > 0)
-			tea.unlisted += sop.additionalAminosCount;
+		tea.unlisted = 1;
 	} else tea.unlisted = 0;
 
 	cudaMalloc(&tea.rforce, gsop.aminoCount * sizeof(float4));
