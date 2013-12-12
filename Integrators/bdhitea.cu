@@ -33,7 +33,7 @@ void initTeaIntegrator(){
 		exit(-1);
 	}
 	initLangevinIntegrator();
-
+	teaIntegrator.h = langevinIntegrator.h;
 	tea.namino = sop.aminoCount;
 	tea.epsilon_freq = getIntegerParameter(BDHITEA_EPSILONFREQ_STRING, 0, 0); // How often recalculate epsilon?
 	tea.a = getFloatParameter(BDHITEA_A_STRING, 1.8f, 1); // in Angstroms
