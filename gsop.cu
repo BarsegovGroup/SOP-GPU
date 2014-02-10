@@ -11,6 +11,7 @@
 #include "Potentials/pairs.cu"
 #include "Potentials/indentation.cu"
 #include "Potentials/pulling.cu"
+#include "Potentials/pulling_plane.cu"
 #include "Integrators/langevin.cu"
 #include "Integrators/bdhitea.cu"
 #include "Updaters/pairlist.cu"
@@ -107,6 +108,7 @@ void initFF(){
 	createPairsPotential(); // Repulsive LJ
 	createIndentationPotential(); // Indentations sphere and surface
 	createPullingPotential(); // External force
+	createPullingPlanePotential();
 
 	if(Ntr == 1){
 		createPossiblepairlistUpdater(); // Updates the list of all pairs (for Verlet list)

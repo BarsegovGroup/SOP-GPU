@@ -26,6 +26,7 @@ struct GSOP{
 	cudaDeviceProp deviceProp;
 
 	int pullingOn;
+	int pullingPlaneOn;
 	int minimizationOn;
 	int aminoCount;
 	int width;
