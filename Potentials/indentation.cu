@@ -341,7 +341,7 @@ void addTipMicaParticles(){
 				i2 = 2+i*indentation.surfaceSize+j+1 + gsop.aminoCount;
 				fprintf(micaConnectFile, " %d", i2);
 			}
-			fprintf(micaConnectFile, "}\n", i2);
+			fprintf(micaConnectFile, "}\n");
 			fprintf(micaConnectFile, "$sel setbonds [list $bonds]\n$sel delete\n");
 
 		}

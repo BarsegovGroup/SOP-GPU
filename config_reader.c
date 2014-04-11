@@ -10,9 +10,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define buf_size 256
-#define name_length 50
-#define value_length 100
+#define buf_size 1024
+#define name_length 100
+#define value_length 200
 
 int paramCount;
 char** paramNames;
@@ -47,8 +47,8 @@ void parseFile(char* filename){
 			paramCount++;
 		}
 	}
-	paramNames = (char**)malloc(name_length*paramCount*sizeof(char));
-	paramValues = (char**)malloc(value_length*paramCount*sizeof(char));
+	paramNames = (char**)malloc(paramCount*sizeof(char*));
+	paramValues = (char**)malloc(paramCount*sizeof(char*));
 	int i;
 	for(i = 0; i < paramCount; i++){
 		paramNames[i] = (char*)malloc(name_length*sizeof(char));
@@ -59,9 +59,9 @@ void parseFile(char* filename){
 	while(fgets(buffer, buf_size, file) != NULL){
 		if(buffer[0] != '#' && buffer[0] != ' ' && buffer[0] != '\n' && buffer[0] != '\t'){
 			char* pch = strtok(buffer, " \t");
-			strcpy(paramNames[i], pch);
+			strncpy(paramNames[i], pch, name_length-2);
 			pch = strtok(NULL, "#\n");
-			strcpy(paramValues[i], pch);
+			strncpy(paramValues[i], pch, name_length-2);
 #ifdef DEBUG
 			printf("%s\t%s\n", paramNames[i], paramValues[i]);
 #endif
@@ -192,15 +192,15 @@ int getMaskedParameter(char* result, const char* paramName, const char* defaultV
 
 void applyMask(char* result, const char* parameterMask){
 	char tempstring[100];
-	strcpy(tempstring, parameterMask);
+	strncpy(tempstring, parameterMask, 99);
 	int i;
 	for(i = 0; i < paramCount; i++){
 		char paramName[name_length];
 		sprintf(paramName, "<%s>", paramNames[i]);
 		char replacementString[value_length];
-		strcpy(replacementString, paramValues[i]);
+		strncpy(replacementString, paramValues[i], value_length-1);
 		replaceString(result, tempstring, strtok(replacementString, " \t"), paramName);
-		strcpy(tempstring, result);
+		strncpy(tempstring, result, 99);
 	}
 }
 

@@ -110,7 +110,7 @@ int main(int argc, char *argv[]){
 	if(run != -1){
 		sprintf(processNameFull, "gsop_%d_%d\0", run, device);
 	} else {
-		sprintf(processNameFull, "gsop_%d_%d\0", firstrun, firstrun+Ntr, device);
+		sprintf(processNameFull, "gsop_%d_%d_%d\0", firstrun, firstrun+Ntr, device);
 	}
 	strncpy(processName, processNameFull, 15);
 	processName[15] = '\0';
