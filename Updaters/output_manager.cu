@@ -183,7 +183,7 @@ void computeRg(int traj){
 }
 
 void computeTEAeps(int traj){
-	if (integratorTea){
+	if (integratorTea && !tea.exact){
 		outputData.tea_eps = tea.h_epsilon[traj];
 	}else{
 		outputData.tea_eps = 0./0.;

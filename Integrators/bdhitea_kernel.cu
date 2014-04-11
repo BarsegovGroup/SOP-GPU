@@ -92,6 +92,109 @@ __device__ inline float6 integrateTea_RPY(const float4& dr){
 	return ret;
 }
 
+__global__ void integrateCholesky_D(float* D, int stride){
+	// First step of Cholesky-based integration: 
+    //   compute D matrices and calculate D*F
+    // assert (stride >= c_tea.namino * 3)
+	const int d_i = blockIdx.x*blockDim.x + threadIdx.x;
+	if(d_i < c_gsop.aminoCount){
+		const float4 coord = c_gsop.d_coord[d_i];
+	    float4 f = c_tea.mforce[d_i];
+		const int traj = (int)(d_i / c_tea.namino);
+        const int i0 = traj * c_tea.namino;
+        // Pointer to the start of matrix for current trajectory
+        int didx = traj * stride * 3 * c_tea.namino;
+        // Pointer to the start of 3-column for current bead
+        didx += (d_i-i0)*3;
+		int i;
+		for(i = i0; i < i0 + c_tea.namino; i++){
+            float4 dr = c_gsop.d_coord[i];
+        	dr.x -= coord.x;
+            dr.y -= coord.y;
+            dr.z -= coord.z;
+            dr.w = sqrtf(dr.x*dr.x + dr.y*dr.y + dr.z*dr.z);
+            if (i == d_i) {
+                D[didx+0] = 1.; // Probably should cast to float3, but I believe in NVCC
+                D[didx+1] = 0.;
+                D[didx+2] = 0.;
+                didx += stride; // Next row
+                D[didx+0] = 0.;
+                D[didx+1] = 1.;
+                D[didx+2] = 0.;
+                didx += stride; // Next row
+                D[didx+0] = 0.;
+                D[didx+1] = 0.;
+                D[didx+2] = 1.;
+                didx += stride; // Next row              
+            }else{
+                dr.x /= dr.w;
+                dr.y /= dr.w;
+                dr.z /= dr.w;
+                float6 d = integrateTea_RPY(dr);
+                D[didx+0] = d._XX; // Probably should cast to float3, but I believe in NVCC
+                D[didx+1] = d._XY;
+                D[didx+2] = d._XZ;
+                didx += stride; // Next row
+                D[didx+0] = d._YX;
+                D[didx+1] = d._YY;
+                D[didx+2] = d._YZ;
+                didx += stride; // Next row
+                D[didx+0] = d._ZX;
+                D[didx+1] = d._ZY;
+                D[didx+2] = d._ZZ;
+                didx += stride; // Next row
+#ifdef TEA_TEXTURE
+            	float4 df = tex1Dfetch(t_mforce, i);
+#else
+            	float4 df = c_tea.mforce[i];
+#endif
+                f.x += d._XX * df.x + d._XY * df.y + d._XZ * df.z;
+                f.y += d._YX * df.x + d._YY * df.y + d._YZ * df.z;
+                f.z += d._ZX * df.x + d._ZY * df.y + d._ZZ * df.z;
+            }
+		}
+        c_tea.mforce[d_i] = f;
+    }
+}
+
+__global__ void integrateCholesky_decompose(float* D, int stride){
+    // Second step of Cholesky-based integration
+    //   compute Cholesky decompositions of several matrices
+    // One block for one submatrix, 3*c_tea.namino threads in each block, 
+    //  up to CHOLSIZE threads per block (due to shared mem)
+    // This version is not ueber-optimal, but seems to perform on par with CuBCholS, 
+    //  and its authors were proud enough to make a poster talk about it
+
+    // assert(stride >= 3*c_tea.namino); assert(stride <= CHOLSIZE)
+    __shared__ float diag;
+    __shared__ float row[CHOLSIZE];
+    float val;
+    const int tid = threadIdx.x;
+    const int m = c_tea.namino * 3;
+    float* M = D + (blockIdx.y*gridDim.x + blockIdx.x)*m*stride;
+    int j,k;
+    for(j = 0; j < m; j++){
+        row[tid] = M[j*stride + tid];
+        __syncthreads();
+        val = row[tid];
+        if (tid >= j){
+            for (k = 0; k < j; ++k){
+                val -= M[k*stride + tid] * row[k];
+            }
+        }
+        if (tid == j) {
+           diag = sqrtf(val);
+        }
+        __syncthreads();
+        if (tid >= j){
+            val = val / diag;
+            M[tid*stride + j] = val;
+            M[j*stride + tid] = val;
+        }
+        __syncthreads(); // CUDA THREADS SYNCHRONIZE KAMUI SENKETSU!!!
+    }
+}
+
 __device__ inline float4 integrateTea_epsilon_local(const float4& coord1, const int idx2){
 	// Function calculates various statistics for sub-tensor responsible for interactions between two given particles
 	// .x, .y, .z --- sum of squares of normalized tensor components, 3 rows, used for C_i in eq. (19)
@@ -202,6 +305,67 @@ __device__ inline float4 integrateTea_force(const float4& coord1, const int idx2
 						D._YX*f.x + D._YY*f.y + D._YZ*f.z, 
 						D._ZX*f.x + D._ZY*f.y + D._ZZ*f.z, 0.f);
 }
+
+__global__ void integrateCholesky_L(const float* L, int stride){
+    // Third and final step of Cholesky-based integration:
+    //   calculate B*R and final displacement
+	const int d_i = blockIdx.x*blockDim.x + threadIdx.x;
+	if(d_i < c_gsop.aminoCount){
+		int i;
+		float4 f = c_tea.mforce[d_i];
+		const int traj = (int)(d_i / c_tea.namino);
+        const int i0 = traj * c_tea.namino;
+        // Pointer to the start of matrix for current trajectory
+        const float* L0 = L + traj * stride * 3 * c_tea.namino;
+        // Pointer to the start of 3-column for current bead
+        L0 += (d_i-i0)*3;
+		for(i = i0; i <= d_i; i++){
+#ifdef TEA_TEXTURE
+        	float4 df = tex1Dfetch(t_rforce, i);
+#else
+        	float4 df = c_tea.rforce[i];
+#endif
+            float6 d;
+            d._XX = L0[0];
+            d._XY = L0[1];
+            d._XZ = L0[2];
+            L0 += stride;
+            d._YY = L0[1];
+            d._YZ = L0[2];
+            L0 += stride;
+            d._ZZ = L0[2];
+            L0 += stride;
+            f.x += d._XX * df.x + d._XY * df.y + d._XZ * df.z;
+            f.y += d._YX * df.x + d._YY * df.y + d._YZ * df.z;
+            f.z += d._ZX * df.x + d._ZY * df.y + d._ZZ * df.z;
+        //    printf("%d %d - %.3f %.3f %.3f - %.3f %.3f %.3f %.3f %.3f %.3f\n", d_i, i, f.x, f.y, f.z, d._XX, d._XY, d._XZ, d._YY, d._YZ, d._ZZ);
+		}
+        if(c_gsop.pullingOn){
+			float4 extF = c_pulling.d_extForces[d_i];
+			if(extF.w == 1.0f){
+				f.x = 0.0f;
+				f.y = 0.0f;
+				f.z = 0.0f;
+			}
+			// We have already added pulling force to pulled beads during preparation
+		}
+
+		// Integration step
+		// We've replaced all forces with their `effective` counterparts, so this part of integration process stays the same as in simple langevin integrator
+		const float mult = c_langevin.hOverZeta;
+		const float3 dr = make_float3(mult*f.x, mult*f.y, mult*f.z);
+		float4 coord = c_tea.coords[d_i];
+		coord.x += dr.x;
+		coord.y += dr.y;
+		coord.z += dr.z;
+		c_gsop.d_coord[d_i] = coord;
+		// Update energies
+		coord = c_gsop.d_energies[d_i];
+		coord.w += c_langevin.tempNorm*(dr.x*dr.x + dr.y*dr.y + dr.z*dr.z);
+		c_gsop.d_energies[d_i] = coord;
+	}
+}
+
 
 __global__ void integrateTea_kernel(){
 	// Based on integrateLangevin_kernel from langevin_kernel.cu
