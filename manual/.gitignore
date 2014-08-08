@@ -1,0 +1,18 @@
+# LaTeX temp files
+*.toc
+*.aux
+*.log
+*.lot
+*.out
+*.ind
+*.lof
+*.idx
+*.ilg
+*.bbl
+*.blg
+*.fot
+
+# Backup files
+*~
+*.backup
+*.bak

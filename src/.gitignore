@@ -1,0 +1,9 @@
+# Backup files
+*~
+*.backup
+*.bak
+
+# Build artefacts
+obj
+sop-top
+sop-gpu
