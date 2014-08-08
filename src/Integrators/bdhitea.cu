@@ -69,11 +69,11 @@ void initTeaIntegrator(){
     if (!tea.exact){
     	cudaMalloc(&tea.d_epsilon, gsop.aminoCount * sizeof(float));
     	cudaMalloc(&tea.d_ci, gsop.aminoCount * sizeof(float4));
-    	cudaMalloc(&tea.d_beta_ij, Ntr * sizeof(float));
+    	cudaMalloc(&tea.d_beta_ij, gsop.Ntr * sizeof(float));
 	    tea.h_epsilon = (float*) malloc(gsop.aminoCount * sizeof(float));
-    	tea.h_beta_ij = (float*) malloc(Ntr * sizeof(float));
+    	tea.h_beta_ij = (float*) malloc(gsop.Ntr * sizeof(float));
     }else{
-    	cudaMalloc(&tea.d_tensor, Ntr * tea.namino * 3 * tea.namino * 3 * sizeof(float));
+    	cudaMalloc(&tea.d_tensor, gsop.Ntr * tea.namino * 3 * tea.namino * 3 * sizeof(float));
     }
 	checkCUDAError();
 	cudaMemcpyToSymbol(c_tea, &tea, sizeof(Tea), 0, cudaMemcpyHostToDevice);
@@ -102,10 +102,10 @@ void integrateTea(){
     		integrateTea_kernel<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
     }else{
         integrateCholesky_D<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>(tea.d_tensor, 3*tea.namino);
-        integrateCholesky_decompose<<<Ntr, 3*tea.namino>>>(tea.d_tensor, 3*tea.namino);
+        integrateCholesky_decompose<<<gsop.Ntr, 3*tea.namino>>>(tea.d_tensor, 3*tea.namino);
     /*
-    float *d = (float*) malloc(Ntr * tea.namino * 3 * tea.namino * 3 * sizeof(float));
-    cudaMemcpy(d, tea.d_tensor, Ntr * tea.namino * 3 * tea.namino * 3 * sizeof(float), cudaMemcpyDeviceToHost);
+    float *d = (float*) malloc(gsop.Ntr * tea.namino * 3 * tea.namino * 3 * sizeof(float));
+    cudaMemcpy(d, tea.d_tensor, gsop.Ntr * tea.namino * 3 * tea.namino * 3 * sizeof(float), cudaMemcpyDeviceToHost);
     for (int i = 0; i < 3*5; ++i) {
         for (int j = 0; j < 3*5; ++j) {
             printf("%.3f ", d[i*3*tea.namino + j]);
@@ -165,7 +165,7 @@ void updateTea(){
 		cudaMemcpy(tea.h_epsilon, tea.d_epsilon, gsop.aminoCount * sizeof(float), cudaMemcpyDeviceToHost);
 		checkCUDAError();
 //		printf("epsilon: [ ");
-		for (int t = 0; t < Ntr; ++t){
+		for (int t = 0; t < gsop.Ntr; ++t){
 			double epsilon = 0.0;
 			for (int i = 0; i < N; ++i){
 				epsilon += tea.h_epsilon[t*N + i];
@@ -196,7 +196,7 @@ void updateTea(){
 //			printf("%lf ", epsilon);
 		}
 //		printf("]\n");
-		cudaMemcpy(tea.d_beta_ij, tea.h_beta_ij, Ntr * sizeof(float), cudaMemcpyHostToDevice);
+		cudaMemcpy(tea.d_beta_ij, tea.h_beta_ij, gsop.Ntr * sizeof(float), cudaMemcpyHostToDevice);
 		checkCUDAError();
 	}
 }

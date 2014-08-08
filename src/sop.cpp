@@ -37,6 +37,7 @@ int getBeadMask(int i);
 char pdb_filename[100];
 
 float a;
+float eh;
 float R_limit_bond;
 float SC_limit_bond;
 int covalentLJ;
@@ -65,7 +66,6 @@ typedef struct {
 int covLinkersCount;
 CovalentLinker* covLinkers;
 float covLinkerCutoff;
-
 
 int checkCovalent(int i, int j){
 	int i1 = pdbRef[i];
@@ -246,19 +246,6 @@ float getEh(int i, int j){
 	} else {
 		return eh;
 	}
-	/*PDBAtom atom1 = pdbdata.atoms[pdbRef[i]];
-	PDBAtom atom2 = pdbdata.atoms[pdbRef[j]];
-	if((atom1.chain == 'C' && atom2.chain == 'C') || (atom1.chain == 'F' || atom2.chain == 'F')){
-		if(atom1.resid > 240 && atom2.resid > 240){
-			return 1.3;
-		} else if(atom1.resid < 240 && atom2.resid < 240){
-			return 1.0;
-		} else {
-			return 0.9;
-		}
-	} else {
-		return 1.0;
-	}*/
 }
 
 float getDistanceAtoms(int i1, int i2){

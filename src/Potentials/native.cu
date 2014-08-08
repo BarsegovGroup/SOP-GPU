@@ -14,7 +14,7 @@ void createNativePotential(){
 	nativePotential.compute = &computeNative;
 	nativePotential.computeEnergy = &computeNativeEnergy;
 	potentials[potentialsCount] = &nativePotential;
-	if(gsop.deviceProp.major == 2){
+	if(gsop.deviceProp.major == 2){ // TODO: >= 2
 		cudaFuncSetCacheConfig(native_kernel, cudaFuncCachePreferL1);
 		cudaFuncSetCacheConfig(nativeEnergy_kernel, cudaFuncCachePreferL1);
 	}
@@ -65,7 +65,7 @@ void initNative(){
 		totalNative++;
 	}
 
-	for(j = 1; j < Ntr; j++){
+	for(j = 1; j < gsop.Ntr; j++){
 		for(i = 0; i < sop.aminoCount; i++){
 			for(k = 0; k < native.max_native; k++){
 				native.h_native[j*sop.aminoCount + i + k*gsop.aminoCount] =

@@ -22,8 +22,8 @@ CXX_SOURCES			:= main.cpp \
 	IO/configreader.cpp \
 	Util/wrapper.cpp \
 	Util/mystl.cpp \
-	param_initializer.cpp \
-	sop.cpp 
+	param_initializer.cpp
+
 CU_SOURCES			:= gsop.cu
 CXX_OBJS				:= $(patsubst %.cpp, $(OBJDIR)/%.cpp.o, $(CXX_SOURCES))
 CU_OBJS				:= $(patsubst %.cu, $(OBJDIR)/%.cu.o, $(CU_SOURCES))

@@ -35,8 +35,6 @@ float tandemVectorZ;
 int firstResid;
 int lastResid;*/
 
-float eh;
-
 SOP sop;
 PDB pdbdata;
 SOP tandem;

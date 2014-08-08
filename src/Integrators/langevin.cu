@@ -23,10 +23,11 @@ void initLangevinIntegrator(){
 	langevin.zeta = getFloatParameter(LANGEVIN_ZETA_STRING, DEFAULT_LANGEVIN_ZETA, 1);
 	langevin.hOverZeta = langevin.h/langevin.zeta;
 	langevin.tempNorm = langevin.zeta/(6.0*langevin.h);
+    int seed = getIntegerParameter("seed", time(NULL), 1) + gsop.firstrun;
 	initRand(seed, gsop.aminoCount);
 	createTemperatureControl();
 	cudaMemcpyToSymbol(c_langevin, &langevin, sizeof(Langevin), 0, cudaMemcpyHostToDevice);
-	if(gsop.deviceProp.major == 2){
+	if(gsop.deviceProp.major == 2){ // TODO: >= 2
 		cudaFuncSetCacheConfig(integrateLangevin_kernel, cudaFuncCachePreferL1);
 	}
 }
@@ -41,8 +42,8 @@ void deleteLangevinIntegrator(){
 
 void createTemperatureControl(){
 	int heating = getYesNoParameter(TC_HEATING_STRING, 0, 1);
-	if(heating == 1 || heatingOn == 1){
-		heatingOn = 1;
+	if(heating == 1 || gsop.heatingOn == 1){
+		gsop.heatingOn = 1;
 		printf("Initializing heating protocol...\n");
 		sprintf(temperatureUpdater.name, "TemperatureControl");
 		temperatureUpdater.update = &updateTemperature;
@@ -57,8 +58,7 @@ void createTemperatureControl(){
 }
 
 void initTemperatureControl(){
-	int heating = getYesNoParameter(TC_HEATING_STRING, 0, 1);
-	if(heating){
+	if(gsop.heatingOn){
 		langevin.initialT = getFloatParameter(TC_INITIAL_T_STRING, 0, 0);
 		langevin.temp = langevin.initialT;
 		langevin.deltaT = getFloatParameter(TC_DELTA_T_STRING, 0, 0);
@@ -80,3 +80,4 @@ void updateTemperature(){
 void deleteTemperatureUpdater(){
 
 }
+

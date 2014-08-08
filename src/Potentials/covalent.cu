@@ -18,7 +18,7 @@ void createCovalentPotential(){
 	covalentPotential.compute = &computeCovalent;
 	covalentPotential.computeEnergy = &computeCovalentEnergy;
 	potentials[potentialsCount] = &covalentPotential;
-	if(gsop.deviceProp.major == 2){
+	if(gsop.deviceProp.major == 2){ // TODO: >= 2
 		cudaFuncSetCacheConfig(covalent_kernel, cudaFuncCachePreferL1);
 		cudaFuncSetCacheConfig(covalentEnergy_kernel, cudaFuncCachePreferL1);
 	}
@@ -68,7 +68,7 @@ void initCovalent(){
 
 	// Multiplying data for many trajectories (Many-runs-per-GPU)
 	int traj;
-	for(traj = 1; traj < Ntr; traj++){
+	for(traj = 1; traj < gsop.Ntr; traj++){
 		for(i = 0; i < sop.aminoCount; i++){
 			for(k = 0; k < covalent.max_covalent; k++){
 				covalent.h_bonds[traj*sop.aminoCount + i + k*gsop.aminoCount].i2 =

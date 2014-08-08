@@ -66,11 +66,12 @@ int integratorTea;
 void initGPU(){
 
 	//initDCD();
-	cudaSetDevice(device);
-	cudaGetDeviceProperties(&gsop.deviceProp, device);
-	printf("Using device %d: \"%s\"\n", device, gsop.deviceProp.name);
+	cudaSetDevice(gsop.deviceId);
+	cudaGetDeviceProperties(&gsop.deviceProp, gsop.deviceId);
+	printf("Using device %d: \"%s\"\n", gsop.deviceId, gsop.deviceProp.name);
 	printf("CUDA Capability revision number: %d.%d\n", gsop.deviceProp.major, gsop.deviceProp.minor);
-	gsop.aminoCount = Ntr*sop.aminoCount;
+	printf("CUDA PCIe ID: %x:%x:%x\n", gsop.deviceProp.pciDomainID, gsop.deviceProp.pciBusID, gsop.deviceProp.pciDeviceID);
+	gsop.aminoCount = gsop.Ntr*sop.aminoCount;
 	gsop.width = gsop.aminoCount;
 	while(gsop.width % 8 != 0){
 		gsop.width++;
@@ -85,8 +86,13 @@ void initFF(){
 
 	potentialsCount = 0;
 	updatersCount = 0;
-	gsop.minimizationOn = minimizationOn;
-	gsop.pullingOn = pullingOn;
+	
+    char stageString[100];
+    getMaskedParameter(stageString, "stage", "", 0);
+	gsop.minimizationOn = (strcmp(stageString, "minim" ) == 0);
+	gsop.heatingOn      = (strcmp(stageString, "heat"  ) == 0);
+	gsop.pullingOn      = (strcmp(stageString, "pull"  ) == 0);
+	gsop.indentationOn  = (strcmp(stageString, "indent") == 0);
 
 	// Allocating memory for the model
 	int i;
@@ -108,7 +114,7 @@ void initFF(){
 	createPullingPotential(); // External force
 	createPullingPlanePotential();
 
-	if(Ntr == 1){
+	if(gsop.Ntr == 1){
 		createPossiblepairlistUpdater(); // Updates the list of all pairs (for Verlet list)
 	}
 	createOutputManager(); // Save dat output
@@ -176,10 +182,10 @@ void runGPU(){
 
 
 	int traj;
-	for(traj = 0; traj < Ntr; traj++){
+	for(traj = 0; traj < gsop.Ntr; traj++){
 		char trajnum[10];
 		char trajCoordFilename[100];
-		sprintf(trajnum, "%d", traj+firstrun);
+		sprintf(trajnum, "%d", traj+gsop.firstrun);
 		replaceString(trajCoordFilename, final_filename, trajnum, "<run>");
 		for(i = 0; i < sop.aminoCount; i++){
 			sop.aminos[i].x = gsop.h_coord[sop.aminoCount*traj + i].x;
@@ -223,7 +229,7 @@ void copyCoordinatesTrajectory(int traj){
 		gsop.h_coord[traj*sop.aminoCount + i].w = 0;
 	}
 #ifdef DEBUG
-	printf("Coordinates for run #%d:\n", traj+firstrun);
+	printf("Coordinates for run #%d:\n", traj+gsop.firstrun);
 	for(i = 0; i < sop.aminoCount; i++){
 		printf("%d:\t%f\t%f\t%f\n", i, sop.aminos[i].x, sop.aminos[i].y, sop.aminos[i].z);
 	}

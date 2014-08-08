@@ -16,8 +16,7 @@ float3 computeForce(float4 coordN, int traj);
 extern void replaceString(char* resultString, const char* initialString, const char* replacementString, const char* stringToReplace);
 
 void createPullingPotential(){
-	if(pullingOn == 1 || getYesNoParameter(PULLING_ON_STRING, 0, 1) == 1){
-		pullingOn = 1;
+	if(gsop.pullingOn == 1 || getYesNoParameter(PULLING_ON_STRING, 0, 1) == 1){
 		gsop.pullingOn = 1;
 		//sprintf(pullingPotential.name, "Pulling");
 		//pullingPotential.compute = &computePulling;
@@ -45,10 +44,10 @@ void createPullingPotential(){
 void initPulling(){
 	printf("Initializing pulling protocol...\n");
 	int i, j, traj;
-	pulling.pullVector = (float3*)calloc(Ntr, sizeof(float3));
-	pulling.cantCoord0 = (float3*)calloc(Ntr, sizeof(float3));
-	pulling.cantCoord = (float3*)calloc(Ntr, sizeof(float3));
-	pulling.extForce = (float3*)calloc(Ntr, sizeof(float3));
+	pulling.pullVector = (float3*)calloc(gsop.Ntr, sizeof(float3));
+	pulling.cantCoord0 = (float3*)calloc(gsop.Ntr, sizeof(float3));
+	pulling.cantCoord = (float3*)calloc(gsop.Ntr, sizeof(float3));
+	pulling.extForce = (float3*)calloc(gsop.Ntr, sizeof(float3));
 	pulling.h_extForces = (float4*)calloc(gsop.aminoCount, sizeof(float4));
 	cudaMalloc((void**)&pulling.d_extForces, gsop.aminoCount*sizeof(float4));
 
@@ -93,7 +92,7 @@ void initPulling(){
 		pulling.fixedEnd = getIntegerParameter(PULLING_FIXED_END_STRING, 1, 1);
 		pulling.pulledEnd = getIntegerParameter(PULLING_PULLED_END_STRING, 2, 1);
 		getVectorParameter(PULLING_VECTOR_STRING, &pullVector.x, &pullVector.y, &pullVector.z, 0, 0, 0, 0);
-		for(traj = 0; traj < Ntr; traj++){
+		for(traj = 0; traj < gsop.Ntr; traj++){
 			pulling.pullVector[traj].x = pullVector.x;
 			pulling.pullVector[traj].y = pullVector.y;
 			pulling.pullVector[traj].z = pullVector.z;
@@ -108,7 +107,7 @@ void initPulling(){
 	} else if(strcmp(pullDirection, PULLING_DIRECTION_ENDTOEND_STRING) == 0){
 		pulling.fixedEnd = getIntegerParameter(PULLING_FIXED_END_STRING, 0, 0);
 		pulling.pulledEnd = getIntegerParameter(PULLING_PULLED_END_STRING, 0, 0);
-		for(traj = 0; traj < Ntr; traj++){
+		for(traj = 0; traj < gsop.Ntr; traj++){
 			pulling.pullVector[traj].x = gsop.h_coord[traj*sop.aminoCount + pulling.pulledEnd].x
 					- gsop.h_coord[traj*sop.aminoCount + pulling.fixedEnd].x;
 			pulling.pullVector[traj].y = gsop.h_coord[traj*sop.aminoCount + pulling.pulledEnd].y
@@ -140,7 +139,7 @@ void initPulling(){
 		exit(-1);
 	}
 
-	for(traj = 0; traj < Ntr; traj++){
+	for(traj = 0; traj < gsop.Ntr; traj++){
 		for(i = 0; i < sop.aminoCount; i++){
 			pulling.h_extForces[traj*sop.aminoCount + i] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		}
@@ -174,14 +173,14 @@ void initPulling(){
 	checkCUDAError();
 
 	if(pulling.deltax != 0.0f){
-		pullFilenames = (char**)calloc(Ntr, sizeof(char*));
+		pullFilenames = (char**)calloc(gsop.Ntr, sizeof(char*));
 		char tempFilename[100];
 
 		getMaskedParameter(tempFilename, PULLING_FILENAME, DEFAULT_PULLING_FILENAME, 1);;
-		for(traj = 0; traj < Ntr; traj++){
+		for(traj = 0; traj < gsop.Ntr; traj++){
 			pullFilenames[traj] = (char*)calloc(100, sizeof(char));
 			char trajnum[10];
-			sprintf(trajnum, "%d", traj+firstrun);
+			sprintf(trajnum, "%d", traj+gsop.firstrun);
 			replaceString(pullFilenames[traj], tempFilename, trajnum, "<run>");
 			pullFile = fopen(pullFilenames[traj], "w");
 			fclose(pullFile);
@@ -205,10 +204,10 @@ inline void updatePulling(){
 
 	copyCoordDeviceToHost();
 	int traj, j;
-	for(traj = 0; traj < Ntr; traj++){
+	for(traj = 0; traj < gsop.Ntr; traj++){
 		pulling.extForce[traj] = computeForce(gsop.h_coord[sop.aminoCount*traj + pulling.pulledEnd], traj);
-		// Increasing the force
-		xt = pulling.deltax*(step / pullingUpdater.frequency);
+		// Increasing the force'
+		float xt = pulling.deltax*(step / pullingUpdater.frequency);
 		pulling.cantCoord[traj].x = pulling.cantCoord0[traj].x + xt * pulling.pullVector[traj].x;
 		pulling.cantCoord[traj].y = pulling.cantCoord0[traj].y + xt * pulling.pullVector[traj].y;
 		pulling.cantCoord[traj].z = pulling.cantCoord0[traj].z + xt * pulling.pullVector[traj].z;
@@ -221,11 +220,11 @@ inline void updatePulling(){
 	if(step % pullingUpdater.frequency == 0){
 		if(step % 100000 == 0){
 			printf("'Cantilever chip' coordinates for run #%d: %f, %f, %f\n",
-					firstrun, pulling.cantCoord[0].x, pulling.cantCoord[0].y, pulling.cantCoord[0].z);
+					gsop.firstrun, pulling.cantCoord[0].x, pulling.cantCoord[0].y, pulling.cantCoord[0].z);
 			printf("'Cantilever tip' coordinates for run #%d: %f, %f, %f\n",
-					firstrun, gsop.h_coord[pulling.pulledEnd].x, gsop.h_coord[pulling.pulledEnd].y, gsop.h_coord[pulling.pulledEnd].z);
+					gsop.firstrun, gsop.h_coord[pulling.pulledEnd].x, gsop.h_coord[pulling.pulledEnd].y, gsop.h_coord[pulling.pulledEnd].z);
 		}
-		for(traj = 0; traj < Ntr; traj++){
+		for(traj = 0; traj < gsop.Ntr; traj++){
 			pullFile = fopen(pullFilenames[traj], "a");
 
 			float endToEnd_x = (gsop.h_coord[traj*sop.aminoCount + pulling.pulledEnd].x - gsop.h_coord[traj*sop.aminoCount + pulling.fixedEnd].x)*pulling.pullVector[traj].x +

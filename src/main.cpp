@@ -3,30 +3,19 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
-#include <sys/prctl.h>
 
 #include "def_param.h"
+#include "gsop.h"
 #include "Util/wrapper.h"
 #define buf_size 2048
 
 long long int initialTime;
 long long int lastTime;
-long long int switchTime;
 
 long int step;
 
-float forcex, forcey, forcez, xt, x0;
-float epot_fene, epot_LJ, tempav, epot_LJ_att, epot_LJ_nei, epot_LJ_rep;
-float x_R, R, rg;
-
-int pullingOn = 0;
-int heatingOn = 0;
-int indentationOn = 0;
-int minimizationOn = 0;
-
 PDB pdbdata;
 SOP sop;
-
 
 extern void initGPU();
 extern void initFF();
@@ -36,14 +25,9 @@ extern void replaceString(char* resultString, const char* initialString, const c
 extern void runGPU();
 extern void cleanup();
 
-extern void initParameters(const char* configFile, int createTopology);
+extern void initParameters(const char* configFile);
 
 void getOutputFilnames();
-
-extern FILE* dcd_open_read(char *dcd_filename);
-extern void dcd_read_header(FILE* dcd_file, char *dcd_filename, int* N, int* NFILE, int* NPRIV, int* NSAVC, float* DELTA);
-extern int dcd_read_frame(FILE* dcd_file, int N, float *X, float *Y, float *Z);
-extern void dcd_close(FILE* dcd_file);
 
 int main(int argc, char *argv[]){
 
@@ -58,19 +42,14 @@ int main(int argc, char *argv[]){
 	step = 0;
 
 	int i;
-	char   *str;
 
 	if(argc < 1){
 		DIE("ERROR: Configuration file should be specified.");
 	}
 
-	restart = 0;
-	int createTopology = 0;
+	int restart = 0;
 
 	for(i = 1; i < argc; i++){
-		if(strcmp(argv[i], "--make-top") == 0){
-			createTopology = 1;
-		}
 		if(strcmp(argv[i], "--restart") == 0){
 			//printf("Reading restart parameters...\n");
 			restart = 1;
@@ -78,37 +57,21 @@ int main(int argc, char *argv[]){
 		}
 	}
 
-	str = argv[1];
 	// Read main parameters of the simulation (number of steps, etc.)
-	initParameters(str, createTopology);
+	initParameters(argv[1]);
 
-    if(createTopology){
-		DIE("Please, use sop-top utility to create topology.");
-	}
-
-	if(top_filename == NULL){
+   	if(top_filename == NULL){
 		DIE("Please, use sop-top utility to create topology.");
 	} else {
 		sop.load(top_filename);
 	}
-	char processNameFull[100];
-	char processName[100];
-	if(run != -1){
-		sprintf(processNameFull, "gsop_%d_%d", run, device);
-	} else {
-		sprintf(processNameFull, "gsop_%d_%d_%d", firstrun, firstrun+Ntr, device);
-	}
-	strncpy(processName, processNameFull, 15);
-	processName[15] = '\0';
-
-	prctl(PR_SET_NAME, processName);
 
 	initGPU(); // Set device, allocate memory for the common variables (coordinates/forces)
 	if(restart == 0){ //Restart feature is not working at a time (condition always satisfied)
-		for(i = 0; i < Ntr; i++){
+		for(i = 0; i < gsop.Ntr; i++){
 			char trajnum[10];
 			char trajCoordFilename[100];
-			sprintf(trajnum, "%d", i+firstrun);
+			sprintf(trajnum, "%d", i+gsop.firstrun);
 			replaceString(trajCoordFilename, coord_filename, trajnum, "<run>");
 			readCoord(trajCoordFilename, sop); // Read coordinates from a file for all (or single) trajectories
 			copyCoordinatesTrajectory(i); // Copy coordinates to a specific location in a coordinates array
@@ -139,14 +102,10 @@ int main(int argc, char *argv[]){
 		copyCoordinates();
 	}*/
 
-	if(restart == 0){
-		xt = 0.0;
-	}
-	printf("Starting %d runs (%ld steps).\n", Ntr, numsteps);
+	printf("Starting %d runs (%ld steps).\n", gsop.Ntr, numsteps);
 	runGPU(); // Strart simulations
 	//savePDB(final_filename);
 	// All done. Release memory/close files.
 	//cleanup();
-
 }
 

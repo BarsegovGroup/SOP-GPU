@@ -40,20 +40,20 @@ void createOutputManager(){
 void initOutputManager(){
 	printf("Initializing output...\n");
 	int traj;
-	/*dat_file = (FILE**)calloc(Ntr, sizeof(FILE*));
-	for(traj = 0; traj < Ntr; traj++){
+	/*dat_file = (FILE**)calloc(gsop.Ntr, sizeof(FILE*));
+	for(traj = 0; traj < gsop.Ntr; traj++){
 		char trajnum[10];
-		sprintf(trajnum, "%d", traj+firstrun);
+		sprintf(trajnum, "%d", traj+gsop.firstrun);
 		replaceString(tempFilename, dat_filename, trajnum, "<run>");
 		dat_file[traj] = fopen(tempFilename, "w");
 	}*/
-	dat_filenames = (char**)calloc(Ntr, sizeof(char*));
+	dat_filenames = (char**)calloc(gsop.Ntr, sizeof(char*));
 	char dat_filename[100];
 	getMaskedParameter(dat_filename, OUTPUT_FILENAME_STRING, DEFAULT_OUTPUT_FILENAME, 1);;
-	for(traj = 0; traj < Ntr; traj++){
+	for(traj = 0; traj < gsop.Ntr; traj++){
 		dat_filenames[traj] = (char*)calloc(100, sizeof(char));
 		char trajnum[10];
-		sprintf(trajnum, "%d", traj+firstrun);
+		sprintf(trajnum, "%d", traj+gsop.firstrun);
 		replaceString(dat_filenames[traj], dat_filename, trajnum, "<run>");
 		dat_file = fopen(dat_filenames[traj], "w");
 		fclose(dat_file);
@@ -63,7 +63,7 @@ void initOutputManager(){
 
 void closeDAT(){
 	/*int traj;
-	for(traj = 0; traj < Ntr; traj++){
+	for(traj = 0; traj < gsop.Ntr; traj++){
 		fclose(dat_file[traj]);
 	}*/
 }
@@ -80,14 +80,14 @@ void printStep(){
 		//cudaMemcpy(gsop.d_coordToSave, gsop.d_coord, size, cudaMemcpyDeviceToDevice);
 		//cudaMemcpy(gsop.d_energiesToSave, gsop.d_energies, size, cudaMemcpyDeviceToDevice);
 		char runstring[20];
-		if(Ntr == 1){
-			sprintf(runstring, "Run %d", run);
+		if(gsop.Ntr == 1){
+			sprintf(runstring, "Run %d", gsop.firstrun);
 		} else {
-			sprintf(runstring, "%d runs", Ntr);
+			sprintf(runstring, "%d runs", gsop.Ntr);
 		}
-		printf("Writing output at step %ld of %ld. %s on %d.\n", step, numsteps, runstring, device);
+		printf("Writing output at step %ld of %ld. %s on %d [%s].\n", step, numsteps, runstring, gsop.deviceId, gsop.deviceProp.name);
 		int traj;
-		for(traj = 0; traj < Ntr; traj++){
+		for(traj = 0; traj < gsop.Ntr; traj++){
 			dat_file = fopen(dat_filenames[traj], "a");
 			outputData.step = step;
 			//outputData.temp = temp;

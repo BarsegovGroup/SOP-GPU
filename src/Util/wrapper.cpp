@@ -17,7 +17,7 @@ void print_trace(FILE *f) {
     size = backtrace (array, 30);
     strings = backtrace_symbols (array, size);
 
-    fprintf(f, "Stack trace (%zd frames):\n", size);
+    fprintf(f, "Stack trace (%zu frames):\n", size);
 
     for (i = 0; i < size; i++)
         fprintf(f, "%s\n", strings[i]);

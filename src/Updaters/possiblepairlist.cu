@@ -13,9 +13,9 @@ void createPossiblepairlistUpdater(){
 	sprintf(possiblepairlistMaker.name, "Possiblepairlist");
 	possiblepairlistMaker.update = &generatePossiblepairlist;
 	possiblepairlistMaker.destroy = &deletePossiblepairlist;
-	possiblepairlistMaker.frequency = possiblepairs_freq;
+	possiblepairlistMaker.frequency = getIntegerParameter("possiblepairs_freq", 100000, 1);
 	updaters[updatersCount] = &possiblepairlistMaker;
-	if(gsop.deviceProp.major == 2){
+	if(gsop.deviceProp.major == 2){ // TODO: >= 2
 		cudaFuncSetCacheConfig(generate_possiblepairs, cudaFuncCachePreferL1);
 	}
 	updatersCount++;

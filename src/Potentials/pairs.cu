@@ -13,7 +13,7 @@ void createPairsPotential(){
 	pairsPotential.compute = &computePairs;
 	pairsPotential.computeEnergy = &computePairsEnergy;
 	potentials[potentialsCount] = &pairsPotential;
-	if(gsop.deviceProp.major == 2){
+	if(gsop.deviceProp.major == 2){ // TODO: >= 2
 		cudaFuncSetCacheConfig(pairs_kernel, cudaFuncCachePreferL1);
 		cudaFuncSetCacheConfig(pairsEnergy_kernel, cudaFuncCachePreferL1);
 	}

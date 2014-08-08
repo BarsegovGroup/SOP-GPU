@@ -20,12 +20,12 @@ void addTipMicaParticles();
  */
 
 void createIndentationPotential(){
-	if(indentationOn == 1 || getYesNoParameter(INDENTATION_ON_STRING, 0, 1) == 1){
-		if(Ntr > 1){
+	if(gsop.indentationOn == 1 || getYesNoParameter(INDENTATION_ON_STRING, 0, 1) == 1){
+		if(gsop.Ntr > 1){
 			printf("Many-runs-per-GPU mode is not supported by indentation potential.\n");
 			exit(-1);
 		}
-		indentationOn = 1;
+		gsop.indentationOn = 1;
 		sprintf(indentationPotential.name, "Indentation");
 		discreteSurf = getYesNoParameter(INDENTATION_DISCRETE_SURF_STRING, 0, 1);
 		if(discreteSurf){
@@ -35,7 +35,7 @@ void createIndentationPotential(){
 		}
 		indentationPotential.computeEnergy = &computeIndentationEnergy;
 		potentials[potentialsCount] = &indentationPotential;
-		if(gsop.deviceProp.major == 2){
+		if(gsop.deviceProp.major == 2){ // TODO: >= 2
 			cudaFuncSetCacheConfig(indentation_kernel, cudaFuncCachePreferL1);
 		}
 		potentialsCount++;

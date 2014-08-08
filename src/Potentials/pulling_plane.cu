@@ -22,7 +22,7 @@ void createPullingPlanePotential(){
 		pullingPlanePotential.compute = &computePullingPlane;
 		pullingPlanePotential.computeEnergy = &computePullingPlaneEnergy;
 		potentials[potentialsCount] = &pullingPlanePotential;
-		if(gsop.deviceProp.major == 2){
+		if(gsop.deviceProp.major == 2){ // TODO: >= 2
 			cudaFuncSetCacheConfig(pullingPlane_kernel, cudaFuncCachePreferL1);
 		}
 		potentialsCount++;
@@ -39,7 +39,7 @@ void createPullingPlanePotential(){
 
 void initPullingPlane(){
 	printf("Initializing pulling plane protocol...\n");
-    if (Ntr != 1) {
+    if (gsop.Ntr != 1) {
         printf("Pulling plane can only run in single-trajectory-per-GPU mode (runnum 1)\n");
         exit(-1);
     }
@@ -113,7 +113,7 @@ void initPullingPlane(){
     char tmpstr[512];
 	getMaskedParameter(tmpstr, PULLINGPLANE_FILENAME, "", 0);
 	char trajnum[10];
-	sprintf(trajnum, "%d", firstrun);
+	sprintf(trajnum, "%d", gsop.firstrun);
 	replaceString(pullingPlaneFilename, tmpstr, trajnum, "<run>");
 	pullingPlaneFile = fopen(pullingPlaneFilename, "w");
 	fclose(pullingPlaneFile);
@@ -139,7 +139,7 @@ inline void updatePullingPlane(){
 	//copyCoordDeviceToHost();
 	int j;
 	// Increasing the force
-	xt = pullingPlane.deltax * step / pullingPlaneUpdater.frequency;
+	float xt = pullingPlane.deltax * step / pullingPlaneUpdater.frequency;
     /*
 	pullingPlane.cantCoord.x = pullingPlane.planeCoord0.x + xt * pullingPlane.pullVector.x;
 	pullingPlane.cantCoord.y = pullingPlane.planeCoord0.y + xt * pullingPlane.pullVector.y;
@@ -152,9 +152,9 @@ inline void updatePullingPlane(){
 	if(step % pullingPlaneUpdater.frequency == 0){
 		if(step % 100000 == 0){
 			printf("Cantilever coordinates for run #%d: %f, %f, %f\n",
-					firstrun, pullingPlane.cantCoord.x, pullingPlane.cantCoord.y, pullingPlane.cantCoord.z);
+					gsop.firstrun, pullingPlane.cantCoord.x, pullingPlane.cantCoord.y, pullingPlane.cantCoord.z);
 			printf("Plane coordinates for run #%d: %f, %f, %f\n",
-					firstrun, pullingPlane.planeCoord.x, pullingPlane.planeCoord.y, pullingPlane.planeCoord.z);
+					gsop.firstrun, pullingPlane.planeCoord.x, pullingPlane.planeCoord.y, pullingPlane.planeCoord.z);
 		}
         pullingPlaneFile = fopen(pullingPlaneFilename, "a");
         float3 extForce = make_float3(0.f, 0.f, 0.f);

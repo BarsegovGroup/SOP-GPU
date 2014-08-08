@@ -9,6 +9,7 @@
 char dcd_filename[100];
 char restartpdb_filename[100];
 char restartconf_filename[100];
+int restartfreq;
 
 char** dcd_filenames;
 DCD dcd;
@@ -20,9 +21,10 @@ void createDCDOutputManager(){
 	printf("Initializing dcd output manager...\n");
 	sprintf(dcdOutputManager.name, "DCD output");
 	dcdOutputManager.update = &saveCoord;
-	dcdOutputManager.frequency = DCDfreq;
+	dcdOutputManager.frequency = getIntegerParameter(DCD_FREQUENCY_STRING, 10000, 1);;
 	updaters[updatersCount] = &dcdOutputManager;
 	updatersCount++;
+	restartfreq = getIntegerParameter("restartfreq", 100000, 1);
 	initDCD();
 	printf("Done initializing dcd output manager...\n");
 }
@@ -42,12 +44,12 @@ void initDCD(){
 	getMaskedParameter(final_filename, "finalcoord", "<name>_<author><run>_<stage>_final.pdb", 1);
 
 	int traj;
-	dcd_filenames = (char**)calloc(Ntr, sizeof(char*));
-	for(traj = 0; traj < Ntr; traj++){
+	dcd_filenames = (char**)calloc(gsop.Ntr, sizeof(char*));
+	for(traj = 0; traj < gsop.Ntr; traj++){
 		//printf("%d.1\n", traj);
 		dcd_filenames[traj] = (char*)calloc(100, sizeof(char));
 		char trajnum[10];
-		sprintf(trajnum, "%d", traj+firstrun);
+		sprintf(trajnum, "%d", traj+gsop.firstrun);
 		replaceString(dcd_filenames[traj], dcd_filename, trajnum, "<run>");
 		//printf("%d.2\n", traj);
 		int particleCount = sop.aminoCount;
@@ -82,7 +84,7 @@ void saveCoord(){
 		printf("Saving coordinates into dcd...");
 		copyCoordDeviceToHost();
 		int particleCount = sop.aminoCount;
-		for(traj = 0; traj < Ntr; traj++){
+		for(traj = 0; traj < gsop.Ntr; traj++){
 			for(i = 0; i < sop.aminoCount; i++){
 				X[i] = gsop.h_coord[sop.aminoCount*traj + i].x;
 				Y[i] = gsop.h_coord[sop.aminoCount*traj + i].y;
@@ -118,10 +120,10 @@ void saveCoord(){
 	}
 
 	if(step % restartfreq == 0){
-		for(int traj = 0; traj < Ntr; traj++){
+		for(int traj = 0; traj < gsop.Ntr; traj++){
 			char trajnum[10];
 			char tempRestartFilename[100];
-			sprintf(trajnum, "%d", traj+firstrun);
+			sprintf(trajnum, "%d", traj+gsop.firstrun);
 			replaceString(tempRestartFilename, restartpdb_filename, trajnum, "<run>");
 			for(i = 0; i < sop.aminoCount; i++){
 				sop.aminos[i].x = gsop.h_coord[sop.aminoCount*traj + i].x;

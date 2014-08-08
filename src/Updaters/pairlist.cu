@@ -13,9 +13,9 @@ void createPairlistUpdater(){
 	sprintf(pairlistMaker.name, "Pairlist");
 	pairlistMaker.update = &generatePairlist;
 	pairlistMaker.destroy = &deletePairlist;
-	pairlistMaker.frequency = pairs_freq;
+	pairlistMaker.frequency = getIntegerParameter("pairs_freq", 1000, 1);
 	updaters[updatersCount] = &pairlistMaker;
-	if(gsop.deviceProp.major == 2){
+	if(gsop.deviceProp.major == 2){ // TODO: >=  2
 		cudaFuncSetCacheConfig(generate_pairs, cudaFuncCachePreferL1);
 	}
 	updatersCount++;
@@ -59,9 +59,9 @@ void initPairlist(){
 		}
 	}
 
-	//Duplicating data for mass-production (if Ntr > 1)
+	//Duplicating data for mass-production (if gsop.Ntr > 1)
 	int traj;
-	for(traj = 1; traj < Ntr; traj++){
+	for(traj = 1; traj < gsop.Ntr; traj++){
 		for(i = 0; i < sop.aminoCount; i++){
 			for(k = 0; k < pairList.max_possiblePairs; k++){
 				pairList.h_possiblePairs[traj*sop.aminoCount + i + k*gsop.aminoCount] =
