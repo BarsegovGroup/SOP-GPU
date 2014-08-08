@@ -1,0 +1,986 @@
+\documentclass[a4paper]{article}
+
+\setlength{\textheight}{9.0in}
+\setlength{\oddsidemargin}{-0.2in}
+\setlength{\evensidemargin}{0in}
+\setlength{\textwidth}{6.75in}
+\setlength{\topmargin}{0.1in}
+
+\usepackage{color}
+\usepackage{subfigure}
+\usepackage{graphics}
+\usepackage{amssymb,amsthm,amsmath,amsfonts,latexsym}
+\usepackage{rotating}
+\usepackage[pdftex,colorlinks=true,linkcolor=blue]{hyperref}
+
+\linespread{1.5}
+
+\begin{document}
+
+\begin{titlepage}
+
+\begin{center}
+
+\includegraphics[width=0.20\textwidth]{SOPGPULogo-bw}\\[3cm] 
+
+{\Huge SOP-GPU}\\[0.5cm]
+{\Large Manual}\\[0.2cm]
+{\large v.1.07}\\[1.8cm]
+
+{\large Artem Zhmurov}\\
+{\small (zhmurov@gmail.com)}\\[1.0cm]
+
+{\large Valeri Barsegov}\\
+{\small (Valeri\_Barsegov@uml.edu)}
+
+\vfill
+
+{\large \today}
+
+\end{center}
+
+\end{titlepage}
+
+
+\section{General notes on SOP model}
+\label{sec:sop}
+In SOP model, each residue is described using a single interaction center ($C_{\alpha}$ atom). The potential energy function of a protein conformation $V$, specified in terms of the coordinates $\bf{\{r\}}=\bf{r}_1, \bf{r}_2, \ldots \bf{r}_N$, is given by
+%%
+\begin{equation}\label{eq:sop}
+\begin{split}
+V&=V_{FENE}+V^{ATT}_{NB}+V^{REP}_{NB}=\\
+&-\sum_{covalent}{\frac{k}{2}R_0^2\log{\left(1-\frac{\left(r_{ij}-r^0_{ij}\right)^2}{R_0^2}\right)}}\\
+&+\sum_{native}\varepsilon_h\left[\left(\frac{r^{0}_{ij}}{r_{ij}}\right)^{12}-2\left(\frac{r^{0}_{ij}}{r_{ij}}\right)^{6}\right]\\
+&+\sum_{repulsive}{\varepsilon_r\left(\frac{\sigma}{r_{ij}}\right)^{6}}.
+\end{split}
+\end{equation}
+%%
+In Eq.\ref{eq:sop}, the distance between two residues, $i$ and $j$, is $r_{ij}$, while $r^0_{ij}$ is its value in native (PDB) structure. The finite extensible nonlinear elastic (FENE) potential $V_{FENE}$ describes covalent bonds (both backbone and disulfide bonds) with tolerance value in the change of covalent bond $R_0 = 2$\AA. We used Lennard-Jones potential ($V^{ATT}_{NB}$) to account for the noncovalent interactions that stabilize the native state (i.e. native interactions). Two non-covalently linked residues form native contact if, in native state (PDB structure), the distance between their $C_{\alpha}$ atoms is less then cut-off distance (simple Go definition) or/and centers of heavy atoms of amino-acids side chains are within some cut-off distance (full Go definition). Most common definition is a simple Go with a cut-off distance of $8$\AA. The value of $\varepsilon_h$ quantifies the strength of non-bonded interactions. More detailed explanatioin on definition of native contacts can be found in 
+Section \ref{sec:topology.creation}. All other pairs of atoms (i.e. that neither connected covalently nor form a native contact) are considered to have repulsive Lennard Jones potential $V^{NB}_{REP}$ ($\sim 1/r^6$). The strength or repulsive potential is described by parameter $\varepsilon_r = 1$ kcal/mol, repulsive distance is equal to the length of amino-acid $\sigma = 3.8$\AA.
+
+\subsection{Using SOP-GPU program}
+As a parameter, configuration filename should be passed to the program. From this configuration file, program determines where to find system topology and coordinates files and what simulation protocol should be performed. Several output files are saved during computation: coordinates in dcd format, energy output in .dat (tab-separated) format. Intermediate (``restart'') coordinates aloso saved in pdb format. There are also separate output files for pulling (indentation) parameters as described in sections \ref{sec:par.pulling} (\ref{sec:par.indentation}). Energy .dat output file has the following columns:
+
+\begin{description}
+\item[1.] Current simulation timestep.
+\item[2.] Average Maxwell-Boltzmann temperature (in kcal/mol).
+\item[3.] Total polential energy (in kcal/mol).
+\item[4.] Potential energy of native interactions (in kcal/mol).
+\item[5.] Potential energy of repulsive Lennard-Jones interactions (in kcal/mol).
+\item[6.] Total potential energy of Lennard-Jones interactions (attractive and repulsive) (in kcal/mol).
+\item[7.] Potential energy of covalent bonds (in kcal/mol).
+\item[8.] Number of native contacts not ruptured.
+\item[9.] Gyration radius (not saved in a \texttt{capsid} mode).
+\end{description}
+ 
+\subsection{Pulling simulations}
+
+Pulling simulations were designed to mimick force-ramp AFM experiment. When pulling is enabled, some of the particles are fixed (to represent the part of the molecule that is adsorbed on the mica surface), some others are attached to the spring (representing residues adsorbed on the tip of the canteliver). The other end of this spring is being pulled with constant velocity (cantilever base or ``chip''). While the spring is extended, the force is increasing, inducing mechanical unfolding in the protein.
+
+When pulling is enabled, programm will save additional .dat file with pulling data, including current end-to-end distance and forces. This file has following columns:
+
+\begin{description}
+\item[1.] Current simulation timestep.
+\item[2.] Absolute value of the end-to-end distance (in \AA).
+\item[3.] Projection of the end-to-end distance on pulling vector (in \AA).
+\item[4.] Absolute value of the canteliver spring force ($k_s\Delta x$, in kcal/mol\AA).
+\item[5-7.] Force vector components ($x$, $y$ and $z$, in kcal/mol\AA).
+\end{description}
+
+For pulling simulation parameters see section \ref{sec:par.pulling}.
+
+\subsection{Heating simulations}
+Although coarse-grained models are known for describing heat-induced unfolding badly, SOP-model still can provide good qualitatative results. When heating is on, temperature of water bath (i.e. strength of random force) is increased gradualy during the simulation procedure. Heating parameters are described in section \ref{sec:par.heating}.
+
+\subsection{Forced indentation}
+Indentation mode adds a canteliver and surface model to the system. Cantilever tip is desribed as a repulsive Lennard-Jones ($~1/r^6$) sphere, attached to a spring. The other end of this spring (canteliver base or ``chip'') is moving with constant velocity, increasing external force, acting on the tip. Tip coordinates undergo Brownian dynamics with given friction coefficient (usually about $100$ times bigger then that of a single amino-acid). Resulting force, acting on a tip is a summ of a harmonic force from canteliver extension and all molecular forces of tip-protein interactions. Because it moves slowly, the equation of motion of the canteliver tip are integrated using timestep bigger then that used for amino-acids (tip is shifted only after some number of steps). This also allows one to increase the performance of the program. Mica surface is modelled as repulsive Lennard-Jones ($\sim 1/r^6$) surface. Initial position, radius and friction coefficient of the canteliver tip, initial coordinates and 
+velocity of a canteliver chip, position of the surface should be specified in configuration file when indentation simulation protocol is used (see section \ref{sec:par.indentation}). Indentation values will be saved into .dat file with following columns:
+
+\begin{description}
+\item[1.] Current simulation timestep.
+\item[2.] Distance traveled by cantiliver base (in \AA).
+\item[3.] Average molecular force acting on a canteliver tip projected onto chip movement direction (in kcal/mol\AA).
+\item[4.] Average absolute value of a molecular force, actinf on a cantaliver tip (in kcal/mol\AA).
+\item[5.] Absolute value of the canteliver spring force at a given step ($k_s\Delta x$, in kcal/mol\AA).
+\item[6.] Absolute value of the canteliver spring force average ($\overline{k_s\Delta x}$, in kcal/mol\AA).
+\item[7-9.] Molecular force vector components ($x$, $y$ and $z$, in \AA).
+\item[10-12.] Current canteliver tip coordinates ($x$, $y$ and $z$, in \AA).
+\item[13-15.] Current canteliver base coordinates ($x$, $y$ and $z$, in \AA).
+\end{description}
+
+\section{Units}
+\label{sec:units}
+
+Characteristic time for underdamped motion of spherical particle of mass $m$ and radius $a$ with energy scale $\varepsilon_h$ is $\tau_L = \sqrt{m a^2/\varepsilon_h}$. Then, $\alpha = \zeta m/\tau_L$ is the friction coefficient for the spherical particle ($\zeta$ = dimensionless friction coefficient). $\alpha = 6\pi\eta a$ is the Stokes-Einstein friction for spherical particle of radius $a$ (in \AA) in liquid with viscosity $\eta$. Therefore $\zeta = (6\pi\eta a^2)/\sqrt(m\varepsilon_h)$. 
+Bulk water viscosity $\eta = 0.01$~gs\textsuperscript{-1}cm\textsuperscript{-1}.
+
+In the program $\zeta = 50$. This was obtained for $a \sim 5$~\AA\ and $m \sim 3\times10^{-22}$~g (mass of a residue) and using bulk water viscosity.
+
+In general, $a$ varies between $3.8$~\AA\ to $5$~\AA, while $m$ varies between $3\times10^{-22}$~g to $5\times10^{-22}$~g. In simulations $a = 3.8$~\AA. Because of the fact that $\zeta$ depends on $\varepsilon_h$, every time $\varepsilon_h$ changed, valid $m$ value shold be found. This value should give $\zeta = 50$.
+
+Example: for $\varepsilon_h = 1$~kcal/mol from the above equation for $\zeta$ we find that $m = 4.3\times10^{-22}$~g which is a valid value. For $\varepsilon_h = 1.5$~kcal/mol, we get $m = 3\times10^{-22}$~g which is still a valid value. After finding the mass $m$, we can go back to the expression for $\tau_L$ and get its value. For example, for $\varepsilon_h=1$~kcal/mol we get $\tau_L = 3ps$ while for $\varepsilon_h=1.5$~kcal/mol, we get $\tau_L = 2$~ps.
+
+$\tau_H = \zeta\varepsilon_h\tau_L/kT = 6\pi\eta a^3 / kT$ is the characteristic time for the overdamped Langevin dynamics. To get it in ps, both $\varepsilon_h$ and $kT$ need to be in the same units. Because $\varepsilon_h$ is in kcal/mol, $kT$ is also in kcal/mol ($T = 300$~K corresponds to $0.6$~kcal/mol). Therefore an elementary time step for the simulation is $h\times\tau_H$ in ps. With standard parameters ($\eta=0.01$~gs\textsuperscript{-1}cm\textsuperscript{-1}, $T = 300$~K and $a = 3.8$~\AA), $\tau_H = 248$~ps.
+
+The pulling speed is $v_f = \Delta x/(n_{av}\times h\times\tau_H)$ where $\Delta x$ is a displacement during $n_{av}$ timesteps in \AA. The force is in kcal/(mol\AA), to get a force in pN, value in kcal/(mol\AA) should be multiplied by $70$.
+
+\section{Topology}
+\subsection{File}
+\label{sec:topology.file}
+There are three types of interactions in SOP model: covalent interactions, native interactions and repulsive pairs. All these shold be listed in Gromacs-style topology file (.top). There are four sections in SOP topology file: \texttt{[ atoms ]}, that lists all $C_{\alpha}$ atoms in the system (including information about residue ID, residue and chain name, etc.), and three sections that correspond to three types of interactions: \texttt{[ bonds ]} for covalent bonds, \texttt{[ native ]} for native interactions and \texttt{[ pairs ]} for repulsive pairs. \texttt{[ atoms ]} section simply follows the Gromacs-style atom description, including only $C_{\alpha}$ atoms. The last three sections cosist of the list of lines, each of which has indexes of interacting particles, function type and set of specific parameters. Particle indexes correspond to internal programm indexes and start from $0$, function type column is set to $1$ for all pairs and ignored, parameters are specific for each interaction type as 
+described below. More details on file format can be found in Gromacs Manual.
+
+\subsubsection{\texttt{[ bonds ]} section.}
+
+Typical \texttt{[ bonds ]} section include lines, simular to the following:
+\begin{verbatim}
+[ bonds ]
+;  ai    aj funct            c0            c1            c2            c3
+    0     1     1    3.81188
+    1     2     1    3.77232
+    2     3     1    3.79319
+\end{verbatim}
+
+Covalent bonds include backbone interactions and disulfide $S-S$ bonds. Potential energy function term that correspond to covalent bonds interaction is described by $V_{FENE}$ in Eq.~\ref{eq:sop}, where summation is made over all lines in \texttt{[ bonds ]} section of the topology file, $i$ and $j$ correspond to indexes of the particles listed in the line, distance $r_{ij}$ is computed from particles coordinates, $r^0_{ij}$ is the distance between two corresponding $C_{\alpha}$ atoms in native state (PDB file), listed as the first parameter in the line (column \texttt{c0}, see sample listing above).
+
+\subsubsection{\texttt{[ native ]} section.}
+
+
+\begin{verbatim}
+[ native ]
+;  ai    aj funct            c0            c1            c2            c3
+    5     9     1    5.85792    1.50000
+    5    10     1    7.06482    1.50000
+    5    35     1    6.64479    1.50000
+\end{verbatim}
+
+In SOP model, native interactions ($V^{ATT}_{NB}$) are described by full Lennard-Jones potential (Eq. \ref{eq:sop}). Each term in the summ correspond to one line in \texttt{[ native ]} section. Apart from indexes of interacting particles, equilibrium distance $r^0_{ij}$ (column \texttt{c0}) and strength coefficient, $\varepsilon_h$ (column \texttt{c1}), are listed. $r^0_{ij}$ is the distance between $C_{\alpha}$ atoms in native state (PDB file), value of $\varepsilon_h$ is usualy between $1.0$ and $1.5$~kcal/mol and should be chosen to provide the best fit to experimental data.
+
+\subsubsection{\texttt{[ pairs ]} section.}
+
+
+\begin{verbatim}
+[ pairs ]
+;  ai    aj funct            c0            c1            c2            c3
+    0     2     1
+    0     3     1
+    0     4     1
+\end{verbatim}
+
+Pairs section correspond the third term in Eq.~\ref{eq:sop}. There is no pair-specific parameters in this section, only indexes are listed. Note, that this list scales as $\sim N^2$ with the system size $N$, and saving all possible repulsive pairs in the topology file would lead to very large files. In SOP-GPU programm, this section is used only for small systems and when trajectory massive-production is employed. When large system is simulated, dual-range cut-off algorithm is utilized and only pairs withing bigger cut-off are kept (pairlist). Pairlist is updated using exclusion principle: olny those pairs that are withing cut-off distance but not in the list of exluded pairs added. Verlet list is built from this pairlist based on smaller cut-off distance and used when potential function and forces are computed. Excluded pairs are those already listed in \texttt{[ covalent ]} and \texttt{[ native ]} sections.
+
+\subsection{Creation of topology file}
+\label{sec:topology.creation}
+\subsubsection{General description}
+Originally, creation of the topology was included in SOP-GPU programm. However, to simlify the internal logic, it was moved to a separate programm (sop-top). As with the main programm, configuration file should be passed as the first parameter to sop-top. This configuration file can use the same features as configuration file for SOP-GPU, as described in Section~\ref{sec:par.general}. Topology is created from original (full-atomic) PDB file using \texttt{ATOM} and \texttt{SSBOND} entries of the later. All $C_{\alpha}$ atoms are added into \texttt{[ atoms ]} section of topology file generated. Backbone connectivity and disulfide bonds along with their equilibrium (PDB) distances are collected into \texttt{[ bonds]} section. Native contacts are determined based on two cut-off distances. First refer to maximum $C_{\alpha}-C_{\alpha}$ distance for two amino-acids in native contact (simple Go definition), second one is the cut-off for the minimal distance of two heavy atoms in corresponding amino-acids side-
+chains (full Go definition). Along with the indexes of amino-acids $i$ and $j$, PDB distance $r^0_{ij}$ and value of $\varepsilon_h$ are saved for each pair qualify. $\varepsilon_h$ can be specified as constant value for all native pairs or can be taken from occupancy of beta columns of original PDB. In later case, geometric average of two values listed for amino-acids $i$ and $j$ is taken. All pairs that did not qualify for covalent bond or native contacts are added to \texttt{[ pairs ]} section of the topology file. For the large systems, this is done based on a cut-off distance to decrease the size of the topology file. In this case list of repulsive pairs is updated during execution of the programm.
+
+\subsubsection{Parameters for topology creation}
+\begin{itemize}
+
+\item \texttt{structure} \textit{\textless filename\textgreater}
+\begin{description}
+\item[Type:] Name of .pdb file.
+\item[Status:] Required.
+\item[Purpose:] Initial (full-atomic) PDB file.
+\end{description}
+
+\item \texttt{topology} \textit{\textless filename\textgreater}
+\begin{description}
+\item[Type:] Name of .top file.
+\item[Status:] Required.
+\item[Purpose:] Output filename for topology file.
+\end{description}
+
+\item \texttt{coordinates} \textit{\textless filename\textgreater}
+\begin{description}
+\item[Type:] Name of .pdb file.
+\item[Status:] Required.
+\item[Purpose:] Output filename for corse-grained .pdb file with $C_{\alpha}$ coordinates only.
+\end{description}
+
+\item \texttt{covalent\_cutoff} \textit{\textless cut-off distance in \AA\textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Status:] Optional, default value is 10~\AA.
+\item[Purpose:] Cut-off for SS-bonds. If the distance is larger then this value, residues will not be covalently linked even if listed in SSBOND pdb entry.
+\end{description}
+
+\item \texttt{SS\_cutoff} \textit{\textless cut-off distance in \AA\textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Status:] Optional, default value is 10~\AA.
+\item[Purpose:] If the minimal distance between two heavy atoms in two amino-acids side-chains is less then this parameters, amino-acids are in a native contact.
+\end{description}
+
+\item \texttt{R\_limit\_bond} \textit{\textless cut-off distance in \AA\textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Status:] Optional, default value is 8~\AA.
+\item[Purpose:] Cut-off for $C_{\alpha}-C_{\alpha}$ distance for two amino-acids to be in a native contact.
+\end{description}
+
+\item \texttt{SC\_limit\_bond} \textit{\textless cut-off distance in \AA\textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Status:] Optional, default value is 0~\AA.
+\item[Purpose:] If the minimal distance between two heavy atoms in two amino-acids side-chains is less then this parameters, amino-acids are in a native contact.
+\end{description}
+
+\item \texttt{eh} \textit{\textless $\varepsilon_h$ \textgreater}
+\begin{description}
+\item[Type:] Float or 'O'/'B'.
+\item[Status:] Optional, default value is 1.5.
+\item[Purpose:] Strength of native interactions ($\varepsilon_h$). If number is specified, $\varepsilon_h$ is constant for all native interactions in the system. If 'O' ('B') is set, value will be taken from occupancy (beta) column of initial PDB-file and geometric average will be saved for interacting pair.
+\end{description}
+
+\item \texttt{pairs\_threshold} \textit{\textless cut-off distance in \AA\textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Status:] Optional.
+\item[Purpose:] Cut-off distance for repulsive pairs. If distance is larger then this value, pair will not be listed in \texttt{[ pairs ]} section. If not specified, all pairs will be listed. Should not be used with many-runs-per GPU approach.
+\end{description}
+
+\end{itemize}
+
+\subsubsection{Parameters to create tandems}
+\begin{itemize}
+
+\item \texttt{createTandem} \textit{\textless yes/no\textgreater}
+\begin{description}
+\item[Type:] ``yes'' or ``no''.
+\item[Default:] ``no''.
+\item[Status:] Optional.
+\item[Purpose:] If yes, tandem of proteins will be created.
+\end{description}
+
+\item \texttt{linkerLength} \textit{\textless number of residues\textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required if createTandem is ``yes''.
+\item[Purpose:] Number of residues to be added between monomers in tandem.
+\end{description}
+
+\item \texttt{monomerCount} \textit{\textless number of monomers\textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required if createTandem is ``yes''.
+\item[Purpose:] Number of monomers in tandem.
+\end{description}
+
+\item \texttt{tandemDirection} \textit{\textless direction\textgreater}
+\begin{description}
+\item[Type:] ``endToEnd'' or ``vector''.
+\item[Status:] Required if createTandem is ``yes''.
+\item[Purpose:] Specify direction in which monomers are connected to form a tandem.
+\end{description}
+
+\item \texttt{fixedEnd} \textit{\textless residue ID\textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required if tandemDirection is ``endToEnd''.
+\item[Purpose:] First end for end-to-end direction.
+\end{description}
+
+\item \texttt{pulledEnd} \textit{\textless residue ID\textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required if tandemDirection is ``endToEnd''.
+\item[Purpose:] Second end for end-to-end direction.
+\end{description}
+
+
+\item \texttt{tandemVectorX, tandemVectorY, tandemVectorZ} \textit{\textless vector coordinates\textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Status:] Required if tandemDirection is ``vector''.
+\item[Purpose:] Direction in which monomers are connected to form a tandem, specified by vector coordinates.
+\end{description}
+
+
+\end{itemize}
+
+\subsubsection{Parameters to add covalent linkers}
+\begin{itemize}
+
+\item \texttt{covLinkersCount} \textit{\textless number of different linkers\textgreater}
+\begin{description}
+\item[Type:] Integer
+\item[Default:] 0.
+\item[Status:] Optional.
+\item[Purpose:] How many linker should be added to the system.
+\end{description}
+
+\item \texttt{covLinker1}, \texttt{covLinker2}, ... \textit{\textless linker definition\textgreater}
+\begin{description}
+\item[Type:] $<$ResName1$><$ResID1$>$-$<$ResName2$><$ResID2$>$.
+\item[Status:] Required if covLinkersCount is not 0.
+\item[Purpose:] Description of the linkers should be added to the system. Contains of three-letter codes of two residues to link and their residue id's. Three-letter codes and IDs should be the same as in pdb file. For instance, value of 'LYS169-ASN356' will create linkers between residue LYS169 and ASN356 if those are within certein cutoff distance (see next parameter).
+\end{description}
+
+\item \texttt{covLinkersCutoff} \textit{\textless cut-off distance\textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Status:] Optional. Default value is 5~\AA
+\item[Purpose:] Defines the cut-off for covalent linkers.
+\end{description}
+
+\end{itemize}
+
+\section{Input parameters file}
+
+\subsection{General features}
+\label{sec:par.general}
+
+Input parameters file contains all the simulation parameters listed as tab or space separated pairs of name and value. Remarks are allowed using '$\#$' character. To simplify creation of multiple configuration files, parameters values support macroses. This is usefull, e.g. when specifying output files to avoid overwriting when multiple trajectories are prodused. Any parameter name in the file can be used as macros, additional macroses can be added using same name-value sintaxis as for parameters. To use macros, parameters value should include other parameter name (or macros name) inside $<$ and $>$ characters. For example, the following will result in value for the output file name equal to '$3.dcd$':
+
+\begin{verbatim}
+run 3
+DCDfile <run>.dcd
+\end{verbatim}
+
+\subsubsection{Device parameters}
+\label{sec:par.device}
+
+\begin{itemize}
+
+\item \texttt{device} \textit{\textless device ID\textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required.
+\item[Purpose:] ID of NVidia card to run simulations on. Use ``deviceQuerry'' from NVidia SDK to check devices.
+\end{description}
+
+\item \texttt{block\_size} \textit{\textless integer\textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Optional.
+\item[Purpose:] Set the number of threads per block. By default, set to $128$. Can be specified for every potential individualy, using \texttt{block\_size\_covalent}, \texttt{block\_size\_native}, \texttt{block\_size\_pairs}, \texttt{block\_size\_pairlist} and \texttt{block\_size\_possiblepairs}.
+\end{description}
+
+
+\item \texttt{max\_covalent}\textit{\textless integer\textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Optional, default value is 4.
+\item[Purpose:] Set the maximum number of pairs per residue for covalent interactions.
+\end{description}
+
+\item \texttt{max\_native} \textit{\textless integer\textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Optional, default value is 128.
+\item[Purpose:] Set the maximum number of pairs per residue for native interactions.
+\end{description}
+
+\item \texttt{max\_pairs} \textit{\textless integer\textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Optional, default value is 512.
+\item[Purpose:] Set the maximum number of pairs per residue for pairs list.
+\end{description}
+
+\item \texttt{max\_possiblePairs} \textit{\textless integer\textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Optional, default value is 4096.
+\item[Purpose:] Set the maximum number of pairs per residue for possiblePairs list.
+\end{description}
+
+\end{itemize}
+
+\subsubsection{Common parameters}
+\label{sec:par.common}
+
+\begin{itemize}
+
+\item \texttt{name} \textit{\textless protein name\textgreater}
+\begin{description}
+\item[Type:] String.
+\item[Status:] Optional.
+\item[Purpose:] Name, assigned to the protein. Used mostly for files naming.
+\end{description}
+
+\item \texttt{stage} \textit{\textless stage name\textgreater}
+\begin{description}
+\item[Possible values:] \texttt{equil}, \texttt{pull}, \texttt{heat}, \texttt{minim}, \texttt{indent}.
+\item[Status:] Optional.
+\item[Purpose:] Specifying stage will assign a simulation protocol. \texttt{equil} stage stands for equilibrium (quenching) simulation. \texttt{pull} will force programm to fix some residues, pulling others and will require additional parameters to be set as it is described in section \ref{sec:par.pulling}. \texttt{heat} stands for heating simulation and described in section \ref{sec:par.heating}. Using \texttt{minim} value will turn off the random force. \texttt{indent} stands for indentation and further described in \ref{sec:par.indentation}. \texttt{stage} parameter can be omitted and simulation protocol can be assigned using \texttt{pulling on}, \texttt{heating on} and/or \texttt{minimization on} lines as it is described in corresponding sections. If neither is specifyed, equilibrium simulations will be helded.
+\end{description}
+   
+\item \texttt{topology} \textit{\textless filename\textgreater}
+\begin{description}
+\item[Type:] Path to the file.
+\item[Status:] Required.
+\item[Purpose:] Path to topology file in Gromacs-like format.
+\end{description}
+
+\item \texttt{coordinates} \textit{\textless filename \textgreater}
+\begin{description}
+\item[Type:] Path to the file.
+\item[Status:] Required.
+\item[Purpose:] Path to coordinates file in PDB format.
+\end{description}
+   
+\item \texttt{numsteps} \textit{\textless steps count \textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required.
+\item[Purpose:] Length of the simulation in timesteps.
+\end{description}
+
+\item \texttt{timestep} \textit{\textless time \textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Units:] $\tau_H$ (see \ref{sec:units}).
+\item[Status:] Required.
+\item[Purpose:] Length of the timestep.
+\end{description}
+
+\item \texttt{seed} \textit{\textless random seed \textgreater}
+\begin{description}
+\item[Type:] Long integer.
+\item[Status:] Required.
+\item[Purpose:] Initial random seed used for random force. Actual seed is computed by adding \texttt{run} or \texttt{firstrun} (whichever is defined) to this value.
+\end{description}
+
+\item \texttt{run} \textit{\textless trajectory number \textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required if \texttt{firstrun} and \texttt{runnum} are not specified. 
+\item[Purpose:] Trajectory number when running only one trajectory per GPU (``one-run-per-GPU approach''). Usually used for files naming. Alternatively, \texttt{firstrun} and \texttt{runnum} can be used.
+\end{description}
+
+\item \texttt{firstrun} \textit{\textless trajectory number \textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required if \texttt{run} is not specified. 
+\item[Purpose:] Number of first trajectory when ``using many-runs-per-GPU'' approach.
+\end{description}
+
+\item \texttt{runnum} \textit{\textless number of trajectories \textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required if \texttt{firstrun} is specified. 
+\item[Purpose:] Quantity of trajectories to run simultaniously on one GPU when using ``many-runs-per-GPU'' approach. Trajectories from \texttt{firstrun} to $\texttt{firstrun}+\texttt{runnum}$ will be started. Note, that in this case all output files requre ``\texttt{<run>}'' macros, so that the output data will be saved into different files for different trajectories.
+\end{description}
+
+\item \texttt{mode} \textit{\textless output mode \textgreater}
+\begin{description}
+\item[Type:] Default or ``capsid''.
+\item[Status:] Optional.
+\item[Purpose:] Slightly changes .dat output format for the capsid.
+\end{description}
+
+\end{itemize}
+
+
+\subsubsection{Force-field parameters}
+\label{sec:par.forcesield}
+
+\begin{itemize}
+
+\item \texttt{temperature} \textit{\textless temperature\textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Units:] kcal/mol.
+\item[Default:] $0.6$~kcal/mol $\sim 300$~K.
+\item[Status:] Required.
+\item[Purpose:] Set the temperature to heat bath (random force).
+\end{description}
+
+\item \texttt{zeta} \textit{\textless $\zeta$ value\textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Units:] Unitless.
+\item[Default:] $50.0$.
+\item[Status:] Required.
+\item[Purpose:] Friction coefficient for amino-acid. For the spherical particle: $\zeta = 6\pi \eta a^2/\sqrt{m\varepsilon_h}$, where $\eta = 0.01$~g$\cdot$(s$\cdot$cm)\textsuperscript{-1} "--- bulk water viscosity, $m \sim 3\cdot 10^{-22}$~g - average mass of an amino-acid residue, $a = 3.8$~\AA\ "--- length of amino-acid amide bond, $\varepsilon_h$ - average native contacts strength factor (hydrophobisity). $\varepsilon_h$ is taken from topology file and usually between $0.9$ and $1.5$.
+\end{description}
+
+\item \texttt{R\_limit} \textit{\textless $R_0$ value\textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Units:] \AA.
+\item[Default:] $2.0$.
+\item[Status:] Optional.
+\item[Purpose:] $R_0$ parameter for FENE potential (Eq.~\ref{eq:sop}).
+\end{description}
+
+\item \texttt{kspring\_cov} \textit{\textless spring constant\textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Units:] kcal/mol\AA.
+\item[Default:] $20.0$.
+\item[Status:] Optional.
+\item[Purpose:] Spring constant, $k$, for FENE potential (Eq.~\ref{eq:sop}).
+\end{description}
+
+\item \texttt{a} \textit{\textless distance\textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Units:] \AA.
+\item[Default:] $3.8$.
+\item[Status:] Optional.
+\item[Purpose:] Default distance between atoms. This is a value that used in repulsive LJ potential for amino-acids (Eq.~\ref{eq:sop}).
+\end{description}
+
+\item \texttt{el} \textit{\textless energy factor\textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Units:] kcal/mol.
+\item[Default:] $1.0$.
+\item[Status:] Optional.
+\item[Purpose:] Energy factor for repulsive Lennard-Jones potential (Eq.~\ref{eq:sop}).
+\end{description}
+   
+\end{itemize}
+
+
+\subsubsection{Pairs lists}
+
+\begin{itemize}
+
+\item \texttt{pairs\_cutoff} \textit{\textless distance in \AA \textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Units:] \AA.
+\item[Default:] $20$~\AA.
+\item[Status:] Optional.
+\item[Purpose:] Pairs cut-off for repulsive Lennard-Jones. If distance between particles is more then this value, force is not computed.
+\end{description}
+
+\item \texttt{pairlist\_cutoff} \textit{\textless distance in \AA \textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Units:] \AA.
+\item[Default:] $20$~\AA.
+\item[Status:] Optional.
+\item[Purpose:] Pairlist cut-off. If the distance between particles is less then this value, pair is added to pairs (Verlet) list.
+\end{description}
+
+\item \texttt{pairlist\_threshold} \textit{\textless distance in \AA \textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Units:] \AA.
+\item[Default:] $200$~\AA.
+\item[Status:] Optional.
+\item[Purpose:] Cut-off value for generatind the list of possible pairs. This list is generated based on exclusion principle - if the pair form covalent bond or native contact it does not qualify.
+\end{description}
+
+\item \texttt{pairlist\_freq} \textit{\textless number of steps\textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Units:] Unitless.
+\item[Default:] 1000.
+\item[Status:] Optional.
+\item[Purpose:] How often pairs (Verlet) list will be renewed.
+\end{description}
+
+\item \texttt{possiblepairs\_freq} \textit{\textless number of steps\textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Units:] Unitless.
+\item[Default:] 10000.
+\item[Status:] Optional.
+\item[Purpose:] How often list of possible pairs is to be renewed.
+\end{description}
+
+\end{itemize}
+
+   
+\subsubsection{Pulling parameters}
+\label{sec:par.pulling}
+
+\begin{itemize}
+
+\item \texttt{pulling} \textit{\textless on/off \textgreater}
+\begin{description}
+\item[Type:] ``on''/``off''.
+\item[Status:] Optional.
+\item[Default:] ``off''.
+\item[Purpose:] Whether or not external force should be applied. Same as using ``pull'' stage.
+\end{description}
+
+\item \texttt{fixedEnd}, \texttt{pulledEnd} \textit{\textless residue ID \textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required.
+\item[Purpose:] Residue IDs to determine end-to-end distance.
+\end{description}
+
+\item \texttt{fixed\_beads} \textit{\textless number of fixed residues \textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required.
+\item[Purpose:] Number of residues to be fixed.
+\end{description}
+
+\item \texttt{pulled\_beads} \textit{\textless number of pulled residues \textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required.
+\item[Purpose:] Number of beads to be pulled.
+\end{description}
+
+\item \texttt{fixed1}, \texttt{fixed2}, $\ldots$ \textit{\textless residue IDs \textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required if \texttt{fixed\_beads} $>$ $0$.
+\item[Purpose:] IDs of fixed residues. Should more or equal to \texttt{fixed\_beads}. If more, only \texttt{fixed\_beads} first residues listed will be fixed in simulation.
+\end{description}
+
+\item \texttt{pulled1}, \texttt{pulled2}, $\ldots$ \textit{\textless residue IDs \textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required if \texttt{pulled\_beads} $>$ $0$.
+\item[Purpose:] IDs of pulled residues. Should more or equal to \texttt{pulled\_beads}. If more, only \texttt{pulled\_beads} first residues listed will be pulled in simulation.
+\end{description}
+
+\item \texttt{fconst} \textit{\textless pulling force in kcal/mol/\AA \textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Status:] Required, if constant-force puling is performed.
+\item[Purpose:] Pulling force.
+\end{description}
+
+\item \texttt{deltax} \textit{\textless pulling speed \textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Status:] Required, if constant-velocity pulling is performed.
+\item[Purpose:] Pulling speed. Position of the spring base (``cantilever chip'') will be shifted by \texttt{deltax} every \texttt{nav} steps. Actual pulling speed can be computed as $\texttt{deltax}/\texttt{nav}\times \texttt{timestep}$.
+\end{description}
+
+\item \texttt{pullDirection} \textit{\textless direction \textgreater}
+\begin{description}
+\item[Type:] ``\texttt{endToEnd}'' or ``\texttt{vector}''
+\item[Status:] Required.
+\item[Purpose:] Direction of pulling. If ``\texttt{endToEnd}'', spring base (``cantilever chip'') will move toward end-to-end vector, computed from positions of \texttt{fixedEnd} and \texttt{pulledEnd} residues. If ``vector'' is set, \texttt{pullVector} should be specified (see below).
+\end{description}
+
+\item \texttt{pullVector} \textit{\textless vector \textgreater}
+\begin{description}
+\item[Type:] Vector.
+\item[Status:] Required if \texttt{pullDirection} is ``\texttt{vector}''.
+\item[Purpose:] Vector of pulling. $x$, $y$ and $z$ coordinates should be space or tab separated.
+\end{description}
+
+\item \texttt{pullOutput} \textit{\textless filename \textgreater}
+\begin{description}
+\item[Type:] Name of a dat file.
+\item[Status:] Optional.
+\item[Default:] ``pull.\textless name\textgreater\_\textless author\textgreater\textless run\textgreater\_\textless stage\textgreater.dat''
+\item[Purpose:] Filename for pulling output.
+\end{description}
+
+\end{itemize} 
+   
+
+\subsubsection{Heating parameters}
+\label{sec:par.heating}
+
+\begin{itemize}
+
+\item \texttt{heating} \textit{\textless on/off \textgreater}
+\begin{description}
+\item[Type:] ``on''/``off''.
+\item[Status:] Optional.
+\item[Default:] ``off''.
+\item[Purpose:] Whether or not temperature should be changed on the course of simulations. Same as using ``heat'' stage.
+\end{description}
+
+\item \texttt{initialT} \textit{\textless temperature\textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Units:] kcal/mol.
+\item[Status:] Required.
+\item[Purpose:] System temperature at the beginning of simulations.
+\end{description}
+
+\item \texttt{deltaT} \textit{\textless temperature increment\textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Units:] kcal/mol.
+\item[Status:] Required.
+\item[Purpose:] Value of the temperature increment that will be added to the initial temperature every \texttt{tempFreq} steps (see below).
+\end{description}
+
+\item \texttt{tempFreq} \textit{\textless number of steps\textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required.
+\item[Purpose:] Frequency of changing the temperature.
+\end{description}
+
+\end{itemize}
+
+   
+\subsubsection{Indentation parameters}
+\label{sec:par.indentation}
+
+\begin{itemize}
+
+\item \texttt{indentation} \textit{\textless on/off \textgreater}
+\begin{description}
+\item[Type:] ``on''/``off''.
+\item[Status:] Optional.
+\item[Default:] ``off''.
+\item[Purpose:] Indentation switch. Same can be done by using ``indent'' stage.
+\end{description}
+
+\item \texttt{indentationChip} \textit{\textless position \textgreater}
+\begin{description}
+\item[Type:] Vector.
+\item[Status:] Required.
+\item[Purpose:] Initial position of canteliver spring base (i.e. canteliver ``chip'').
+\end{description}
+
+\item \texttt{indentationTip} \textit{\textless position \textgreater}
+\begin{description}
+\item[Type:] Vector.
+\item[Status:] Required.
+\item[Purpose:] Initial position of canteliver tip center.
+\end{description}
+
+\item \texttt{indentationDirection} \textit{\textless direction \textgreater}
+\begin{description}
+\item[Type:] Vector.
+\item[Status:] Required.
+\item[Purpose:] Direction of canteliver base movement.
+\end{description}
+
+\item \texttt{indentationTipR} \textit{\textless radius \textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Status:] Required.
+\item[Purpose:] Radius of canteliver tip.
+\end{description}
+
+\item \texttt{indentationTipKs} \textit{\textless spring constant \textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Units:] kcal/mol.
+\item[Status:] Required.
+\item[Purpose:] Spring constant of a canteliver.
+\end{description}
+
+\item \texttt{indentationTipA}, \texttt{indentationTipB}, \texttt{indentationTipSigma}, \texttt{indentationTipEl} \textit{\textless dimentionless \textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Units:] Dimentionless.
+\item[Status:] Optional.
+\item[Purpose:] Shape of the Lennard-Jones potential for the cantilever tip. The potential will be computed as $\varepsilon_l(A\times(\frac{\sigma}{r})^{12}+B\times(\frac{\sigma}{r})^{6})$. Standart Lennard-Jones potential is $A=1$, $B=-2$. Will override \texttt{indentationEl} and \texttt{indentationSigma}
+\end{description}
+
+\item \texttt{indentationSurfA}, \texttt{indentationSurfB}, \texttt{indentationSurfSigma}, \texttt{indentationSurfEl} \textit{\textless dimentionless \textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Units:] Dimentionless.
+\item[Status:] Optional.
+\item[Purpose:] Shape of the Lennard-Jones potential for the surface.
+\end{description}
+
+\item \texttt{indentationDeltaX} \textit{\textless speed \textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Status:] Required.
+\item[Purpose:] Speed of the canteliver movement. Every \texttt{nav} steps, canteliver base will be shifted on this distance.
+\end{description}
+
+\item \texttt{indentationFixTrans} \textit{\textless yes/no \textgreater}
+\begin{description}
+\item[Type:] Boolean.
+\item[Status:] Required.
+\item[Purpose:] If enabled, tip will only move along the indentation direction (i.e. it will be fixed transversaly).
+\end{description}
+
+\item \texttt{indentationEl} \textit{\textless energy factor \textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Status:] Required.
+\item[Purpose:] Repulsive energy factor for Lennard-Jones potential.
+\end{description}
+
+\item \texttt{indentationSigma} \textit{\textless distance \textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Status:] Required.
+\item[Purpose:] Repulsive distance for Lennard-Jones potential. Note that potential is shifted to the surface of the canteliver tip sphere.
+\end{description}
+
+\item \texttt{indentationTipZeta} \textit{\textless friction coefficient \textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Status:] Required.
+\item[Purpose:] Canteliver tip friction coefficient.
+\end{description}
+
+\item \texttt{indentationSurfaceR0} \textit{\textless position \textgreater}
+\begin{description}
+\item[Type:] Vector.
+\item[Status:] Required.
+\item[Purpose:] Position of mica surface.
+\end{description}
+
+\item \texttt{indentationSurfaceN} \textit{\textless direction \textgreater}
+\begin{description}
+\item[Type:] Vector.
+\item[Status:] Required.
+\item[Purpose:] Mica plane normal vector.
+\end{description}
+
+\item \texttt{indentationDiscreteSurf} \textit{\textless yes/no \textgreater}
+\begin{description}
+\item[Type:] Boolean.
+\item[Status:] Optional.
+\item[Purpose:] If enabled, mica will be represented as a set of interacting beads, positioned according to the surface representation (parameters \texttt{indentationSurfaceSize} and \texttt{indentationSurfaceStep}). Otherwise, potential will be continuous (the function fill be computed using the normal vector).
+\end{description}
+
+\item \texttt{indentationPairsCutoff} \textit{\textless cut-off distance \textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Status:] Optional.
+\item[Default:] 40.0
+\item[Purpose:] Cut-off distance for the pairs list if the surface is represented as a set of discreete beads.
+\end{description}
+
+\item \texttt{indentationRetractionStep} \textit{\textless step \textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Optional.
+\item[Purpose:] If specified, direction of indentation will be reversed on this step.
+\end{description}
+
+\item \texttt{indentationMoveSurface} \textit{\textless yes/no \textgreater}
+\begin{description}
+\item[Type:] yes/no.
+\item[Status:] Optional. Default value is ``no''
+\item[Purpose:] If ``yes'', surface will be moving rather than cantilever.
+\end{description}
+
+\item \texttt{indentationOutput} \textit{\textless filename \textgreater}
+\begin{description}
+\item[Type:] Name of a dat file.
+\item[Status:] Optional.
+\item[Default:] ``indentation.\textless name\textgreater\_\textless author\textgreater\textless run\textgreater\_\textless stage\textgreater.dat''
+\item[Purpose:] Filename for indentation output.
+\end{description}
+
+\item \texttt{indentationOutputFreq} \textit{\textless number of steps \textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required.
+\item[Purpose:] Number of steps before indentation output is printed into the file and on the screen.
+\end{description}
+
+\item \texttt{indentationShowTipSurf} \textit{\textless yes/no \textgreater}
+\begin{description}
+\item[Type:] ``yes'' or ``no''.
+\item[Status:] Optional.
+\item[Default:] ``no''.
+\item[Purpose:] If ``yes'', programm will save coordinates of canteliver tip and chip as well as some points representing mica surface. Useful for representation purposes. Tip will be represented as two particles with chain 'T' in pdb file, surface particles will have chain 'M'.
+\end{description}
+
+\item \texttt{indentationSurfaceSize} \textit{\textless number of points \textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Optional.
+\item[Default:] 51.
+\item[Purpose:] Number of surface points to show in each direction. Total number of points saved will be a square value of this.
+\end{description}
+
+\item \texttt{indentationSurfaceStep} \textit{\textless distance \textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Status:] Optional.
+\item[Default:] 10.
+\item[Purpose:] Distance between points on mica representation.
+\end{description}
+
+\item \texttt{indentationSurfConnectFile} \textit{\textless filename \textgreater}
+\begin{description}
+\item[Type:] String, filename.
+\item[Status:] Optional.
+\item[Purpose:] Filename to dump ``connect'' script that can be used in VMD to show the mica as a surface rather than set of points.
+\end{description}
+
+\item \texttt{indentationCantLength} \textit{\textless distance \textgreater}
+\begin{description}
+\item[Type:] Float.
+\item[Status:] Required.
+\item[Purpose:] Length of the cantilever in its representation. Only needed when \texttt{indentationShowTipSurf} is enabled.
+\end{description}
+
+\end{itemize}
+   
+\subsubsection{Output parameters}
+\label{sec:par.output}
+
+\begin{itemize}
+
+\item \texttt{nav} \textit{\textless number of steps\textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required.
+\item[Purpose:] Number of steps to take average on. Used when temperature is computed. Also when pulling is enabled, every \texttt{nav} steps external force will be incremented. Also used when canteliver tip is propagated during indentation simulations.
+\end{description}
+
+\item \texttt{reffilename} \textit{\textless filename\textgreater}
+\begin{description}
+\item[Type:] Path to pdb file.
+\item[Status:] Required.
+\item[Purpose:] Name of the reference file that can be used to load structure into VMD.
+\end{description}
+
+\item \texttt{outputtiming} \textit{\textless number of steps\textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required.
+\item[Purpose:] Number of steps before dumping energy output.
+\end{description}
+
+\item \texttt{outputname} \textit{\textless filename\textgreater}
+\begin{description}
+\item[Type:] Path to dat file.
+\item[Status:] Required.
+\item[Purpose:] Name of dat file to write energy output in. If file exists, it will be overwritten.
+\end{description}
+
+\item \texttt{dcdfreq} \textit{\textless number of steps\textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required.
+\item[Purpose:] Number of steps before dumping coordinates into dcd file.
+\end{description}
+
+\item \texttt{DCDfile} \textit{\textless filename\textgreater}
+\begin{description}
+\item[Type:] Path to dcd file.
+\item[Status:] Required.
+\item[Purpose:] Name of dcd file to write coordinates output in. If file exists, it will be overwritten.
+\end{description}
+
+\item \texttt{restartfreq} \textit{\textless number of steps\textgreater}
+\begin{description}
+\item[Type:] Integer.
+\item[Status:] Required.
+\item[Purpose:] Number of steps before dumping restart pdb/conf files.
+\end{description}
+
+\item \texttt{restartname} \textit{\textless filename\textgreater}
+\begin{description}
+\item[Type:] Path to file.
+\item[Status:] Required.
+\item[Purpose:] Extensionless nlame of restart files. .pdb and .conf extension will be added for restart coordinates/configuration parameters.
+\end{description}
+
+\item \texttt{finalcoord} \textit{\textless filename\textgreater}
+\begin{description}
+\item[Type:] Path to pdb file.
+\item[Status:] Required.
+\item[Purpose:] Filename for the final coordinates.
+\end{description}
+
+\end{itemize}
+   
+\end{document}
