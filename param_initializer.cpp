@@ -6,7 +6,7 @@
  */
 
 #include "def_param.h"
-#include "config_reader.h"
+#include "IO/configreader.h"
 
 #define buf_size 2048
 
@@ -42,12 +42,11 @@ char coord_filename[100];
 char ref_filename[100];
 char final_filename[100];
 
-void initParameters(char* configFile);
-void makeRestartFilename(char* filename);
+void initParameters(const char* configFile);
 
-void initParameters(char* configFile, int createTopology){
+void initParameters(const char* configFile, int createTopology){
 
-	parseFile(configFile);
+	parseParametersFile(configFile);
 
 	getParameter(protein_name, "name", "unnamed", 1);
 	printf("Initializing simulations for '%s'\n", protein_name);
@@ -122,41 +121,3 @@ void initParameters(char* configFile, int createTopology){
 
 }
 
-/*void initRestartParameters(char* configFile){
-	printf("Reading restart parameters from '%s'.\n", configFile);
-	parseFile(configFile);
-	step = getLongIntegerParameter("timeStep", 0, 0);
-	pullVectorX = getFloatParameter("pullVector.x", 0.0f, 0);
-	pullVectorY = getFloatParameter("pullVector.y", 0.0f, 0);
-	pullVectorZ = getFloatParameter("pullVector.z", 0.0f, 0);
-	xt = getFloatParameter("extension", 0.0f, 0);
-	chipCoordX = getFloatParameter("chipCoord.x", 0.0f, 0);
-	chipCoordY = getFloatParameter("chipCoord.y", 0.0f, 0);
-	chipCoordZ = getFloatParameter("chipCoord.z", 0.0f, 0);
-	makeRestartFilename(ref_filename);
-	makeRestartFilename(dat_filename);
-	makeRestartFilename(dcd_filename);
-	printf("Coordinates will be saved into '%s'\n", dcd_filename);
-	makeRestartFilename(final_filename);
-	seed += step;
-	srand(seed);
-	printf("Resuming simulations from step %ld.\n", step);
-	FILE* src = fopen(configFile, "r");
-	char bckFilename[100];
-	sprintf(bckFilename, "%s.%ld.bck", configFile, step);
-	FILE* bck = fopen(bckFilename, "w");
-	char buffer[buf_size];
-	while(fgets(buffer, buf_size, src) != NULL){
-		fputs(buffer, bck);
-	}
-	fclose(bck);
-	fclose(src);
-}*/
-
-void makeRestartFilename(char* filename){
-	char tmp[100];
-	strcpy(tmp, filename);
-	char* pch = strtok(tmp, ".");
-	sprintf(filename, "%s.restart%ld.%s", pch, step, strtok(NULL, ""));
-	printf("%s\n", filename);
-}

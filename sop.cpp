@@ -1,18 +1,13 @@
 /*
- * sop_creator.c
+ * sop.c
  *
  *  Created on: May 26, 2009
  *      Author: zhmurov
  */
 
 #include "def_param.h"
-
-extern void printAtom(Atom atomdata);
-extern void readPDB(char* filename, PDB* pdbdata);
-extern void savePDB(char* filename);
-
-extern void loadTOP(char* filename);
-extern void saveTOP(char* filename);
+#include "IO/pdbio.h"
+#include "IO/topio.h"
 
 int* pdbRef;
 int* aminoRef;
@@ -251,8 +246,8 @@ float getEh(int i, int j){
 	} else {
 		return eh;
 	}
-	/*Atom atom1 = pdbdata.atoms[pdbRef[i]];
-	Atom atom2 = pdbdata.atoms[pdbRef[j]];
+	/*PDBAtom atom1 = pdbdata.atoms[pdbRef[i]];
+	PDBAtom atom2 = pdbdata.atoms[pdbRef[j]];
 	if((atom1.chain == 'C' && atom2.chain == 'C') || (atom1.chain == 'F' || atom2.chain == 'F')){
 		if(atom1.resid > 240 && atom2.resid > 240){
 			return 1.3;

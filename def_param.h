@@ -5,7 +5,9 @@
 #include <time.h>
 
 #include "structure.h"
-#include "config_reader.h"
+#include "IO/configreader.h"
+#include "IO/topio.h"
+#include "IO/pdbio.h"
 
 #define version "trunk"
 #define MODE_CAPSID 1
@@ -62,7 +64,7 @@ extern char restartpdb_filename[100];
 extern char restartconf_filename[100];
 extern char final_filename[100];
 
-extern SSBond *SSbonds;
+extern PDBSSBond *SSbonds;
 extern PDB pdbdata;
 extern SOP sop;
 

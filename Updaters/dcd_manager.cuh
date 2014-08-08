@@ -5,7 +5,7 @@
  *      Author: zhmurov
  */
 
-#include "../dcdio.h"
+#include "../IO/dcdio.h"
 #include "../def_param.h"
 #include "../gsop.cuh"
 

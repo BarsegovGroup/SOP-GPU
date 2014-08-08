@@ -43,7 +43,7 @@ void initOutputManager(){
 	/*dat_file = (FILE**)calloc(Ntr, sizeof(FILE*));
 	for(traj = 0; traj < Ntr; traj++){
 		char trajnum[10];
-		sprintf(trajnum, "%d\0", traj+firstrun);
+		sprintf(trajnum, "%d", traj+firstrun);
 		replaceString(tempFilename, dat_filename, trajnum, "<run>");
 		dat_file[traj] = fopen(tempFilename, "w");
 	}*/
@@ -53,7 +53,7 @@ void initOutputManager(){
 	for(traj = 0; traj < Ntr; traj++){
 		dat_filenames[traj] = (char*)calloc(100, sizeof(char));
 		char trajnum[10];
-		sprintf(trajnum, "%d\0", traj+firstrun);
+		sprintf(trajnum, "%d", traj+firstrun);
 		replaceString(dat_filenames[traj], dat_filename, trajnum, "<run>");
 		dat_file = fopen(dat_filenames[traj], "w");
 		fclose(dat_file);

@@ -26,7 +26,6 @@ __global__ void pullingPlane_kernel(){
 #endif
             float3 norm = c_pullingPlane.pullVector;
             float dis = norm.x*coord.x + norm.y*coord.y + norm.z*coord.z + c_pullingPlane.d;
-//            printf("%.2d\n",dis);
             dis = dis*c_pullingPlane.Ks;
             extF.x = dis*norm.x;
             extF.y = dis*norm.y;

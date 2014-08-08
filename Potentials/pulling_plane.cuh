@@ -12,7 +12,6 @@
 
 #define PULLINGPLANE_DELTAX_STRING		"pullingPlaneDeltax"
 #define PULLINGPLANE_KS_STRING			"pullingPlaneKs"
-#define PULLINGPLANE_MASS_STRING			"pullingPlaneMass"
 
 #define PULLINGPLANE_FIXED_COUNT_STRING	"plane_fixed_beads"
 #define PULLINGPLANE_FIXED_STRING		"plane_fixed"
@@ -46,7 +45,8 @@ struct PullingPlane {
     float d0; // initial plane displacement from (0,0,0)
     float cant_d; // cantilever displacement
 
-	float3 planeCoord;  // Point in plane coordinate
+	float3 planeCoord0; // Initial plane coordinate
+	float3 planeCoord;  // Current (actual) plane coordinate
 	float3 cantCoord;   // Position of cantilever
 
 	float4* h_extForces;

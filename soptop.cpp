@@ -4,11 +4,12 @@
  *  Created on: Oct 21, 2010
  *      Author: zhmurov
  */
-#include "sop.c"
-#include "config_reader.h"
-#include "topio.h"
+
+#include "sop.cpp"
+#include "IO/configreader.h"
+#include "IO/topio.h"
 #include "structure.h"
-#include "pdbio.c"
+#include "IO/pdbio.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -57,7 +58,7 @@ int main(int argc, char *argv[]){
 		exit(-1);
 	}
 
-	parseFile(argv[1]);
+	parseParametersFile(argv[1]); //, argc, argv);
 
 	createModel();
 }
@@ -142,7 +143,7 @@ void createModel(){
 		}
 	}
 
-	readPDB(pdb_filename, &pdbdata);
+	pdbdata.read(pdb_filename);
 	printf("Creating SOP-model...\n");
 
 	sop.aminoCount = 0;
@@ -158,7 +159,7 @@ void createModel(){
 	firstAtomInResid = (int*)malloc(sop.aminoCount*sizeof(int));
 	lastAtomInResid = (int*)malloc(sop.aminoCount*sizeof(int));
 	aminoRef = (int*)malloc(pdbdata.atomCount*sizeof(int));
-	sop.aminos = (Atom*)malloc(sop.aminoCount*sizeof(Atom));
+	sop.aminos = (PDBAtom*)malloc(sop.aminoCount*sizeof(PDBAtom));
 	/*nativeContacts = (char**)malloc(sop.aminoCount*sop.aminoCount*sizeof(char));
 	for(i = 0; i < sop.aminoCount; i++){
 		nativeContacts[i] = (char*)malloc(sop.aminoCount*sizeof(char));
@@ -291,7 +292,7 @@ void createModel(){
 			sop.aminoCount, sop.bondCount, sop.nativeCount, sop.pairCount);
 
 
-	sop.aminos = (Atom*)calloc(sop.aminoCount, sizeof(Atom));
+	sop.aminos = (PDBAtom*)calloc(sop.aminoCount, sizeof(PDBAtom));
 	sop.bonds = (CovalentBond*)calloc(sop.bondCount, sizeof(CovalentBond));
 	sop.natives = (NativeContact*)calloc(sop.nativeCount, sizeof(NativeContact));
 	sop.pairs = (PossiblePair*)calloc(sop.pairCount, sizeof(PossiblePair));
@@ -301,7 +302,7 @@ void createModel(){
 	index = 0;
 	for(i = 0; i < pdbdata.atomCount; i++){
 		if(strcmp(pdbdata.atoms[i].name, "CA") == 0){
-			memcpy(&sop.aminos[index], &pdbdata.atoms[i], sizeof(Atom));
+			memcpy(&sop.aminos[index], &pdbdata.atoms[i], sizeof(PDBAtom));
 			index ++;
 		}
 	}
@@ -350,13 +351,13 @@ void createModel(){
 		printf("Total per %d-mer:\n%d amino acids\n%d covalent bonds\n%d native contacts\n%d pairs\n=======\n",
 				monomerCount, tandem.aminoCount, tandem.bondCount, tandem.nativeCount, tandem.pairCount);
 
-		tandem.aminos = (Atom*)calloc(tandem.aminoCount, sizeof(Atom));
+		tandem.aminos = (PDBAtom*)calloc(tandem.aminoCount, sizeof(PDBAtom));
 		tandem.bonds = (CovalentBond*)calloc(tandem.bondCount, sizeof(CovalentBond));
 		tandem.natives = (NativeContact*)calloc(tandem.nativeCount, sizeof(NativeContact));
 		tandem.pairs = (PossiblePair*)calloc(tandem.pairCount, sizeof(PossiblePair));
 
 		index = 0;
-		Atom linkerAA;
+		PDBAtom linkerAA;
 		strcpy(linkerAA.resName, "GLY");
 		strcpy(linkerAA.name, "CA");
 		linkerAA.chain = 'l';
@@ -489,7 +490,7 @@ void createModel(){
 
 		sop = tandem;
 	}
-	saveTOP(top_filename);
+	sop.save(top_filename);
 	FILE* test = fopen(coord_filename, "r");
 	if(test != NULL){
 		fclose(test);
@@ -497,9 +498,9 @@ void createModel(){
 		char input;
 		scanf("%c", &input);
 		if(input == 'y'){
-			savePDB(coord_filename);
+			savePDB(coord_filename, sop);
 		}
 	} else {
-		savePDB(coord_filename);
+		savePDB(coord_filename, sop);
 	}
 }

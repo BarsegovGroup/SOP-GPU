@@ -27,8 +27,6 @@ void runGPU();
 void bindTextures();
 void __checkCUDAError(const char *file, int line);
 
-extern void savePDB(char* pdb_filename);
-
 void initCoordinates();
 void copyCoordinates();
 void copyCoordinatesTrajectory(int traj);
@@ -181,14 +179,14 @@ void runGPU(){
 	for(traj = 0; traj < Ntr; traj++){
 		char trajnum[10];
 		char trajCoordFilename[100];
-		sprintf(trajnum, "%d\0", traj+firstrun);
+		sprintf(trajnum, "%d", traj+firstrun);
 		replaceString(trajCoordFilename, final_filename, trajnum, "<run>");
 		for(i = 0; i < sop.aminoCount; i++){
 			sop.aminos[i].x = gsop.h_coord[sop.aminoCount*traj + i].x;
 			sop.aminos[i].y = gsop.h_coord[sop.aminoCount*traj + i].y;
 			sop.aminos[i].z = gsop.h_coord[sop.aminoCount*traj + i].z;
 		}
-		savePDB(trajCoordFilename);
+		savePDB(trajCoordFilename, sop);
 	}
 
 }

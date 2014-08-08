@@ -68,7 +68,7 @@ void initPulling(){
 	printf("%d resid(s) fixed, %d pulled.\n", pulling.fixedCount, pulling.pulledCount);
 	char paramName[10];
 	for(i = 0; i < pulling.fixedCount; i++){
-		sprintf(paramName, "%s%d\0", PULLING_FIXED_STRING, i+1);
+		sprintf(paramName, "%s%d", PULLING_FIXED_STRING, i+1);
 		pulling.fixed[i] = getIntegerParameter(paramName, 0, 0);
 		/*if(fixed_beads[i] < 0 || fixed_beads[i] >= sop.aminoCount){
 			printf("ERROR: Fixed bead %d not exists. Protein has only %d amino-acids. Bead numbers should start with zero.\n", fixed_beads[i], sop.aminoCount);
@@ -77,7 +77,7 @@ void initPulling(){
 		printf("Resid %d is fixed.\n", pulling.fixed[i]);
 	}
 	for(i = 0; i < pulling.pulledCount; i++){
-		sprintf(paramName, "%s%d\0", PULLING_PULLED_STRING, i+1);
+		sprintf(paramName, "%s%d", PULLING_PULLED_STRING, i+1);
 		pulling.pulled[i] = getIntegerParameter(paramName, 0, 0);
 		/*if(pulled_beads[i] < 0 || pulled_beads[i] >= sop.aminoCount){
 			printf("ERROR: Pulled bead %d not exists. Protein has only %d amino-acids. Bead numbers should start with zero.\n", pulled_beads[i], sop.aminoCount);
@@ -136,7 +136,7 @@ void initPulling(){
 				pulling.pullVector[0].y,
 				pulling.pullVector[0].z);
 	} else {
-		printf("ERROR: 'pullDirection' parameter should be set to 'endToEnd' or 'vector'.\n", pullVector.x, pullVector.y, pullVector.z);
+		printf("ERROR: 'pullDirection' parameter should be set to 'endToEnd' or 'vector'.\n");
 		exit(-1);
 	}
 
@@ -181,7 +181,7 @@ void initPulling(){
 		for(traj = 0; traj < Ntr; traj++){
 			pullFilenames[traj] = (char*)calloc(100, sizeof(char));
 			char trajnum[10];
-			sprintf(trajnum, "%d\0", traj+firstrun);
+			sprintf(trajnum, "%d", traj+firstrun);
 			replaceString(pullFilenames[traj], tempFilename, trajnum, "<run>");
 			pullFile = fopen(pullFilenames[traj], "w");
 			fclose(pullFile);

@@ -49,7 +49,6 @@ void initPullingPlane(){
 
 	pullingPlane.deltax = getFloatParameter(PULLINGPLANE_DELTAX_STRING, 0, 1);
 	pullingPlane.Ks = getFloatParameter(PULLINGPLANE_KS_STRING, DEFAULT_PULLINGPLANE_KS, 1);
-	pullingPlane.mass = getFloatParameter(PULLINGPLANE_MASS_STRING, 0, 0); // in "mass of single AA residue" units
 
 	if(pullingPlane.deltax == 0){
 		printf("ERROR: '%s' parameter should be specified to initiate pullingPlane.\n", PULLINGPLANE_DELTAX_STRING);
@@ -63,7 +62,7 @@ void initPullingPlane(){
 	printf("%d resid(s) fixed, %d pulled.\n", pullingPlane.fixedCount, pullingPlane.pulledCount);
 	char paramName[50];
 	for(i = 0; i < pullingPlane.fixedCount; i++){
-		sprintf(paramName, "%s%d\0", PULLINGPLANE_FIXED_STRING, i+1);
+		sprintf(paramName, "%s%d", PULLINGPLANE_FIXED_STRING, i+1);
 		pullingPlane.fixed[i] = getIntegerParameter(paramName, 0, 0);
 		if(pullingPlane.fixed[i] < 0 || pullingPlane.fixed[i] >= gsop.aminoCount){
 			printf("ERROR: Fixed bead %s %d not exists. Protein has only %d amino-acids. Bead numbers should start with zero.\n", paramName, pullingPlane.fixed[i], gsop.aminoCount);
@@ -72,7 +71,7 @@ void initPullingPlane(){
 		printf("Resid %d is fixed.\n", pullingPlane.fixed[i]);
 	}
 	for(i = 0; i < pullingPlane.pulledCount; i++){
-		sprintf(paramName, "%s%d\0", PULLINGPLANE_PULLED_STRING, i+1);
+		sprintf(paramName, "%s%d", PULLINGPLANE_PULLED_STRING, i+1);
 		pullingPlane.pulled[i] = getIntegerParameter(paramName, 0, 0);
 		if(pullingPlane.pulled[i] < 0 || pullingPlane.pulled[i] >= gsop.aminoCount){
 			printf("ERROR: Pulled bead %s %d not exists. Protein has only %d amino-acids. Bead numbers should start with zero.\n", paramName, pullingPlane.pulled[i], gsop.aminoCount);
@@ -86,7 +85,7 @@ void initPullingPlane(){
     pullingPlane.pullVector.x /= t;
     pullingPlane.pullVector.y /= t;
     pullingPlane.pullVector.z /= t;
-    getVectorParameter(PULLINGPLANE_ZEROVECTOR_STRING, &pullingPlane.planeCoord.x, &pullingPlane.planeCoord.y, &pullingPlane.planeCoord.z, 0, 0, 0, 0);
+    getVectorParameter(PULLINGPLANE_ZEROVECTOR_STRING, &pullingPlane.planeCoord0.x, &pullingPlane.planeCoord0.y, &pullingPlane.planeCoord0.z, 0, 0, 0, 0);
     pullingPlane.d = - (pullingPlane.planeCoord.x*pullingPlane.pullVector.x + pullingPlane.planeCoord.y*pullingPlane.pullVector.y + pullingPlane.planeCoord.z*pullingPlane.pullVector.z);
     pullingPlane.cant_d = pullingPlane.d;
 
@@ -114,7 +113,7 @@ void initPullingPlane(){
     char tmpstr[512];
 	getMaskedParameter(tmpstr, PULLINGPLANE_FILENAME, "", 0);
 	char trajnum[10];
-	sprintf(trajnum, "%d\0", firstrun);
+	sprintf(trajnum, "%d", firstrun);
 	replaceString(pullingPlaneFilename, tmpstr, trajnum, "<run>");
 	pullingPlaneFile = fopen(pullingPlaneFilename, "w");
 	fclose(pullingPlaneFile);
@@ -169,7 +168,7 @@ inline void updatePullingPlane(){
 
         float totForce = pullingPlane.Ks * (pullingPlane.cant_d - pullingPlane.d) - extForceProj;
 
-        pullingPlane.d += totForce * pullingPlaneUpdater.frequency * langevin.hOverZeta / pullingPlane.mass;
+        pullingPlane.d += totForce * pullingPlaneUpdater.frequency * langevin.hOverZeta;
 	
         cudaMemcpyToSymbol(c_pullingPlane, &pullingPlane, sizeof(PullingPlane), 0, cudaMemcpyHostToDevice);
 

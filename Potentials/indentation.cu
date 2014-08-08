@@ -218,7 +218,7 @@ void addTipMicaParticles(){
 	indentation.surfaceSize = getIntegerParameter(INDENTATION_MICA_SIZE_STRING, 51, 1);
 	indentation.surfaceStep = getFloatParameter(INDENTATION_MICA_STEP_STRING, 1.4, 1);
 	sop.additionalAminosCount = 2 + indentation.surfaceSize*indentation.surfaceSize;
-	sop.additionalAminos = (Atom*)calloc(sop.additionalAminosCount, sizeof(Atom));
+	sop.additionalAminos = (PDBAtom*)calloc(sop.additionalAminosCount, sizeof(PDBAtom));
 	sop.additionalAminos[0].id = sop.aminoCount;
 	strcpy(sop.additionalAminos[0].resName, "TIP");
 	sop.additionalAminos[0].chain = 'T';

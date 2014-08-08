@@ -10,8 +10,8 @@ char dcd_filename[100];
 char restartpdb_filename[100];
 char restartconf_filename[100];
 
-FILE* dcd_file;
 char** dcd_filenames;
+DCD dcd;
 float* X;
 float* Y;
 float* Z;
@@ -47,24 +47,20 @@ void initDCD(){
 		//printf("%d.1\n", traj);
 		dcd_filenames[traj] = (char*)calloc(100, sizeof(char));
 		char trajnum[10];
-		sprintf(trajnum, "%d\0", traj+firstrun);
+		sprintf(trajnum, "%d", traj+firstrun);
 		replaceString(dcd_filenames[traj], dcd_filename, trajnum, "<run>");
-		dcd_file = fopen(dcd_filenames[traj], "w");//dcd_open_write(dcd_file[traj], tempDCDFilename);
 		//printf("%d.2\n", traj);
 		int particleCount = sop.aminoCount;
 		if(sop.additionalAminosCount > 0){
 			particleCount = particleCount + sop.additionalAminosCount;
 		}
-		if(dcd_file == NULL){
-			printf("Can't open file '%s'.\n", dcd_filenames[traj]);
-			exit(-1);
-		}
-		dcd_write_header(dcd_file, dcd_filenames[traj], particleCount, dcdOutputManager.frequency,
-				dcdOutputManager.frequency, dcdOutputManager.frequency, 0.0); // The integrator is not initialized yet, so we consider timestep to be equal to zero
-		//printf("%d.3\n", traj);
 		//printf("Coordinates will be saved as '%s'.\n", dcd_filenames[traj]);
-		fflush(dcd_file);
-		fclose(dcd_file);
+		dcd.open_write(dcd_filenames[traj]);
+        dcd.N = particleCount;
+        dcd.NFILE = dcd.NPRIV = dcd.NSAVC = dcdOutputManager.frequency;
+        dcd.DELTA = 0.0; // The integrator is not initialized yet, so we consider timestep to be equal to zero
+		dcd.write_header();
+		dcd.close();
 	}
 	// Allocate memory for temporary data
 	int size = sop.aminoCount*sizeof(float);
@@ -87,7 +83,6 @@ void saveCoord(){
 		copyCoordDeviceToHost();
 		int particleCount = sop.aminoCount;
 		for(traj = 0; traj < Ntr; traj++){
-			dcd_file = fopen(dcd_filenames[traj], "a");
 			for(i = 0; i < sop.aminoCount; i++){
 				X[i] = gsop.h_coord[sop.aminoCount*traj + i].x;
 				Y[i] = gsop.h_coord[sop.aminoCount*traj + i].y;
@@ -101,9 +96,9 @@ void saveCoord(){
 					Z[i+sop.aminoCount] = sop.additionalAminos[i].z;
 				}
 			}
-			dcd_write_frame(dcd_file, particleCount, X, Y, Z);
-			fflush(dcd_file);
-			fclose(dcd_file);
+			dcd.open_append(dcd_filenames[traj]);
+			dcd.write_frame(X, Y, Z);
+			dcd.close();
 		}
 		printf("done.\n");
 		long long int timer = time(NULL) - initialTime;
@@ -126,14 +121,14 @@ void saveCoord(){
 		for(int traj = 0; traj < Ntr; traj++){
 			char trajnum[10];
 			char tempRestartFilename[100];
-			sprintf(trajnum, "%d\0", traj+firstrun);
+			sprintf(trajnum, "%d", traj+firstrun);
 			replaceString(tempRestartFilename, restartpdb_filename, trajnum, "<run>");
 			for(i = 0; i < sop.aminoCount; i++){
 				sop.aminos[i].x = gsop.h_coord[sop.aminoCount*traj + i].x;
 				sop.aminos[i].y = gsop.h_coord[sop.aminoCount*traj + i].y;
 				sop.aminos[i].z = gsop.h_coord[sop.aminoCount*traj + i].z;
 			}
-			savePDB(tempRestartFilename);
+			savePDB(tempRestartFilename, sop);
 			/*replaceString(tempRestartFilename, restartconf_filename, trajnum, "<run>");
 			FILE* param_file = fopen(tempRestartFilename, "w");
 			fprintf(param_file, "stage %s\n", stageString);
@@ -151,8 +146,3 @@ void saveCoord(){
 	checkCUDAError();
 }
 
-void closeDCD(){
-	/*for(int i = 0; i < Ntr; i ++){
-		dcd_close(dcd_file[i]);
-	}*/
-}
