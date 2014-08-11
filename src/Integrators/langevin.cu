@@ -23,7 +23,7 @@ void initLangevinIntegrator(){
 	langevin.zeta = getFloatParameter(LANGEVIN_ZETA_STRING, DEFAULT_LANGEVIN_ZETA, 1);
 	langevin.hOverZeta = langevin.h/langevin.zeta;
 	langevin.tempNorm = langevin.zeta/(6.0*langevin.h);
-    int seed = getIntegerParameter("seed", time(NULL), 1) + gsop.firstrun;
+    int seed = getIntegerParameter("seed", time(NULL), 1) + gsop.firstrun + getIntegerParameter("run", -1, 1); // TODO: do we need `run` here?
 	initRand(seed, gsop.aminoCount);
 	createTemperatureControl();
 	cudaMemcpyToSymbol(c_langevin, &langevin, sizeof(Langevin), 0, cudaMemcpyHostToDevice);
