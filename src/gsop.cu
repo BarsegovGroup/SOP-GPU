@@ -4,8 +4,16 @@
  *  Created on: Jun 4, 2009
  *      Author: zhmurov
  */
-#include "def_param.h"
+
 #include "gsop.cuh"
+#include "def_param.h"
+
+#include "IO/configreader.h"
+#include "IO/topio.h"
+#include "IO/dcdio.h"
+#include "IO/pdbio.h"
+#include "Util/wrapper.h"
+
 #include "Potentials/covalent.cu"
 #include "Potentials/native.cu"
 #include "Potentials/pairs.cu"
@@ -19,42 +27,14 @@
 #include "Updaters/output_manager.cu"
 #include "Updaters/dcd_manager.cu"
 
-//#include "externalForce.cu"
-
-void initGPU();
-void initFF();
-void runGPU();
-void bindTextures();
-void __checkCUDAError(const char *file, int line);
-
-void initCoordinates();
-void copyCoordinates();
-void copyCoordinatesTrajectory(int traj);
-void initForces();
-void initEnergies();
-
-extern void replaceString(char* resultString, const char* initialString, const char* replacementString, const char* stringToReplace);
-extern void initTemperature();
-extern void initCovalent();
-extern void initNative();
-extern void initPairs();
-extern uint4* initRandom(int seed, int N);
-extern void shiftRandomSeeds(uint4* d_newseeds, int N);
-
-unsigned int cpuTimer;
-double gpuTime = 0.0;
-double cpuTime = 0.0;
-double pairlistTime = 0.0;
-double covalentTime = 0.0;
-double nativeTime = 0.0;
-double pairsTime = 0.0;
-
 long int lastStepCoordCopied = -1;
 
 GSOP gsop;
 SOPPotential** potentials;
 SOPUpdater** updaters;
 SOPIntegrator* integrator;
+
+cudaDeviceProp deviceProp;
 
 int potentialsCount;
 int updatersCount;
@@ -67,10 +47,10 @@ void initGPU(){
 
 	//initDCD();
 	cudaSetDevice(gsop.deviceId);
-	cudaGetDeviceProperties(&gsop.deviceProp, gsop.deviceId);
-	printf("Using device %d: \"%s\"\n", gsop.deviceId, gsop.deviceProp.name);
-	printf("CUDA Capability revision number: %d.%d\n", gsop.deviceProp.major, gsop.deviceProp.minor);
-	printf("CUDA PCIe ID: %x:%x:%x\n", gsop.deviceProp.pciDomainID, gsop.deviceProp.pciBusID, gsop.deviceProp.pciDeviceID);
+	cudaGetDeviceProperties(&deviceProp, gsop.deviceId);
+	printf("Using device %d: \"%s\"\n", gsop.deviceId, deviceProp.name);
+	printf("CUDA Capability revision number: %d.%d\n", deviceProp.major, deviceProp.minor);
+	printf("CUDA PCIe ID: %x:%x:%x\n", deviceProp.pciDomainID, deviceProp.pciBusID, deviceProp.pciDeviceID);
 	gsop.aminoCount = gsop.Ntr*sop.aminoCount;
 	gsop.width = gsop.aminoCount;
 	while(gsop.width % 8 != 0){
@@ -183,10 +163,8 @@ void runGPU(){
 
 	int traj;
 	for(traj = 0; traj < gsop.Ntr; traj++){
-		char trajnum[10];
 		char trajCoordFilename[100];
-		sprintf(trajnum, "%d", traj+gsop.firstrun);
-		replaceString(trajCoordFilename, final_filename, trajnum, "<run>");
+	    getMaskedParameterWithReplacementT(trajCoordFilename, "finalcoord", "<name>_<author><run>_<stage>_final.pdb", traj+gsop.firstrun, "<run>");
 		for(i = 0; i < sop.aminoCount; i++){
 			sop.aminos[i].x = gsop.h_coord[sop.aminoCount*traj + i].x;
 			sop.aminos[i].y = gsop.h_coord[sop.aminoCount*traj + i].y;
@@ -281,7 +259,7 @@ void bindTextures(){
 void __checkCUDAError(const char *file, int line){
 	cudaError_t error = cudaGetLastError();
 	if(error != cudaSuccess){
-		printf("CUDA error: %s [%s:%d]\n", cudaGetErrorString(error), file, line);
-		exit(-1);
+		DIE("CUDA error: %s [%s:%d]\n", cudaGetErrorString(error), file, line);
 	}
 }
+

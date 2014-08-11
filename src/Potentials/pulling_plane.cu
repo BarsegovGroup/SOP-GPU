@@ -22,7 +22,7 @@ void createPullingPlanePotential(){
 		pullingPlanePotential.compute = &computePullingPlane;
 		pullingPlanePotential.computeEnergy = &computePullingPlaneEnergy;
 		potentials[potentialsCount] = &pullingPlanePotential;
-		if(gsop.deviceProp.major == 2){ // TODO: >= 2
+		if(deviceProp.major == 2){ // TODO: >= 2
 			cudaFuncSetCacheConfig(pullingPlane_kernel, cudaFuncCachePreferL1);
 		}
 		potentialsCount++;

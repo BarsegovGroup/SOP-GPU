@@ -5,6 +5,8 @@
  *      Author: zhmurov
  */
 
+#define FILENAME_LENGTH 100
+
 #include "sop.cpp"
 #include "IO/configreader.h"
 #include "IO/topio.h"
@@ -13,41 +15,14 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define version "trunk"
-#define FILENAME_LENGTH 100
-
-/*float R_limit_bond;
-float SC_limit_bond;
-float a;
-int covalentLJ;
-float pairs_cutoff;
-float pairs_threshold;
-
-
-int createTandem;
-int linkerLength;
-int monomerCount;
-int tandemDirection = 1;
-float tandemVectorX;
-float tandemVectorY;
-float tandemVectorZ;
-int firstResid;
-int lastResid;*/
-
-SOP sop;
-PDB pdbdata;
-SOP tandem;
-
-//char pdb_filename[FILENAME_LENGTH];
-char top_filename[FILENAME_LENGTH];
-char coord_filename[FILENAME_LENGTH];
+#define VERSION "trunk"
 
 void createModel();
 
 int main(int argc, char *argv[]){
 
 	printf("==========================\n");
-	printf("gSOP Topology creator version %s\n", version);
+	printf("gSOP Topology creator version %s\n", VERSION);
 	printf("==========================\n");
 
 	if(argc < 1){

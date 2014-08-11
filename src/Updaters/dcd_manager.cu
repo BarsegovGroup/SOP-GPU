@@ -8,7 +8,6 @@
 
 char dcd_filename[100];
 char restartpdb_filename[100];
-char restartconf_filename[100];
 int restartfreq;
 
 char** dcd_filenames;
@@ -40,8 +39,6 @@ void initDCD(){
 	char restart_filename[100];
 	getMaskedParameter(restart_filename, "restartname", "<name>_<author><run>_restart", 1);
 	sprintf(restartpdb_filename, "%s.pdb", restart_filename);
-	sprintf(restartconf_filename, "%s.conf", restart_filename);
-	getMaskedParameter(final_filename, "finalcoord", "<name>_<author><run>_<stage>_final.pdb", 1);
 
 	int traj;
 	dcd_filenames = (char**)calloc(gsop.Ntr, sizeof(char*));
@@ -131,19 +128,8 @@ void saveCoord(){
 				sop.aminos[i].z = gsop.h_coord[sop.aminoCount*traj + i].z;
 			}
 			savePDB(tempRestartFilename, sop);
-			/*replaceString(tempRestartFilename, restartconf_filename, trajnum, "<run>");
-			FILE* param_file = fopen(tempRestartFilename, "w");
-			fprintf(param_file, "stage %s\n", stageString);
-			fprintf(param_file, "timeStep %ld\n", step);
-			fprintf(param_file, "extension %f\n", xt);
-			fprintf(param_file, "pullVector.x %f\npullVector.y %f\npullVector.z %f\n",
-						pull_vector[traj].x, pull_vector[traj].y, pull_vector[traj].z);
-			fprintf(param_file, "chipCoord.x %f\nchipCoord.y %f\nchipCoord.z %f\n",
-						cantilever_coord[traj].x, cantilever_coord[traj].y, cantilever_coord[traj].z);
-			fclose(param_file);*/
 		}
 		printf("Saving restart coordinates into '%s'.\n", restartpdb_filename);
-	//	printf("Saving restart parameters into '%s'.\n", restartconf_filename);
 	}
 	checkCUDAError();
 }

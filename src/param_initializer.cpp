@@ -9,8 +9,6 @@
 #include "IO/configreader.h"
 #include "gsop.h"
 
-#define buf_size 2048
-
 int mode;
 
 int BLOCK_SIZE = 256;
@@ -19,11 +17,6 @@ long int numsteps;
 
 int nav;
 
-char top_filename[100];
-char coord_filename[100];
-char ref_filename[100];
-char final_filename[100];
-
 void initParameters(const char* configFile){
 
 	parseParametersFile(configFile);
@@ -31,7 +24,6 @@ void initParameters(const char* configFile){
     char protein_name[100];
 	getParameter(protein_name, "name", "unnamed", 1);
 	printf("Initializing simulations for '%s'\n", protein_name);
-
 
 	char modeString[100];
 	getParameter(modeString, "mode", "", 1);
@@ -57,12 +49,5 @@ void initParameters(const char* configFile){
 	nav = getIntegerParameter("nav", 1000, 1);
 	
     gsop.deviceId = getIntegerParameter("device", 0, 1);
-
-	getMaskedParameter(top_filename, "topology", "", 0);
-	getMaskedParameter(coord_filename, "coordinates", "", 0);
-
-	getMaskedParameter(ref_filename, "reffilename", "<name>.ref.pdb", 1);
-	//printf("Coordinates will be saved into '%s'\n", dcd_filename);
-	getMaskedParameter(final_filename, "finalcoord", "<name>_<author><run>_<stage>_final.pdb", 1);
 }
 

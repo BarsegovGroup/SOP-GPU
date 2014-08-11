@@ -6,22 +6,21 @@
 
 #include "def_param.h"
 #include "gsop.h"
+
+#include "IO/configreader.h"
 #include "Util/wrapper.h"
-#define buf_size 2048
 
 long long int initialTime;
 long long int lastTime;
 
 long int step;
 
-PDB pdbdata;
 SOP sop;
 
 extern void initGPU();
 extern void initFF();
 extern void copyCoordinates();
 extern void copyCoordinatesTrajectory(int traj);
-extern void replaceString(char* resultString, const char* initialString, const char* replacementString, const char* stringToReplace);
 extern void runGPU();
 extern void cleanup();
 
@@ -32,7 +31,7 @@ void getOutputFilnames();
 int main(int argc, char *argv[]){
 
 	printf("==========================\n");
-	printf("gSOP version %s\n", version);
+	printf("gSOP version %s\n", VERSION);
 	printf("==========================\n");
 
 #ifdef DEBUG
@@ -51,7 +50,6 @@ int main(int argc, char *argv[]){
 
 	for(i = 1; i < argc; i++){
 		if(strcmp(argv[i], "--restart") == 0){
-			//printf("Reading restart parameters...\n");
 			restart = 1;
 			DIE("Restart is not currently supported. Sorry.");
 		}
@@ -60,47 +58,27 @@ int main(int argc, char *argv[]){
 	// Read main parameters of the simulation (number of steps, etc.)
 	initParameters(argv[1]);
 
-   	if(top_filename == NULL){
-		DIE("Please, use sop-top utility to create topology.");
-	} else {
-		sop.load(top_filename);
-	}
+    char top_filename[100];
+	getMaskedParameter(top_filename, "topology", "", 0);
+	sop.load(top_filename);
 
 	initGPU(); // Set device, allocate memory for the common variables (coordinates/forces)
-	if(restart == 0){ //Restart feature is not working at a time (condition always satisfied)
-		for(i = 0; i < gsop.Ntr; i++){
-			char trajnum[10];
-			char trajCoordFilename[100];
-			sprintf(trajnum, "%d", i+gsop.firstrun);
-			replaceString(trajCoordFilename, coord_filename, trajnum, "<run>");
-			readCoord(trajCoordFilename, sop); // Read coordinates from a file for all (or single) trajectories
-			copyCoordinatesTrajectory(i); // Copy coordinates to a specific location in a coordinates array
-		}
-	} else {
-		FILE* src = fopen(restartpdb_filename, "r");
-		char bckFilename[100];
-		sprintf(bckFilename, "%s.%ld.bck", restartpdb_filename, step);
-		FILE* bck = fopen(bckFilename, "w");
-		char buffer[buf_size];
-		while(fgets(buffer, buf_size, src) != NULL){
-			fputs(buffer, bck);
-		}
-		fclose(bck);
-		fclose(src);
-		readCoord(restartpdb_filename, sop);
+    char coord_filename[100];
+	for(i = 0; i < gsop.Ntr; i++){
+        getMaskedParameterWithReplacementT(coord_filename, "coordinates", i+gsop.firstrun, "<run>");
+		readCoord(coord_filename, sop); // Read coordinates from a file for all (or single) trajectories
+		copyCoordinatesTrajectory(i); // Copy coordinates to a specific location in a coordinates array
 	}
+
+    char ref_filename[100];
+    getMaskedParameter(ref_filename, "reffilename", "<name>.ref.pdb", 1);
+    printf("Saving reference PDB: '%s'.\n", ref_filename);
+	savePDB(ref_filename, sop); // Save reference PDB at the begining of the trajectory
+
 	copyCoordinates(); // Copy all coordinates to a gpu
 	initFF(); // Initialize all potentials and updaters
 
-	printf("Saving reference PDB: '%s'.\n", ref_filename);
-	savePDB(ref_filename, sop); // Save reference PDB at the begining of the trajectory
 	lastTime = time(NULL); // Reset timer
-
-	/*if(restart == 1){
-		printf("Reading restart coordinates from %s.\n", restartpdb_filename);
-		readCoord(restartpdb_filename);
-		copyCoordinates();
-	}*/
 
 	printf("Starting %d runs (%ld steps).\n", gsop.Ntr, numsteps);
 	runGPU(); // Strart simulations

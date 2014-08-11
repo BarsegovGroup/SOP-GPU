@@ -1,5 +1,5 @@
-#ifndef GSOP_CUH
-#define GSOP_CUH
+#pragma once
+
 /*
  * gsop.cuh
  *
@@ -11,12 +11,14 @@
 
 __device__ __constant__ GSOP c_gsop;
 
+extern cudaDeviceProp deviceProp;
+extern int BLOCK_SIZE;
+
 #ifndef NOTEXTURE
 texture<float4, 1, cudaReadModeElementType> t_coord; // Coordinates
 #endif
 
-extern void __checkCUDAError(const char *file, int line);
-extern void copyCoordDeviceToHost();
+void __checkCUDAError(const char *file, int line);
+void copyCoordDeviceToHost();
 #define checkCUDAError() __checkCUDAError(__FILE__, __LINE__)
 
-#endif

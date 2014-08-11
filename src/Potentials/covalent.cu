@@ -8,7 +8,7 @@
 #include "../gsop.cuh"
 #include "covalent.cuh"
 #include "covalent_kernel.cu"
-
+#include "../IO/configreader.h"
 
 /*
  * Covalent potential. Adds itself into the list of potentials and creates timer.
@@ -18,7 +18,7 @@ void createCovalentPotential(){
 	covalentPotential.compute = &computeCovalent;
 	covalentPotential.computeEnergy = &computeCovalentEnergy;
 	potentials[potentialsCount] = &covalentPotential;
-	if(gsop.deviceProp.major == 2){ // TODO: >= 2
+	if(deviceProp.major == 2){ // TODO: >= 2
 		cudaFuncSetCacheConfig(covalent_kernel, cudaFuncCachePreferL1);
 		cudaFuncSetCacheConfig(covalentEnergy_kernel, cudaFuncCachePreferL1);
 	}

@@ -6,15 +6,18 @@
  */
 
 #include "def_param.h"
+#include <string.h>
 #include "IO/pdbio.h"
 #include "IO/topio.h"
+
+SOP sop;
+PDB pdbdata;
+SOP tandem;
 
 int* pdbRef;
 int* aminoRef;
 int* firstAtomInResid;
 int* lastAtomInResid;
-
-//char** nativeContacts;
 
 float getDistanceAtoms(int i1, int i2);
 float getDistanceBeads(int i, int j);
@@ -32,9 +35,10 @@ int checkPossiblePairs(int i, int j);
 
 float getR0(int i, int j);
 float getEh(int i, int j);
-int getBeadMask(int i);
 
-char pdb_filename[100];
+char pdb_filename[FILENAME_LENGTH];
+char top_filename[FILENAME_LENGTH];
+char coord_filename[FILENAME_LENGTH];
 
 float a;
 float eh;
@@ -283,3 +287,4 @@ float getY(int i){
 float getZ(int i){
 	return sop.aminos[i].z;
 }
+

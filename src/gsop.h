@@ -1,5 +1,4 @@
-#ifndef GSOP_H
-#define GSOP_H
+#pragma once
 /*
  * gsop.h
  *
@@ -10,7 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "def_param.h"
+#include <vector_types.h>
+#include "IO/topio.h"
 
 #define max_potentials 10
 #define max_updaters 10
@@ -23,7 +23,6 @@
 
 struct GSOP{
     int deviceId;
-	cudaDeviceProp deviceProp;
 
 	int pullingOn; // TODO: bitfield?
 	int pullingPlaneOn;
@@ -81,6 +80,17 @@ extern int updatersCount;
 extern int integratorTea;
 
 extern GSOP gsop;
+extern SOP sop;
 
-#endif
+void initGPU();
+void initFF();
+void runGPU();
+void bindTextures();
+void __checkCUDAError(const char *file, int line);
+
+void initCoordinates();
+void copyCoordinates();
+void copyCoordinatesTrajectory(int traj);
+void initForces();
+void initEnergies();
 

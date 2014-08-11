@@ -15,7 +15,7 @@ void createPairlistUpdater(){
 	pairlistMaker.destroy = &deletePairlist;
 	pairlistMaker.frequency = getIntegerParameter("pairs_freq", 1000, 1);
 	updaters[updatersCount] = &pairlistMaker;
-	if(gsop.deviceProp.major == 2){ // TODO: >=  2
+	if(deviceProp.major == 2){ // TODO: >=  2
 		cudaFuncSetCacheConfig(generate_pairs, cudaFuncCachePreferL1);
 	}
 	updatersCount++;

@@ -85,7 +85,7 @@ void printStep(){
 		} else {
 			sprintf(runstring, "%d runs", gsop.Ntr);
 		}
-		printf("Writing output at step %ld of %ld. %s on %d [%s].\n", step, numsteps, runstring, gsop.deviceId, gsop.deviceProp.name);
+		printf("Writing output at step %ld of %ld. %s on %d [%s].\n", step, numsteps, runstring, gsop.deviceId, deviceProp.name);
 		int traj;
 		for(traj = 0; traj < gsop.Ntr; traj++){
 			dat_file = fopen(dat_filenames[traj], "a");

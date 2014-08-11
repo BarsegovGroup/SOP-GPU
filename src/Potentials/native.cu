@@ -14,7 +14,7 @@ void createNativePotential(){
 	nativePotential.compute = &computeNative;
 	nativePotential.computeEnergy = &computeNativeEnergy;
 	potentials[potentialsCount] = &nativePotential;
-	if(gsop.deviceProp.major == 2){ // TODO: >= 2
+	if(deviceProp.major == 2){ // TODO: >= 2
 		cudaFuncSetCacheConfig(native_kernel, cudaFuncCachePreferL1);
 		cudaFuncSetCacheConfig(nativeEnergy_kernel, cudaFuncCachePreferL1);
 	}

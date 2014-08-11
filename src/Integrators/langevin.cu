@@ -27,7 +27,7 @@ void initLangevinIntegrator(){
 	initRand(seed, gsop.aminoCount);
 	createTemperatureControl();
 	cudaMemcpyToSymbol(c_langevin, &langevin, sizeof(Langevin), 0, cudaMemcpyHostToDevice);
-	if(gsop.deviceProp.major == 2){ // TODO: >= 2
+	if(deviceProp.major == 2){ // TODO: >= 2
 		cudaFuncSetCacheConfig(integrateLangevin_kernel, cudaFuncCachePreferL1);
 	}
 }

@@ -22,7 +22,7 @@ void createPullingPotential(){
 		//pullingPotential.compute = &computePulling;
 		//pullingPotential.computeEnergy = &computePullingEnergy;
 		//potentials[potentialsCount] = &pullingPotential;
-		//if(gsop.deviceProp.major == 2){
+		//if(deviceProp.major == 2){
 		//	cudaFuncSetCacheConfig(pulling_kernel, cudaFuncCachePreferL1);
 		//}
 		//potentialsCount++;

@@ -25,17 +25,18 @@ CXX_SOURCES			:= main.cpp \
 	param_initializer.cpp
 
 CU_SOURCES			:= gsop.cu
+
 CXX_OBJS				:= $(patsubst %.cpp, $(OBJDIR)/%.cpp.o, $(CXX_SOURCES))
 CU_OBJS				:= $(patsubst %.cu, $(OBJDIR)/%.cu.o, $(CU_SOURCES))
  
-$(BIN): makedirs clean $(CU_OBJS) $(CXX_SOURCES) sop-top
-	$(LINKER) -o $(BIN) $(CU_OBJS) $(CXX_SOURCES) $(LDFLAGS) $(CFLAGS) $(CXXFLAGS)
+$(BIN): makedirs clean $(CU_OBJS) $(CXX_OBJS) sop-top
+	$(LINKER) -o $(BIN) $(CU_OBJS) $(CXX_OBJS) $(LDFLAGS)
  
-$(OBJDIR)/%.cpp.o: $(CXX_SOURCES)
+$(OBJDIR)/%.cpp.o: %.cpp
 	$(CXX) $(CFLAGS) $(CXXFLAGS) -o $@ -c $<
  
-$(OBJDIR)/%.cu.o: $(CU_SOURCES)
-	$(NVCC) $(INCLUDES) -o $@ -c $<
+$(OBJDIR)/%.cu.o: %.cu
+	$(NVCC) $(CFLAGS) $(CXXFLAGS) $(INCLUDES) -o $@ -c $<
 	
 sop-top:
 	$(CXX) $(CFLAGS) $(CXXFLAGS) -o sop-top soptop.cpp IO/configreader.cpp IO/topio.cpp IO/pdbio.cpp Util/wrapper.cpp -lm
@@ -44,6 +45,9 @@ makedirs:
 	mkdir -p $(OBJDIR)
 	mkdir -p $(OBJDIR)/IO
 	mkdir -p $(OBJDIR)/Util
+	mkdir -p $(OBJDIR)/Potentials
+	mkdir -p $(OBJDIR)/Updaters
+	mkdir -p $(OBJDIR)/Integrators
 
 run: $(BIN)
 	LD_LIBRARY_PATH=$(CUDA_INSTALL_PATH)/lib ./$(BIN)

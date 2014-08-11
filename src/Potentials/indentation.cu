@@ -35,7 +35,7 @@ void createIndentationPotential(){
 		}
 		indentationPotential.computeEnergy = &computeIndentationEnergy;
 		potentials[potentialsCount] = &indentationPotential;
-		if(gsop.deviceProp.major == 2){ // TODO: >= 2
+		if(deviceProp.major == 2){ // TODO: >= 2
 			cudaFuncSetCacheConfig(indentation_kernel, cudaFuncCachePreferL1);
 		}
 		potentialsCount++;
