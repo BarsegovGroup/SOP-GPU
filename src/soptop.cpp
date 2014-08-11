@@ -8,7 +8,6 @@
 #include "sop.cpp"
 #include "IO/configreader.h"
 #include "IO/topio.h"
-#include "structure.h"
 #include "IO/pdbio.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -490,8 +489,9 @@ void createModel(){
 	}
 	sop.save(top_filename);
 	FILE* test = fopen(coord_filename, "r");
-	if(test != NULL){
-		fclose(test);
+    int exists = (test != NULL);
+    fclose(test);
+	if(exists){
 		printf("Coordinates file '%s' exists. Overwrite (y/n)? ", coord_filename);
 		char input;
 		scanf("%c", &input);

@@ -6,7 +6,6 @@
 #include <math.h>
 #include <time.h>
 
-#include "structure.h"
 #include "IO/configreader.h"
 #include "IO/topio.h"
 #include "IO/pdbio.h"
