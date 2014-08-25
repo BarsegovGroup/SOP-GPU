@@ -7,6 +7,13 @@
 
 #include "../gsop.cuh"
 
+struct PossiblepairListConstant{
+    float pairsThreshold;
+};
+
+PossiblepairListConstant hc_possiblepairList;
+__device__ __constant__ PossiblepairListConstant c_possiblepairList;
+
 __global__ void generate_possiblepairs(){
 	int d_i = blockIdx.x*blockDim.x + threadIdx.x;
 	int counter;
@@ -59,3 +66,4 @@ __global__ void generate_possiblepairs(){
 		c_pairList.d_possiblePairsCount[d_i] = counter;
 	}
 }
+

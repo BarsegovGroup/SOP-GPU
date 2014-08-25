@@ -10,10 +10,6 @@
 #include "../param_initializer.h"
 
 #include "../IO/configreader.h"
-#include "../Potentials/native.h"
-#include "../Potentials/covalent.h"
-#include "../Integrators/bdhitea.h"
-#include "../Updaters/pairlist.h"
 #include <string.h>
 #include <stdio.h>
 #include <cuda.h>
@@ -23,10 +19,6 @@ FILE* dat_file;
 char** dat_filenames;
 char tempFilename[100];
 
-void computeEnergies(int traj);
-void computeNativeNumber(int traj);
-void computeRg(int traj);
-void computeTEAeps(int traj);
 
 void printDataToScreen();
 void printDataToFile(int traj);
@@ -35,22 +27,16 @@ void printStep();
 int mode;
 
 OutputData outputData;
-SOPUpdater outputManager;
-
 
 void createOutputManager(){
-	printf("Initializing output manager...\n");
-	sprintf(outputManager.name, "DAT output");
-	outputManager.update = &printStep;
-	outputManager.destroy = &closeDAT;
-	outputManager.frequency = getIntegerParameter(OUTPUT_FREQUENCY_STRING, DEFAULT_OUTPUT_FREQUENCY, 1);
-	updaters[updatersCount] = &outputManager;
+	updaters[updatersCount] = new OutputManager();
 	updatersCount++;
-	initOutputManager();
-	printf("Done initializing output manager...\n");
 }
 
-void initOutputManager(){
+OutputManager::OutputManager(){
+	printf("Initializing output manager...\n");
+	this->name = "DAT output";
+	this->frequency = getIntegerParameter(OUTPUT_FREQUENCY_STRING, DEFAULT_OUTPUT_FREQUENCY, 1);
 	printf("Initializing output...\n");
 	int traj;
 	/*dat_file = (FILE**)calloc(gsop.Ntr, sizeof(FILE*));
@@ -80,17 +66,24 @@ void initOutputManager(){
 	} else {
 		mode = 0;
 	}
+
+    this->pairlist = (PairList*)updaterByName("Pairlist");
+    this->covalent = (CovalentPotential*)potentialByName("Covalent");
+    this->native = (NativePotential*)potentialByName("Native");
+    this->tea = (TeaIntegrator*)integrator;
+
+	printf("Done initializing output manager...\n");
 }
 
-void closeDAT(){
+OutputManager::~OutputManager(){
 	/*int traj;
 	for(traj = 0; traj < gsop.Ntr; traj++){
 		fclose(dat_file[traj]);
 	}*/
 }
 
-void printStep(){
-	if(step % outputManager.frequency == 0){
+void OutputManager::update(){
+	if(step % this->frequency == 0){
 		copyCoordDeviceToHost();
 		int p;
 		for(p = 0; p < potentialsCount; p++){
@@ -127,7 +120,7 @@ void printStep(){
 	}
 }
 
-void computeEnergies(int traj){
+void OutputManager::computeEnergies(int traj){
 	int i;
 	outputData.tempav = 0.0; // Average temperature
 	outputData.epot_LJ = 0.0; // Total LJ energy
@@ -157,14 +150,14 @@ void computeEnergies(int traj){
 	outputData.epot_longrange /= 2.0f;
 
 	// Normalizing the temperature
-	outputData.tempav /= ((double)(sop.aminoCount*pairlistMaker.frequency));
+	outputData.tempav /= ((double)(sop.aminoCount*this->pairlist->frequency));
 
 	// Other energies
 	outputData.epot_LJ = outputData.epot_native + outputData.epot_longrange;
 	outputData.epot_tot = outputData.epot_LJ + outputData.epot_fene;
 }
 
-void computeNativeNumber(int traj){
+void OutputManager::computeNativeNumber(int traj){
 	int i,j,k;
 	outputData.nat_num = 0;
 	for(k = 0; k < sop.nativeCount; k++){
@@ -176,13 +169,13 @@ void computeNativeNumber(int traj){
 		r.y = gsop.h_coord[traj*sop.aminoCount + i].y - gsop.h_coord[traj*sop.aminoCount + j].y;
 		r.z = gsop.h_coord[traj*sop.aminoCount + i].z - gsop.h_coord[traj*sop.aminoCount + j].z;
 		dr = sqrtf(r.x*r.x+r.y*r.y+r.z*r.z);
-		if(dr < native.R_limit_bond || fabs(sop.natives[k].r0 - dr) <= covalent.R_limit){
+		if(dr < native->R_limit_bond || fabs(sop.natives[k].r0 - dr) <= covalent->R_limit){
 			outputData.nat_num ++;
 		}
 	}
 }
 
-void computeRg(int traj){
+void OutputManager::computeRg(int traj){
 	int i, j;
 	double rgsq;
 	rgsq = 0.0;
@@ -199,52 +192,12 @@ void computeRg(int traj){
 	outputData.rg = sqrt(rgsq);
 }
 
-void computeTEAeps(int traj){
-	if (integratorTea && !tea.exact){
-		outputData.tea_eps = tea.h_epsilon[traj];
+void OutputManager::computeTEAeps(int traj){
+	if (integratorTea && !this->tea->exact){
+		outputData.tea_eps = this->tea->h_epsilon[traj];
 	}else{
 		outputData.tea_eps = 0./0.;
 	}
-}
-
-/*inline void computeEndToEnd(int traj){
-	int shift = traj*sop.aminoCount;
-	outputData.endToEnd_x = (gsop.h_coord[shift + pulled_end].x - gsop.h_coord[shift + fixed_end].x)*pull_vector[traj].x +
-			(gsop.h_coord[shift + pulled_end].y - gsop.h_coord[shift + fixed_end].y)*pull_vector[traj].y +
-			(gsop.h_coord[shift + pulled_end].z - gsop.h_coord[shift + fixed_end].z)*pull_vector[traj].z;
-	outputData.endToEnd = sqrtf((gsop.h_coord[shift + pulled_end].x-gsop.h_coord[shift + fixed_end].x)*
-			(gsop.h_coord[shift + pulled_end].x-gsop.h_coord[shift + fixed_end].x) +
-			(gsop.h_coord[shift + pulled_end].y-gsop.h_coord[shift + fixed_end].y)*
-			(gsop.h_coord[shift + pulled_end].y-gsop.h_coord[shift + fixed_end].y) +
-			(gsop.h_coord[shift + pulled_end].z-gsop.h_coord[shift + fixed_end].z)*
-			(gsop.h_coord[shift + pulled_end].z-gsop.h_coord[shift + fixed_end].z));
-}*/
-
-/*inline void computePullForce(int traj){
-	outputData.f = ext_force[traj].x*pull_vector[traj].x + ext_force[traj].y*pull_vector[traj].y + ext_force[traj].z*pull_vector[traj].z;
-	outputData.fx = ext_force[traj].x;
-	outputData.fy = ext_force[traj].y;
-	outputData.fz = ext_force[traj].z;
-	outputData.xt = xt;
-}*/
-
-
-/*inline void computeCapsidR(int traj){
-	int i, shift;
-	shift = traj*sop.aminoCount;
-	for(i = 0; i < sop.aminoCount; i++){
-		outputData.R += sqrtf(gsop.h_coord[shift + i].x*gsop.h_coord[shift + i].x +
-				gsop.h_coord[shift + i].y*gsop.h_coord[shift + i].y +
-				gsop.h_coord[shift + i].z*gsop.h_coord[shift + i].z);
-	}
-	outputData.R /= sop.aminoCount;
-
-	float surf = 4.0*M_PI*outputData.R*outputData.R;
-	outputData.V = surf*outputData.R/3.0;
-}*/
-
-inline void computeIndentationForce(int traj){
-
 }
 
 inline void printDataToScreen(){
@@ -328,3 +281,4 @@ inline void printDataToFile(int traj){
 	}
 	//fflush(dat_file);
 }
+

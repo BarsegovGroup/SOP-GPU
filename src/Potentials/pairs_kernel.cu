@@ -6,6 +6,19 @@
  */
 #include "../gsop.cuh"
 
+struct PairsConstant {
+	float pairsCutoff2;
+	float a2;
+	float el;
+	float minus6elovera2;
+	int* d_pairs;
+	int* d_pairsCount;
+	int max_pairs;
+};
+
+PairsConstant hc_pairs;
+__device__ __constant__ PairsConstant c_pairs;
+
 /*
  * CUDA Kernel for computation of repulsive LJ. The general formula is:
  * U = el*(a/r)^6

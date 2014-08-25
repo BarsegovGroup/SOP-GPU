@@ -6,6 +6,12 @@
  */
 #include "../gsop.cuh"
 
+struct PullingConstant{
+	float4* d_extForces;
+};
+
+PullingConstant hc_pulling;
+__device__ __constant__ PullingConstant c_pulling;
 
 __global__ void pulling_kernel(){
 	int d_i = blockIdx.x*blockDim.x + threadIdx.x;
@@ -26,3 +32,4 @@ __global__ void pulling_kernel(){
 		c_gsop.d_forces[d_i] = f;
 	}
 }
+

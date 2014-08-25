@@ -7,23 +7,11 @@
 #include "../gsop.cuh"
 #include "possiblepairlist.h"
 
-PossiblepairList possiblepairList;
-__device__ __constant__ PossiblepairList c_possiblepairList;
-SOPUpdater possiblepairlistMaker;
-
 #include "possiblepairlist_kernel.cu"
 
 void createPossiblepairlistUpdater(){
-	sprintf(possiblepairlistMaker.name, "Possiblepairlist");
-	possiblepairlistMaker.update = &generatePossiblepairlist;
-	possiblepairlistMaker.destroy = &deletePossiblepairlist;
-	possiblepairlistMaker.frequency = getIntegerParameter("possiblepairs_freq", 100000, 1);
-	updaters[updatersCount] = &possiblepairlistMaker;
-	if(deviceProp.major == 2){ // TODO: >= 2
-		cudaFuncSetCacheConfig(generate_possiblepairs, cudaFuncCachePreferL1);
-	}
+	updaters[updatersCount] = new PossiblepairList();
 	updatersCount++;
-	initPossiblepairlist();
 }
 
 /*
@@ -31,23 +19,31 @@ void createPossiblepairlistUpdater(){
  * (i.e. all pairs excluding native and covalent)
  * (for map description see initCovalent())
  */
-void initPossiblepairlist(){
+PossiblepairList::PossiblepairList(){
+	this->name = "Possiblepairlist";
+	this->frequency = getIntegerParameter("possiblepairs_freq", 100000, 1);
 	printf("Initializing possible pairs list generator...\n");
-	possiblepairList.blockSize = getIntegerParameter(POSSIBLEPAIRS_BLOCK_SIZE_STRING, gsop.blockSize, 1);
-	possiblepairList.blockNum = gsop.aminoCount/possiblepairList.blockSize + 1;
-	possiblepairList.pairsThreshold = getFloatParameter(POSSIBLEPAIRS_CUTOFF_STRING, DEFAULT_POSSIBLEPAIRS_CUTOFF, 1);
-	cudaMemcpyToSymbol(c_possiblepairList, &possiblepairList, sizeof(PossiblepairList), 0, cudaMemcpyHostToDevice);
+	this->blockSize = getIntegerParameter(POSSIBLEPAIRS_BLOCK_SIZE_STRING, gsop.blockSize, 1);
+	this->blockNum = gsop.aminoCount/this->blockSize + 1;
+	this->pairsThreshold = getFloatParameter(POSSIBLEPAIRS_CUTOFF_STRING, DEFAULT_POSSIBLEPAIRS_CUTOFF, 1);
+
+    hc_possiblepairList.pairsThreshold = this->pairsThreshold;
+	cudaMemcpyToSymbol(c_possiblepairList, &hc_possiblepairList, sizeof(PossiblepairListConstant), 0, cudaMemcpyHostToDevice);
 	checkCUDAError();
+
+	if(deviceProp.major == 2){ // TODO: >= 2
+		cudaFuncSetCacheConfig(generate_possiblepairs, cudaFuncCachePreferL1);
+	}
 }
 
-void deletePossiblepairlist(){
+PossiblepairList::~PossiblepairList(){
 
 }
 
-inline void generatePossiblepairlist(){
-	if(step % possiblepairlistMaker.frequency == 0){
+void PossiblepairList::update(){
+	if(step % this->frequency == 0){
 		printf("Regenerating the list of possible pairs...");
-		generate_possiblepairs<<<possiblepairList.blockNum, possiblepairList.blockSize>>>();
+		generate_possiblepairs<<<this->blockNum, this->blockSize>>>();
 		checkCUDAError();
 		printf("done.\n");
 	}

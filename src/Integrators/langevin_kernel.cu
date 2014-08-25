@@ -5,6 +5,15 @@
  *      Author: zhmurov
  */
 
+struct LangevinConstant{
+    float var;
+    float hOverZeta;
+    float tempNorm;
+};
+
+LangevinConstant hc_langevin;
+__device__ __constant__ LangevinConstant c_langevin;
+
 __global__ void integrateLangevin_kernel(){
 	int d_i = blockIdx.x*blockDim.x + threadIdx.x;
 	if(d_i < c_gsop.aminoCount){

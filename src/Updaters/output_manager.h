@@ -7,6 +7,13 @@
 
 #pragma once
 
+#include "../gsop.h"
+
+#include "../Potentials/native.h"
+#include "../Potentials/covalent.h"
+#include "../Integrators/bdhitea.h"
+#include "../Updaters/pairlist.h"
+
 #define OUTPUT_FREQUENCY_STRING			"outputtiming"
 #define OUTPUT_FILENAME_STRING			"outputname"
 
@@ -36,7 +43,22 @@ struct OutputData{
 	float tea_eps;
 };
 
+class OutputManager : public SOPUpdater{
+public:
+    OutputManager();
+    virtual ~OutputManager();
+    virtual void update();
+private:
+    void computeEnergies(int traj);
+    void computeNativeNumber(int traj);
+    void computeRg(int traj);
+    void computeTEAeps(int traj);
+
+    PairList *pairlist;
+    CovalentPotential *covalent;
+    NativePotential *native;
+    TeaIntegrator *tea;
+};
+
 void createOutputManager();
-void initOutputManager();
-void closeDAT();
 

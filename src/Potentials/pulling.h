@@ -30,8 +30,14 @@
 #define DEFAULT_PULLING_DIRECTION	PULLING_DIRECTION_ENDTOEND_STRING
 #define DEFAULT_PULLING_FILENAME	"pull.<name>_<author><run>_<stage>.dat"
 
-struct Pulling {
-	float Ks;
+class PullingPotential : public SOPPotential{
+public:
+    PullingPotential();
+    virtual ~PullingPotential() { }
+    virtual void compute();
+    virtual void computeEnergy();
+
+    float Ks;
 	float deltax;
 	float fconst;
 	int fixedEnd;
@@ -46,11 +52,19 @@ struct Pulling {
 	float4* d_extForces;
 	float3* cantCoord0;
 	float3* cantCoord;
+
+private:
+    int blockSize, blockNum;
+};
+
+class PullingUpdater : public SOPUpdater{
+public:
+    PullingUpdater(PullingPotential *pulling);
+    virtual ~PullingUpdater() { }
+    virtual void update();
+private:
+    PullingPotential *pulling;
 };
 
 void createPullingPotential();
-void initPulling();
-inline void computePulling();
-inline void computePullingEnergy();
-inline void updatePulling();
 

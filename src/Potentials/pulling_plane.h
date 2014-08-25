@@ -26,7 +26,13 @@
 #define DEFAULT_PULLINGPLANE_KS			0.05f
 #define DEFAULT_PULLINGPLANE_FILENAME	"pullplane.<name>_<author><run>_<stage>.dat"
 
-struct PullingPlane {
+class PullingPlanePotential : public SOPPotential {
+public:
+    PullingPlanePotential();
+    virtual ~PullingPlanePotential() { }
+    virtual void compute();
+    virtual void computeEnergy();
+
 	float Ks;
 	float deltax;
     float mass;
@@ -50,11 +56,19 @@ struct PullingPlane {
 
 	float4* h_extForces;
 	float4* d_extForces;
+
+private:
+    int blockNum, blockSize;
+};
+
+class PullingPlaneUpdater : public SOPUpdater {
+public:
+    PullingPlaneUpdater(PullingPlanePotential *pullingPlane);
+    virtual ~PullingPlaneUpdater() { }
+    virtual void update();
+private:
+    PullingPlanePotential *pullingPlane;
 };
 
 void createPullingPlanePotential();
-void initPullingPlane();
-inline void computePullingPlane();
-inline void computePullingPlaneEnergy();
-inline void updatePullingPlane();
 

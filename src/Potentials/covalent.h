@@ -28,7 +28,15 @@ struct __align__(8) GCovalentBond{
 /*
  * All data neded to compute covalent potential
  */
-struct Covalent{
+
+void createCovalentPotential();
+
+class CovalentPotential: public SOPPotential{
+public:
+    CovalentPotential();
+    virtual ~CovalentPotential() { }
+    virtual void compute();
+    virtual void computeEnergy();
 
 	int max_covalent; // Max number of covalent bonds per particle
 	float kspring_cov; // Covalent spring constant (FENE)
@@ -43,14 +51,6 @@ struct Covalent{
 
 	int blockSize; // Block size and number of blocks for covalent bonds kernel evaluation
 	int blockNum;
-
 };
-
-extern Covalent covalent;
-
-void createCovalentPotential();
-void initCovalent();
-inline void computeCovalent();
-inline void computeCovalentEnergy();
 
 #endif /* COVALENT_CUH_ */

@@ -6,6 +6,15 @@
  */
 #include "../gsop.cuh"
 
+struct NativeConstant {
+	int* d_native;
+	int* d_nativeCount;
+	GNativeParameters* d_nativeParameters;
+};
+
+NativeConstant hc_native;
+__device__ __constant__ NativeConstant c_native;
+
 /*
  * CUDA Kernel for computation of full LJ (Native contacts). The general formula is:
  * U = eh*((r0/r)^12-2*(r0/r)^6)

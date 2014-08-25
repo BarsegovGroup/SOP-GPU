@@ -6,7 +6,6 @@
  */
 
 #include "dcd_manager.h"
-#include "../gsop.h"
 #include "../def_param.h"
 #include "../param_initializer.h"
 #include "../IO/dcdio.h"
@@ -23,25 +22,19 @@ float* X;
 float* Y;
 float* Z;
 
-SOPUpdater dcdOutputManager;
-
 void createDCDOutputManager(){
-	printf("Initializing dcd output manager...\n");
-	sprintf(dcdOutputManager.name, "DCD output");
-	dcdOutputManager.update = &saveCoord;
-	dcdOutputManager.frequency = getIntegerParameter(DCD_FREQUENCY_STRING, 10000, 1);;
-	updaters[updatersCount] = &dcdOutputManager;
+	updaters[updatersCount] = new DcdOutputManager();
 	updatersCount++;
-	restartfreq = getIntegerParameter("restartfreq", 100000, 1);
-	initDCD();
-	printf("Done initializing dcd output manager...\n");
 }
-
 
 /*
  * Initialization of coordinates output
  */
-void initDCD(){
+DcdOutputManager::DcdOutputManager(){
+	printf("Initializing dcd output manager...\n");
+	this->name = "DCD output";
+	this->frequency = getIntegerParameter(DCD_FREQUENCY_STRING, 10000, 1);;
+	restartfreq = getIntegerParameter("restartfreq", 100000, 1);
 
 	getMaskedParameter(dcd_filename, "DCDfile", "<name>_<author><run>_<stage>.dcd", 1);
 	//printf("Coordinates will be saved into '%s'\n", dcd_filename);
@@ -65,7 +58,7 @@ void initDCD(){
 		//printf("Coordinates will be saved as '%s'.\n", dcd_filenames[traj]);
 		dcd.open_write(dcd_filenames[traj]);
         dcd.N = particleCount;
-        dcd.NFILE = dcd.NPRIV = dcd.NSAVC = dcdOutputManager.frequency;
+        dcd.NFILE = dcd.NPRIV = dcd.NSAVC = this->frequency;
         dcd.DELTA = 0.0; // The integrator is not initialized yet, so we consider timestep to be equal to zero
 		dcd.write_header();
 		dcd.close();
@@ -79,14 +72,15 @@ void initDCD(){
 	Y = (float*) malloc(size);
 	Z = (float*) malloc(size);
 	printf("Coordinates will be saved in '%s'.\n", dcd_filename);
+	printf("Done initializing dcd output manager...\n");
 }
 
 /*
  * Saving coordinates to DCD
  */
-void saveCoord(){
+void DcdOutputManager::update(){
 	int i, traj;
-	if(step % dcdOutputManager.frequency == 0){
+	if(step % this->frequency == 0){
 		printf("Saving coordinates into dcd...");
 		copyCoordDeviceToHost();
 		int particleCount = sop.aminoCount;

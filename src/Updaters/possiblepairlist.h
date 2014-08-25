@@ -12,14 +12,16 @@
 
 #define DEFAULT_POSSIBLEPAIRS_CUTOFF			200.0f
 
-struct PossiblepairList{
+class PossiblepairList : public SOPUpdater{
+public:
+    PossiblepairList();
+    virtual ~PossiblepairList();
+    virtual void update();
+private:
 	float pairsThreshold;
 	int blockSize;
 	int blockNum;
 };
 
 void createPossiblepairlistUpdater();
-void initPossiblepairlist();
-void deletePossiblepairlist();
-inline void generatePossiblepairlist();
 

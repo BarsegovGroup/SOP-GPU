@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "langevin.h"
+
 // TODO: Rename this module, since it not inly implements TEA-HI, but also exact (Cholesky-based) HI
 
 #define BDHITEA_ON_STRING "tea_on" // enable/disable TEA
@@ -23,36 +25,44 @@
 // undefine to disable use of textures in TEA
 #define TEA_TEXTURE
 
-struct Tea {
+struct TeaConstant {
 	float4 *rforce; // Precomputed random forces
 	float4 *mforce; // Copy of molecular forces for each bead
 	float4 *coords; // Copy of coordinates for each bead
 	float *d_beta_ij; // $\beta_{ij}$ from eq. (14) in Geyer&Winter, 2009;
-	float *h_beta_ij;
 	float *d_epsilon; // Array of epsilon values for individual beads, evaluated on device and used to fill d_beta_ij
 	float *h_epsilon;
 	float4 *d_ci; // Does not actually store $C_i$, only $\sum (Dij/Dii)^2$
     float *d_tensor; // Memory for tensor when running in `exact` mode
-	int epsilon_freq; // How often to update epsilon, beta_ij and c_i
 	int namino; // Number of aminos per trajectory, nothing special
 	float a; // Bead hydrodynamic radius, in A
+};
+
+class TeaIntegrator : public LangevinIntegrator{
+public:
+    TeaIntegrator();
+    virtual ~TeaIntegrator();
+    virtual void integrate();
 	int capricious; // If != 0, then the simulation will stop if HI tensor has abnormal values. If zero, the simulation will continue anyway (and it is probably perfectly fine).
 	int unlisted; // If ==0, then beads will interact hydrodynamically with their friends in covalent, native and pairs lists
     int exact; // If > 0, use Cholesky-based treatment
 	float epsmax; // If epsilon exceeds this value, then abort simulation. Default: never [in capricious mode, epsilon > 1.0 will trigger stop anyway]
+	int epsilon_freq; // How often to update epsilon, beta_ij and c_i
+
+	float *h_epsilon;
+	float *h_beta_ij;
 };
 
-extern Tea tea;
+class TeaUpdater : public SOPUpdater{
+public:
+    TeaUpdater(TeaIntegrator *tea);
+    virtual ~TeaUpdater();
+    virtual void update();
+private:
+    TeaIntegrator *tea;
+};
 
 void createTeaIntegrator();
-void initTeaIntegrator();
-void integrateTea();
-void deleteTeaIntegrator();
-
-void createTeaUpdater();
-void initTeaUpdater();
-void updateTea();
-void deleteTeaUpdater();
 
 // SOP-GPU with TEA --- Standard Operating Procedures for Generator Protection Unit with Technical and Economic Analysis
 

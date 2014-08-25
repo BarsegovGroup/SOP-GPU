@@ -14,8 +14,12 @@
 #define DEFAULT_PAIRLIST_CUTOFF			20.0f
 #define DEFAULT_MAX_POSSIBLEPAIRS		4096
 
-struct PairList{
-
+class PairList : public SOPUpdater{
+public:
+    PairList();
+    virtual ~PairList();
+    virtual void update();
+private:
 	float pairlistCutoff;
 	int max_possiblePairs;
 
@@ -29,10 +33,5 @@ struct PairList{
 	int blockNum;
 };
 
-extern SOPUpdater pairlistMaker;
-
 void createPairlist();
-void initPairlist();
-void deletePairlist();
-inline void generatePairlist();
 

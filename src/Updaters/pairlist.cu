@@ -8,23 +8,11 @@
 #include "pairlist.h"
 //#define DEBUGPAIRLIST
 
-PairList pairList;
-__device__ __constant__ PairList c_pairList;
-SOPUpdater pairlistMaker;
-
 #include "pairlist_kernel.cu"
 
 void createPairlistUpdater(){
-	sprintf(pairlistMaker.name, "Pairlist");
-	pairlistMaker.update = &generatePairlist;
-	pairlistMaker.destroy = &deletePairlist;
-	pairlistMaker.frequency = getIntegerParameter("pairs_freq", 1000, 1);
-	updaters[updatersCount] = &pairlistMaker;
-	if(deviceProp.major == 2){ // TODO: >=  2
-		cudaFuncSetCacheConfig(generate_pairs, cudaFuncCachePreferL1);
-	}
+	updaters[updatersCount] = new PairList();
 	updatersCount++;
-	initPairlist();
 }
 
 /*
@@ -32,17 +20,19 @@ void createPairlistUpdater(){
  * (i.e. all pairs excluding native and covalent)
  * (for map description see initCovalent())
  */
-void initPairlist(){
+PairList::PairList(){
+	this->name = "Pairlist";
+	this->frequency = getIntegerParameter("pairs_freq", 1000, 1);
 	printf("Searching for all possible pairs for repulsive LJ...\n");
-	pairList.blockSize = getIntegerParameter(PAIRLIST_BLOCK_SIZE_STRING, gsop.blockSize, 1);
-	pairList.blockNum = gsop.aminoCount/pairList.blockSize + 1;
-	pairList.max_possiblePairs = getIntegerParameter(MAX_POSSIBLEPAIRS_STRING, DEFAULT_MAX_POSSIBLEPAIRS, 1);
-	pairList.pairlistCutoff = getFloatParameter(PAIRLIST_CUTOFF_STRING, DEFAULT_PAIRLIST_CUTOFF, 1);
+	this->blockSize = getIntegerParameter(PAIRLIST_BLOCK_SIZE_STRING, gsop.blockSize, 1);
+	this->blockNum = gsop.aminoCount/this->blockSize + 1;
+	this->max_possiblePairs = getIntegerParameter(MAX_POSSIBLEPAIRS_STRING, DEFAULT_MAX_POSSIBLEPAIRS, 1);
+	this->pairlistCutoff = getFloatParameter(PAIRLIST_CUTOFF_STRING, DEFAULT_PAIRLIST_CUTOFF, 1);
 	// Allocating memory
-	pairList.h_possiblePairs = (int*)calloc(gsop.aminoCount*pairList.max_possiblePairs, sizeof(int));
-	pairList.h_possiblePairsCount = (int*)calloc(gsop.aminoCount, sizeof(int));
-	cudaMalloc((void**)&pairList.d_possiblePairs, gsop.aminoCount*pairList.max_possiblePairs*sizeof(int));
-	cudaMalloc((void**)&pairList.d_possiblePairsCount, gsop.aminoCount*sizeof(int));
+	this->h_possiblePairs = (int*)calloc(gsop.aminoCount*this->max_possiblePairs, sizeof(int));
+	this->h_possiblePairsCount = (int*)calloc(gsop.aminoCount, sizeof(int));
+	cudaMalloc((void**)&this->d_possiblePairs, gsop.aminoCount*this->max_possiblePairs*sizeof(int));
+	cudaMalloc((void**)&this->d_possiblePairsCount, gsop.aminoCount*sizeof(int));
 	checkCUDAError();
 	// Building a map
 	int totalPairs = 0;
@@ -51,15 +41,15 @@ void initPairlist(){
 		i = sop.pairs[k].i;
 		j = sop.pairs[k].j;
 
-		pairList.h_possiblePairs[pairList.h_possiblePairsCount[i]*gsop.aminoCount + i] = j;
-		pairList.h_possiblePairs[pairList.h_possiblePairsCount[j]*gsop.aminoCount + j] = i;
+		this->h_possiblePairs[this->h_possiblePairsCount[i]*gsop.aminoCount + i] = j;
+		this->h_possiblePairs[this->h_possiblePairsCount[j]*gsop.aminoCount + j] = i;
 		totalPairs++;
 
-		pairList.h_possiblePairsCount[i] ++;
-		pairList.h_possiblePairsCount[j] ++;
-		if(pairList.h_possiblePairsCount[i] > pairList.max_possiblePairs ||
-				pairList.h_possiblePairsCount[j] > pairList.max_possiblePairs){
-			printf("ERROR: Maximum number of possible pairs exceeded the limit of %d.\n", pairList.max_possiblePairs);
+		this->h_possiblePairsCount[i] ++;
+		this->h_possiblePairsCount[j] ++;
+		if(this->h_possiblePairsCount[i] > this->max_possiblePairs ||
+				this->h_possiblePairsCount[j] > this->max_possiblePairs){
+			printf("ERROR: Maximum number of possible pairs exceeded the limit of %d.\n", this->max_possiblePairs);
 			exit(-1);
 		}
 	}
@@ -68,46 +58,54 @@ void initPairlist(){
 	int traj;
 	for(traj = 1; traj < gsop.Ntr; traj++){
 		for(i = 0; i < sop.aminoCount; i++){
-			for(k = 0; k < pairList.max_possiblePairs; k++){
-				pairList.h_possiblePairs[traj*sop.aminoCount + i + k*gsop.aminoCount] =
-						pairList.h_possiblePairs[i + k*gsop.aminoCount] + traj*sop.aminoCount;
+			for(k = 0; k < this->max_possiblePairs; k++){
+				this->h_possiblePairs[traj*sop.aminoCount + i + k*gsop.aminoCount] =
+						this->h_possiblePairs[i + k*gsop.aminoCount] + traj*sop.aminoCount;
 			}
-			pairList.h_possiblePairsCount[traj*sop.aminoCount + i] =
-					pairList.h_possiblePairsCount[i];
+			this->h_possiblePairsCount[traj*sop.aminoCount + i] =
+					this->h_possiblePairsCount[i];
 		}
 	}
 
 	#ifdef DEBUGPAIRLIST
 	printf("Possible pairs:\n");
 	for(i = 0; i < gsop.aminoCount; i++){
-		printf("%d (%d): ", i, pairList.h_possiblePairsCount[i]);
-		for(j = 0; j < pairList.h_possiblePairsCount[i]; j++){
-			printf("%d ", pairList.h_possiblePairs[j*gsop.aminoCount + i]);
+		printf("%d (%d): ", i, this->h_possiblePairsCount[i]);
+		for(j = 0; j < this->h_possiblePairsCount[i]; j++){
+			printf("%d ", this->h_possiblePairs[j*gsop.aminoCount + i]);
 		}
 		printf("\n");
 	}
 	#endif
 	// Copying to the Device
-	cudaMemcpy(pairList.d_possiblePairs, pairList.h_possiblePairs, gsop.aminoCount*pairList.max_possiblePairs*sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpy(pairList.d_possiblePairsCount, pairList.h_possiblePairsCount, gsop.aminoCount*sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpyToSymbol(c_pairList, &pairList, sizeof(PairList), 0, cudaMemcpyHostToDevice);
+	cudaMemcpy(this->d_possiblePairs, this->h_possiblePairs, gsop.aminoCount*this->max_possiblePairs*sizeof(int), cudaMemcpyHostToDevice);
+	cudaMemcpy(this->d_possiblePairsCount, this->h_possiblePairsCount, gsop.aminoCount*sizeof(int), cudaMemcpyHostToDevice);
+
+    hc_pairList.pairlistCutoff = this->pairlistCutoff;
+    hc_pairList.d_possiblePairs = this->d_possiblePairs;
+    hc_pairList.d_possiblePairsCount = this->d_possiblePairsCount;
+	cudaMemcpyToSymbol(c_pairList, &hc_pairList, sizeof(PairListConstant), 0, cudaMemcpyHostToDevice);
 
 	checkCUDAError();
 	printf("Total number of LJ pairs possible: %d\n", totalPairs);
+
+	if(deviceProp.major == 2){ // TODO: >=  2
+		cudaFuncSetCacheConfig(generate_pairs, cudaFuncCachePreferL1);
+	}
 }
 
-void deletePairlist(){
-	free(pairList.h_possiblePairs);
-	free(pairList.h_possiblePairsCount);
-	cudaFree(pairList.d_possiblePairs);
-	cudaFree(pairList.d_possiblePairsCount);
+PairList::~PairList(){
+	free(this->h_possiblePairs);
+	free(this->h_possiblePairsCount);
+	cudaFree(this->d_possiblePairs);
+	cudaFree(this->d_possiblePairsCount);
 
 }
 
-inline void generatePairlist(){
-	if(step % pairlistMaker.frequency == 0){
+void PairList::update(){
+	if(step % this->frequency == 0){
 		//printf("Generating new pairlist...");
-		generate_pairs<<<pairList.blockNum, pairList.blockSize>>>();
+		generate_pairs<<<this->blockNum, this->blockSize>>>();
 		cudaDeviceSynchronize();
 		checkCUDAError();
 		//printf("done.\n");
@@ -133,3 +131,4 @@ inline void generatePairlist(){
 #endif
 	}
 }
+

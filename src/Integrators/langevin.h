@@ -7,7 +7,7 @@
 
 #ifndef LANGEVIN_CUH_
 #define LANGEVIN_CUH_
-#include "../gsop.cuh"
+#include "../gsop.h"
 
 #define LANGEVIN_TIMESTEP_STRING	"timestep"
 #define LANGEVIN_ZETA_STRING		"zeta"
@@ -21,27 +21,30 @@
 #define TC_INITIAL_T_STRING 	"initialT"
 #define TC_DELTA_T_STRING		"deltaT"
 
-struct Langevin {
-	float h;
+class LangevinIntegrator : public SOPIntegrator {
+public:
+    LangevinIntegrator();
+    virtual ~LangevinIntegrator();
+    virtual void integrate();
+
 	float zeta;
 	float var;
 	float hOverZeta;
 	float tempNorm;
 	float temp;
+};
+
+class TemperatureUpdater : public SOPUpdater {
+public:
+    TemperatureUpdater(LangevinIntegrator *langevin);
+    virtual ~TemperatureUpdater();
+    virtual void update();
+private:
+    LangevinIntegrator *langevin;
 	float initialT;
 	float deltaT;
 };
 
-extern Langevin langevin;
-
 void createLangevinIntegrator();
-void initLangevinIntegrator();
-void integrateLangevin();
-void deleteLangevinIntegrator();
-
-void createTemperatureControl();
-void initTemperatureControl();
-void updateTemperature();
-void deleteTemperatureUpdater();
 
 #endif /* LANGEVIN_CUH_ */

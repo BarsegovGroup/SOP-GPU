@@ -57,62 +57,29 @@
 #define DEFAULT_INDENTATION_OUTPUT_FREQ			1000
 #define DEFAULT_INDENTATION_PAIRS_CUTOFF		40.0f
 
-typedef struct {
-	float3 tipCoord;
-	float3 chipCoord;
-	float3 chipCoord0;
-	float3 direction;
-	float V;
-	float dx;
-	int moveSurface;
-	int fixTransversal;
-	float tipRadius;
-	float cantileverKs;
-	float tipa6;
-	float tipel;
-	float surfa6;
-	float surfel;
-	float tipAprime;
-	float tipBprime;
-	float surfAprime;
-	float surfBprime;
-	float tipZeta;
-	float3 micaN;
-	float3 micaR0;
-	float3 micaR;
-	float4* h_tipForces;
-	float4* d_tipForces;
-	float4 tipForce;
-	FILE* out;
-	long int retractionStep;
-	int showTipSurface;
-	int surfaceSize;
-	int surfaceBeadsCount;
-	float surfaceStep;
-	float3* surfacePointsR0;
-	float4* h_surfacePointsCoord;
-	float4* d_surfacePointsCoord;
-
-	float pairsCutoff2;
-	int* h_micaListCounts;
-	int* d_micaListCounts;
-	int* h_micaList;
-	int* d_micaList;
-
-	int outputFreq;
-	float3 cantileverVector;
-	float4 fav;
-	float3 tipCoordAv;
-	float3 chipCoordAv;
-	float kDeltaXAv;
-
-} Indentation;
-
 void createIndentationPotential();
-void initIndentation();
-inline void computeIndentation();
-inline void computeIndentationDiscreteSurface();
-inline void computeIndentationEnergy();
-inline void updateTipPosition();
-void updateAdditionalAminos();
+
+class IndentationPotential : public SOPPotential{
+public:
+    IndentationPotential();
+    virtual ~IndentationPotential() { }
+
+    virtual void compute();
+    virtual void computeEnergy();
+    bool discreteSurf;
+};
+
+class IndentationTipUpdater : public SOPUpdater{
+public:
+    IndentationTipUpdater(IndentationPotential *indentation);
+    virtual void update();
+private:
+    IndentationPotential *indentation;
+};
+
+class IndentationAminoUpdater : public SOPUpdater{
+public:
+    IndentationAminoUpdater();
+    virtual void update();
+};
 

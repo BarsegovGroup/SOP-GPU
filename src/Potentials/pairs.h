@@ -18,8 +18,14 @@
 #define DEFAULT_PAIRS_A					3.8f
 #define DEFAULT_MAX_PAIRS				512
 
-struct Pairs{
+class PairsPotential : public SOPPotential {
+public:
+    PairsPotential();
+    virtual ~PairsPotential() { }
+    virtual void compute();
+    virtual void computeEnergy();
 
+private:
 	float pairsCutoff;
 	float pairsCutoff2;
 	float el;
@@ -39,7 +45,4 @@ struct Pairs{
 };
 
 void createPairsPotential();
-void initPairs();
-inline void computePairs();
-inline void computePairsEnergy();
 

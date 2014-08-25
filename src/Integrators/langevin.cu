@@ -8,83 +8,72 @@
 #include "ht.cu"
 #include "langevin.h"
 
-Langevin langevin;
-__device__ __constant__ Langevin c_langevin;
-
-SOPIntegrator langevinIntegrator;
-SOPUpdater temperatureUpdater;
-
 #include "langevin_kernel.cu"
 
 void createLangevinIntegrator(){
-	sprintf(langevinIntegrator.name, "Langevin");
-	langevinIntegrator.integrate = &integrateLangevin;
-	langevinIntegrator.destroy = &deleteLangevinIntegrator;
-	integrator = &langevinIntegrator;
-	initLangevinIntegrator();
+	integrator = new LangevinIntegrator();
 }
 
-void initLangevinIntegrator(){
-	langevin.h = getFloatParameter(LANGEVIN_TIMESTEP_STRING, 0, 0);
-	langevinIntegrator.h = langevin.h;
-	langevin.zeta = getFloatParameter(LANGEVIN_ZETA_STRING, DEFAULT_LANGEVIN_ZETA, 1);
-	langevin.hOverZeta = langevin.h/langevin.zeta;
-	langevin.tempNorm = langevin.zeta/(6.0*langevin.h);
+LangevinIntegrator::LangevinIntegrator(){
+	this->name = "Langevin";
+	this->h = getFloatParameter(LANGEVIN_TIMESTEP_STRING, 0, 0);
+	this->zeta = getFloatParameter(LANGEVIN_ZETA_STRING, DEFAULT_LANGEVIN_ZETA, 1);
+	this->hOverZeta = this->h/this->zeta;
+	this->tempNorm = this->zeta/(6.0*this->h);
     int seed = getIntegerParameter("seed", time(NULL), 1) + gsop.firstrun + getIntegerParameter("run", -1, 1); // TODO: do we need `run` here?
 	initRand(seed, gsop.aminoCount);
-	createTemperatureControl();
-	cudaMemcpyToSymbol(c_langevin, &langevin, sizeof(Langevin), 0, cudaMemcpyHostToDevice);
+
+	int heating = getYesNoParameter(TC_HEATING_STRING, 0, 1);
+	if(heating == 1 || gsop.heatingOn == 1){
+		gsop.heatingOn = 1;
+		printf("Initializing heating protocol...\n");
+		updaters[updatersCount] = new TemperatureUpdater(this);
+		updatersCount++;
+		this->temp = getFloatParameter(TC_INITIAL_T_STRING, 0, 0);
+	} else {
+		printf("Simulations will be held at constant temperature.\n");
+		this->temp = getFloatParameter(TC_TEMPERATURE_STRING, DEFAULT_TEMPERATURE, 1);
+	}
+	this->var = sqrtf(2.0f* this->temp * this->zeta/this->h);
+
+    hc_langevin.var = this->var;
+    hc_langevin.hOverZeta = this->hOverZeta;
+    hc_langevin.tempNorm = this->tempNorm;
+	cudaMemcpyToSymbol(c_langevin, &hc_langevin, sizeof(LangevinConstant), 0, cudaMemcpyHostToDevice);
+
 	if(deviceProp.major == 2){ // TODO: >= 2
 		cudaFuncSetCacheConfig(integrateLangevin_kernel, cudaFuncCachePreferL1);
 	}
 }
 
-void integrateLangevin(){
+void LangevinIntegrator::integrate(){
 	integrateLangevin_kernel<<<gsop.aminoCount/gsop.blockSize + 1, gsop.blockSize>>>();
 }
 
-void deleteLangevinIntegrator(){
+LangevinIntegrator::~LangevinIntegrator(){
 
 }
 
-void createTemperatureControl(){
-	int heating = getYesNoParameter(TC_HEATING_STRING, 0, 1);
-	if(heating == 1 || gsop.heatingOn == 1){
-		gsop.heatingOn = 1;
-		printf("Initializing heating protocol...\n");
-		sprintf(temperatureUpdater.name, "TemperatureControl");
-		temperatureUpdater.update = &updateTemperature;
-		temperatureUpdater.destroy = &deleteTemperatureUpdater;
-		temperatureUpdater.frequency = getIntegerParameter("tempFreq", 0, 0);
-		updaters[updatersCount] = &temperatureUpdater;
-		updatersCount++;
-	} else {
-		printf("Simulations will be held at constant temperature.\n");
-	}
-	initTemperatureControl();
+TemperatureUpdater::TemperatureUpdater(LangevinIntegrator* langevin){
+    this->name = "TemperatureUpdater";
+	this->frequency = getIntegerParameter("tempFreq", 0, 0);
+    this->langevin = langevin;
+	this->initialT = getFloatParameter(TC_INITIAL_T_STRING, 0, 0);
+	this->deltaT = getFloatParameter(TC_DELTA_T_STRING, 0, 0);
 }
 
-void initTemperatureControl(){
-	if(gsop.heatingOn){
-		langevin.initialT = getFloatParameter(TC_INITIAL_T_STRING, 0, 0);
-		langevin.temp = langevin.initialT;
-		langevin.deltaT = getFloatParameter(TC_DELTA_T_STRING, 0, 0);
-	} else {
-		langevin.temp = getFloatParameter(TC_TEMPERATURE_STRING, DEFAULT_TEMPERATURE, 1);
-	}
-	langevin.var = sqrtf(2.0f* langevin.temp * langevin.zeta/langevin.h);
-}
+void TemperatureUpdater::update(){
+	if(step % this->frequency == 0){
+		langevin->temp = this->initialT + (step/this->frequency)*this->deltaT;
+		langevin->var = sqrtf(2.0f* langevin->temp * langevin->zeta/langevin->h);
 
-void updateTemperature(){
-	if(step % temperatureUpdater.frequency == 0){
-		langevin.temp = langevin.initialT + (step/temperatureUpdater.frequency)*langevin.deltaT;
-		langevin.var = sqrtf(2.0f* langevin.temp * langevin.zeta/langevin.h);
-		cudaMemcpyToSymbol(c_langevin, &langevin, sizeof(Langevin), 0, cudaMemcpyHostToDevice);
-		printf("Heating: %ld\t%f\n", step, langevin.temp);
+        hc_langevin.var = langevin->var;
+		cudaMemcpyToSymbol(c_langevin, &hc_langevin, sizeof(LangevinConstant), 0, cudaMemcpyHostToDevice);
+		printf("Heating: %ld\t%f\n", step, langevin->temp);
 	}
 }
 
-void deleteTemperatureUpdater(){
+TemperatureUpdater::~TemperatureUpdater(){
 
 }
 

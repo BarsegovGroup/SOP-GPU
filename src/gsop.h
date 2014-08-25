@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include <math.h>
 #include <vector_types.h>
 #include <cuda.h>
@@ -48,28 +49,31 @@ struct GSOP{
 	float4* d_forces;
 };
 
-struct SOPPotential{
-	char name[100];
-	unsigned int timer;
-	void (*compute)();
-	void (*computeEnergy)();
-	void (*destroy)();
+class SOPPotential{
+public:
+	virtual ~SOPPotential() { }
+    std::string name;
+
+	virtual void compute() = 0;
+	virtual void computeEnergy() = 0;
 };
 
-struct SOPUpdater{
-	char name[100];
-	unsigned int timer;
+class SOPUpdater{
+public:
+	virtual ~SOPUpdater() { }
+    std::string name;
 	int frequency;
-	void (*update)();
-	void (*destroy)();
+
+	virtual void update() = 0;
 };
 
-struct SOPIntegrator{
-	char name[100];
-	unsigned int timer;
+class SOPIntegrator{
+public:
+	virtual ~SOPIntegrator() { }
+    std::string name;
 	float h;
-	void (*integrate)();
-	void (*destroy)();
+
+	virtual void integrate() = 0;
 };
 
 extern SOPPotential** potentials;
@@ -82,6 +86,9 @@ extern int integratorTea;
 
 extern GSOP gsop;
 extern SOP sop;
+
+SOPPotential* potentialByName(const char* name);
+SOPUpdater* updaterByName(const char* name);
 
 extern cudaDeviceProp deviceProp;
 

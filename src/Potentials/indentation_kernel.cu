@@ -6,6 +6,59 @@
  *      Author: zhmurov
  */
 
+struct IndentationConstant {
+	float3 tipCoord;
+	float3 chipCoord;
+	float3 chipCoord0;
+	float3 direction;
+	float V;
+	float dx;
+	int moveSurface;
+	int fixTransversal;
+	float tipRadius;
+	float cantileverKs;
+	float tipa6;
+	float tipel;
+	float surfa6;
+	float surfel;
+	float tipAprime;
+	float tipBprime;
+	float surfAprime;
+	float surfBprime;
+	float tipZeta;
+	float3 micaN;
+	float3 micaR0;
+	float3 micaR;
+	float4* h_tipForces;
+	float4* d_tipForces;
+	float4 tipForce;
+	FILE* out;
+	long int retractionStep;
+	int showTipSurface;
+	int surfaceSize;
+	int surfaceBeadsCount;
+	float surfaceStep;
+	float3* surfacePointsR0;
+	float4* h_surfacePointsCoord;
+	float4* d_surfacePointsCoord;
+
+	float pairsCutoff2;
+	int* h_micaListCounts;
+	int* d_micaListCounts;
+	int* h_micaList;
+	int* d_micaList;
+
+	int outputFreq;
+	float3 cantileverVector;
+	float4 fav;
+	float3 tipCoordAv;
+	float3 chipCoordAv;
+	float kDeltaXAv;
+};
+
+IndentationConstant hc_indentation;
+__device__ __constant__ IndentationConstant c_indentation;
+
 __global__ void indentation_kernel(){
 	int d_i = blockIdx.x*blockDim.x + threadIdx.x;
 	if(d_i < c_gsop.aminoCount){

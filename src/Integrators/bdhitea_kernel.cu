@@ -9,6 +9,10 @@
 
 //#define PRINT_HI_TENSORS // Enable to print tensor values. Should never be used in production. Calling `cudaDeviceSetLimit(cudaLimitPrintfFifoSize, 900000000);` is recommended if you do not want to lose any values!
 
+
+TeaConstant hc_tea;
+__device__ __constant__ TeaConstant c_tea;
+
 struct float6 {
 	float3 xx; // xx, xy, xz
 	float3 yz; // yy, yz, zz

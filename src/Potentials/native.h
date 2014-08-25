@@ -23,11 +23,19 @@ struct __align__(8) GNativeParameters{
 	float minus12ehOverR02;
 };
 
-struct Native{
+void createNativePotential();
+
+class NativePotential : public SOPPotential{
+public:
+    NativePotential();
+    virtual ~NativePotential() { }
+	virtual void compute();
+	virtual void computeEnergy();
 
 	int max_native;
 
 	float R_limit_bond;
+    // To do: next two parameters are completely unused
 	int desolvation;
 	float rWater;
 
@@ -43,13 +51,6 @@ struct Native{
 	int blockNum;
 
 };
-
-extern Native native;
-
-void createNativePotential();
-void initNative();
-inline void computeNative();
-inline void computeNativeEnergy();
 
 #endif /* NATIVE_CUH_ */
 

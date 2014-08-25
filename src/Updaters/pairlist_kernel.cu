@@ -10,6 +10,20 @@
  *  Build a pairlist for long range interactions
  */
 
+struct PairListConstant{
+    float pairlistCutoff;
+	int* d_possiblePairs;
+	int* d_possiblePairsCount;
+
+/*
+    int* d_pairs;
+    int* d_pairsCount;
+    int max_pairs;
+    */
+};
+
+PairListConstant hc_pairList;
+__device__ __constant__ PairListConstant c_pairList;
 
 /*
  * CUDA Kernel.
@@ -17,6 +31,8 @@
  * N = sop.aminoCount
  */
 __global__ void generate_pairs(){
+    // TODO: get rid of c_pairs
+    // TODO: raise flag on overflow
 	int d_i = blockIdx.x*blockDim.x + threadIdx.x;
 	int counter;
 	if(d_i < c_gsop.aminoCount){

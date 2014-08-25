@@ -99,8 +99,8 @@ void initFF(){
 	if(gsop.Ntr == 1){
 		createPossiblepairlistUpdater(); // Updates the list of all pairs (for Verlet list)
 	}
-	createOutputManager(); // Save dat output
 	createPairlistUpdater(); // Verlet list
+	createOutputManager(); // Save dat output
 	createDCDOutputManager(); // Save coordinates (dcd + pdb restart)
 
 	// Create integrator
@@ -137,7 +137,10 @@ void runGPU(){
 			stride = updaters[u]->frequency;
 		}
 	}
-	generatePairlist();
+    // TODO: WTF is this: vvvv
+	// generatePairlist(); // WUT? Isn't it called in the loop below?
+    // I don't know why was it necessary, so I will recreate it for now
+    updaterByName("Pairlist")->update();
 
 	// External loop
 	for(i = step/stride; i <= numsteps/stride; i++){
@@ -257,6 +260,23 @@ void copyEnergiesDeviceToHost(){
 	cudaMemcpy(gsop.h_energies, gsop.d_energies, size, cudaMemcpyDeviceToHost);
 }
 
+SOPPotential* potentialByName(const char *name){
+    int i;
+    for(i = 0; i < potentialsCount; i++){
+        if (potentials[i]->name == name)
+            return potentials[i];
+    }
+    DIE("Unable to find requested potential '%s'", name);
+}
+
+SOPUpdater* updaterByName(const char *name){
+    int i;
+    for(i = 0; i < updatersCount; i++){
+        if (updaters[i]->name == name)
+            return updaters[i];
+    }
+    DIE("Unable to find requested updater '%s'", name);
+}
 
 void bindTextures(){
 #ifndef NOTEXTURE

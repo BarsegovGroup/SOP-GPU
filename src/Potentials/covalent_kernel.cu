@@ -6,6 +6,14 @@
  */
 #include "../gsop.cuh"
 
+struct CovalentConstant {
+	GCovalentBond* d_bonds; // Same on device
+	int* d_covalentCount;
+    float kspring_cov, R_limit_sq;
+};
+
+CovalentConstant hc_covalent;
+__device__ __constant__ CovalentConstant c_covalent;
 
 /*
  * Kernel to compute FENE potential for covalent bonds
