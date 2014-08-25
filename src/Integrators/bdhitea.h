@@ -5,9 +5,7 @@
  *	  Author: alekseenko
  */
 
-#ifndef BDHITEA_CUH_
-#define BDHITEA_CUH_
-#include "../gsop.cuh"
+#pragma once
 
 // TODO: Rename this module, since it not inly implements TEA-HI, but also exact (Cholesky-based) HI
 
@@ -44,17 +42,7 @@ struct Tea {
 	float epsmax; // If epsilon exceeds this value, then abort simulation. Default: never [in capricious mode, epsilon > 1.0 will trigger stop anyway]
 };
 
-Tea tea;
-__device__ __constant__ Tea c_tea;
-
-#ifdef TEA_TEXTURE
-texture<float4, 1, cudaReadModeElementType> t_rforce;
-texture<float4, 1, cudaReadModeElementType> t_mforce;
-#endif
-
-
-SOPIntegrator teaIntegrator;
-SOPUpdater teaUpdater;
+extern Tea tea;
 
 void createTeaIntegrator();
 void initTeaIntegrator();
@@ -65,8 +53,6 @@ void createTeaUpdater();
 void initTeaUpdater();
 void updateTea();
 void deleteTeaUpdater();
-
-#endif /* BDHITEA_CUH_ */
 
 // SOP-GPU with TEA --- Standard Operating Procedures for Generator Protection Unit with Technical and Economic Analysis
 

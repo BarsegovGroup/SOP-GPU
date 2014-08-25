@@ -5,8 +5,7 @@
  *      Author: zhmurov
  */
 
-#ifndef PAIRLIST_CUH_
-#define PAIRLIST_CUH_
+#pragma once
 
 #define PAIRLIST_CUTOFF_STRING			"pairlist_cutoff"
 #define PAIRLIST_BLOCK_SIZE_STRING		"block_size_pairlist"
@@ -30,15 +29,10 @@ struct PairList{
 	int blockNum;
 };
 
-PairList pairList;
-__device__ __constant__ PairList c_pairList;
-
-SOPUpdater pairlistMaker;
-
+extern SOPUpdater pairlistMaker;
 
 void createPairlist();
 void initPairlist();
 void deletePairlist();
 inline void generatePairlist();
 
-#endif /* PAIRLIST_CUH_ */

@@ -5,8 +5,7 @@
  *      Author: zhmurov
  */
 
-#ifndef OUTPUT_MANAGER_CUH_
-#define OUTPUT_MANAGER_CUH_
+#pragma once
 
 #define OUTPUT_FREQUENCY_STRING			"outputtiming"
 #define OUTPUT_FILENAME_STRING			"outputname"
@@ -37,13 +36,7 @@ struct OutputData{
 	float tea_eps;
 };
 
-OutputData outputData;
-SOPUpdater outputManager;
-
-
 void createOutputManager();
 void initOutputManager();
 void closeDAT();
-inline void printStep();
 
-#endif /* OUTPUT_MANAGER_CUH_ */

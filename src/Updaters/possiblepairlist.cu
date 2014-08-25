@@ -5,9 +5,13 @@
  *      Author: zhmurov
  */
 #include "../gsop.cuh"
-#include "possiblepairlist.cuh"
-#include "possiblepairlist_kernel.cu"
+#include "possiblepairlist.h"
 
+PossiblepairList possiblepairList;
+__device__ __constant__ PossiblepairList c_possiblepairList;
+SOPUpdater possiblepairlistMaker;
+
+#include "possiblepairlist_kernel.cu"
 
 void createPossiblepairlistUpdater(){
 	sprintf(possiblepairlistMaker.name, "Possiblepairlist");
@@ -49,3 +53,4 @@ inline void generatePossiblepairlist(){
 	}
 
 }
+

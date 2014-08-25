@@ -5,8 +5,7 @@
  *      Author: zhmurov
  */
 
-#ifndef INDENTATION_CUH_
-#define INDENTATION_CUH_
+#pragma once
 
 #define INDENTATION_ON_STRING				"indentation"
 
@@ -109,12 +108,6 @@ typedef struct {
 
 } Indentation;
 
-Indentation indentation;
-__device__ __constant__ Indentation c_indentation;
-SOPPotential indentationPotential;
-SOPUpdater indentationUpdater;
-SOPUpdater additionalAminosUpdater;
-
 void createIndentationPotential();
 void initIndentation();
 inline void computeIndentation();
@@ -123,4 +116,3 @@ inline void computeIndentationEnergy();
 inline void updateTipPosition();
 void updateAdditionalAminos();
 
-#endif /* INDENTATION_CUH_ */

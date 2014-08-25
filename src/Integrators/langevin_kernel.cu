@@ -4,8 +4,6 @@
  *  Created on: Jun 4, 2009
  *      Author: zhmurov
  */
-#include "../gsop.cuh"
-#include "langevin.cuh"
 
 __global__ void integrateLangevin_kernel(){
 	int d_i = blockIdx.x*blockDim.x + threadIdx.x;

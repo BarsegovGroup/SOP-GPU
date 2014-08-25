@@ -5,9 +5,14 @@
  *      Author: zhmurov
  */
 #include "../gsop.cuh"
-#include "pairlist.cuh"
-#include "pairlist_kernel.cu"
+#include "pairlist.h"
 //#define DEBUGPAIRLIST
+
+PairList pairList;
+__device__ __constant__ PairList c_pairList;
+SOPUpdater pairlistMaker;
+
+#include "pairlist_kernel.cu"
 
 void createPairlistUpdater(){
 	sprintf(pairlistMaker.name, "Pairlist");

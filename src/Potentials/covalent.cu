@@ -6,9 +6,14 @@
  */
 
 #include "../gsop.cuh"
-#include "covalent.cuh"
-#include "covalent_kernel.cu"
+#include "covalent.h"
 #include "../IO/configreader.h"
+
+Covalent covalent;
+__device__ __constant__ Covalent c_covalent;
+SOPPotential covalentPotential;
+
+#include "covalent_kernel.cu"
 
 /*
  * Covalent potential. Adds itself into the list of potentials and creates timer.

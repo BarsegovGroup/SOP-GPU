@@ -9,8 +9,6 @@
 #include "IO/configreader.h"
 #include "gsop.h"
 
-int mode;
-
 int BLOCK_SIZE = 256;
 
 long int numsteps;
@@ -24,14 +22,6 @@ void initParameters(const char* configFile){
     char protein_name[100];
 	getParameter(protein_name, "name", "unnamed", 1);
 	printf("Initializing simulations for '%s'\n", protein_name);
-
-	char modeString[100];
-	getParameter(modeString, "mode", "", 1);
-	if(strcmp(modeString, "capsid") == 0){
-		mode = MODE_CAPSID;
-	} else {
-		mode = 0;
-	}
 
 	BLOCK_SIZE = getIntegerParameter("block_size", BLOCK_SIZE, 1);
 

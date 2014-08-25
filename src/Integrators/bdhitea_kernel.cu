@@ -7,10 +7,6 @@
  * All equations referenced here are from Geyer & Winter, 2009 [doi:10.1063/1.3089668]
  */
 
-
-
-#include "../gsop.cuh"
-#include "bdhitea.cuh"
 //#define PRINT_HI_TENSORS // Enable to print tensor values. Should never be used in production. Calling `cudaDeviceSetLimit(cudaLimitPrintfFifoSize, 900000000);` is recommended if you do not want to lose any values!
 
 struct float6 {

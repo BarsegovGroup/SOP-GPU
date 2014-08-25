@@ -4,7 +4,6 @@
  *  Created on: Mar 11, 2010
  *      Author: zhmurov
  */
-#include "../gsop.cuh"
 
 #ifndef COVALENT_CUH_
 #define COVALENT_CUH_
@@ -47,9 +46,7 @@ struct Covalent{
 
 };
 
-Covalent covalent;
-__device__ __constant__ Covalent c_covalent;
-SOPPotential covalentPotential;
+extern Covalent covalent;
 
 void createCovalentPotential();
 void initCovalent();

@@ -5,15 +5,20 @@
  *      Author: zhmurov
  */
 #include "../gsop.cuh"
-#include "pulling.cuh"
-#include "pulling_kernel.cu"
+#include "../IO/configreader.h"
+#include "pulling.h"
 
 char** pullFilenames;
 FILE* pullFile;
 
 float3 computeForce(float4 coordN, int traj);
 
-extern void replaceString(char* resultString, const char* initialString, const char* replacementString, const char* stringToReplace);
+Pulling pulling;
+__device__ __constant__ Pulling c_pulling;
+SOPPotential pullingPotential;
+SOPUpdater pullingUpdater;
+
+#include "pulling_kernel.cu"
 
 void createPullingPotential(){
 	if(gsop.pullingOn == 1 || getYesNoParameter(PULLING_ON_STRING, 0, 1) == 1){

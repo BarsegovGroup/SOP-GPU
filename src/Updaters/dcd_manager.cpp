@@ -4,7 +4,13 @@
  *  Created on: Apr 8, 2010
  *      Author: zhmurov
  */
-#include "dcd_manager.cuh"
+
+#include "dcd_manager.h"
+#include "../gsop.h"
+#include "../def_param.h"
+#include "../IO/dcdio.h"
+#include "../IO/pdbio.h"
+#include "../IO/configreader.h"
 
 char dcd_filename[100];
 char restartpdb_filename[100];
@@ -15,6 +21,8 @@ DCD dcd;
 float* X;
 float* Y;
 float* Z;
+
+SOPUpdater dcdOutputManager;
 
 void createDCDOutputManager(){
 	printf("Initializing dcd output manager...\n");

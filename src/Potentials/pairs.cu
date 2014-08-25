@@ -5,7 +5,12 @@
  *      Author: zhmurov
  */
 #include "../gsop.cuh"
-#include "pairs.cuh"
+#include "pairs.h"
+
+Pairs pairs;
+__device__ __constant__ Pairs c_pairs;
+SOPPotential pairsPotential;
+
 #include "pairs_kernel.cu"
 
 void createPairsPotential(){

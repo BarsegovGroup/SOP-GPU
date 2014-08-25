@@ -6,10 +6,16 @@
  */
 
 #include "../def_param.h"
-#include "../gsop.cuh"
+#include "../gsop.h"
+#include "../IO/configreader.h"
+#include "../Potentials/native.h"
+#include "../Potentials/covalent.h"
+#include "../Integrators/bdhitea.h"
+#include "../Updaters/pairlist.h"
 #include <string.h>
 #include <stdio.h>
-#include "output_manager.cuh"
+#include <cuda.h>
+#include "output_manager.h"
 
 FILE* dat_file;
 char** dat_filenames;
@@ -22,8 +28,13 @@ void computeTEAeps(int traj);
 
 void printDataToScreen();
 void printDataToFile(int traj);
+void printStep();
 
-extern void replaceString(char* resultString, const char* initialString, const char* replacementString, const char* stringToReplace);
+int mode;
+
+OutputData outputData;
+SOPUpdater outputManager;
+
 
 void createOutputManager(){
 	printf("Initializing output manager...\n");
@@ -59,6 +70,14 @@ void initOutputManager(){
 		fclose(dat_file);
 	}
 	printf("Output will be saved in '%s'.\n", dat_filename);
+
+    char modeString[100];
+	getParameter(modeString, "mode", "", 1);
+	if(strcmp(modeString, "capsid") == 0){
+		mode = MODE_CAPSID;
+	} else {
+		mode = 0;
+	}
 }
 
 void closeDAT(){
@@ -76,9 +95,7 @@ void printStep(){
 			potentials[p]->computeEnergy();
 		}
 		int size = gsop.aminoCount*sizeof(float4);
-		cudaMemcpy(gsop.h_energies, gsop.d_energies, size, cudaMemcpyDeviceToHost);
-		//cudaMemcpy(gsop.d_coordToSave, gsop.d_coord, size, cudaMemcpyDeviceToDevice);
-		//cudaMemcpy(gsop.d_energiesToSave, gsop.d_energies, size, cudaMemcpyDeviceToDevice);
+        copyEnergiesDeviceToHost();
 		char runstring[20];
 		if(gsop.Ntr == 1){
 			sprintf(runstring, "Run %d", gsop.firstrun);
@@ -104,8 +121,6 @@ void printStep(){
 			fflush(dat_file);
 			fclose(dat_file);
 		}
-		//cudaMemcpyAsync(gsop.h_coord, gsop.d_coordToSave, size, cudaMemcpyDeviceToHost, 0);
-		//cudaMemcpyAsync(gsop.h_energies, gsop.d_energiesToSave, size, cudaMemcpyDeviceToHost, 0);
 		printf("Done writing output.\n");
 	}
 }

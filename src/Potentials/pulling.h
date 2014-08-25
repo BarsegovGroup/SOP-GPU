@@ -5,8 +5,7 @@
  *      Author: zhmurov
  */
 
-#ifndef PULLING_CUH_
-#define PULLING_CUH_
+#pragma once
 
 #define PULLING_ON_STRING			"pulling"
 
@@ -49,16 +48,9 @@ struct Pulling {
 	float3* cantCoord;
 };
 
-Pulling pulling;
-__device__ __constant__ Pulling c_pulling;
-SOPPotential pullingPotential;
-SOPUpdater pullingUpdater;
-
 void createPullingPotential();
 void initPulling();
 inline void computePulling();
 inline void computePullingEnergy();
 inline void updatePulling();
 
-
-#endif /* PULLING_CUH_ */

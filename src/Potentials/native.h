@@ -4,8 +4,6 @@
  *  Created on: Mar 11, 2010
  *      Author: zhmurov
  */
-#include "../gsop.cuh"
-
 #ifndef NATIVE_CUH_
 #define NATIVE_CUH_
 
@@ -46,14 +44,12 @@ struct Native{
 
 };
 
-Native native;
-__device__ __constant__ Native c_native;
-SOPPotential nativePotential;
+extern Native native;
 
 void createNativePotential();
 void initNative();
 inline void computeNative();
 inline void computeNativeEnergy();
 
-
 #endif /* NATIVE_CUH_ */
+

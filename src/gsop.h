@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <vector_types.h>
+#include <cuda.h>
 #include "IO/topio.h"
 
 #define max_potentials 10
@@ -82,6 +83,8 @@ extern int integratorTea;
 extern GSOP gsop;
 extern SOP sop;
 
+extern cudaDeviceProp deviceProp;
+
 void initGPU();
 void initFF();
 void runGPU();
@@ -93,4 +96,9 @@ void copyCoordinates();
 void copyCoordinatesTrajectory(int traj);
 void initForces();
 void initEnergies();
+void copyEnergiesDeviceToHost();
+
+void __checkCUDAError(const char *file, int line);
+void copyCoordDeviceToHost();
+#define checkCUDAError() __checkCUDAError(__FILE__, __LINE__)
 

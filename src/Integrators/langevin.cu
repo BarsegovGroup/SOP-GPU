@@ -6,7 +6,14 @@
  */
 #include "../gsop.cuh"
 #include "ht.cu"
-#include "langevin.cuh"
+#include "langevin.h"
+
+Langevin langevin;
+__device__ __constant__ Langevin c_langevin;
+
+SOPIntegrator langevinIntegrator;
+SOPUpdater temperatureUpdater;
+
 #include "langevin_kernel.cu"
 
 void createLangevinIntegrator(){

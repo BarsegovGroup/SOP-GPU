@@ -5,9 +5,14 @@
  *      Author: zhmurov
  */
 #include "../gsop.cuh"
-#include "native.cuh"
-#include "native_kernel.cu"
+#include "native.h"
 //#define DEBUG1
+
+Native native;
+__device__ __constant__ Native c_native;
+SOPPotential nativePotential;
+
+#include "native_kernel.cu"
 
 void createNativePotential(){
 	sprintf(nativePotential.name, "Native");

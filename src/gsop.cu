@@ -24,8 +24,8 @@
 #include "Integrators/bdhitea.cu"
 #include "Updaters/pairlist.cu"
 #include "Updaters/possiblepairlist.cu"
-#include "Updaters/output_manager.cu"
-#include "Updaters/dcd_manager.cu"
+#include "Updaters/output_manager.h"
+#include "Updaters/dcd_manager.h"
 
 long int lastStepCoordCopied = -1;
 
@@ -249,6 +249,12 @@ void initEnergies(){
 	cudaMemcpy(gsop.d_energies, gsop.h_energies, size, cudaMemcpyHostToDevice);
 	//cudaMemcpy(gsop.d_energiesToSave, gsop.h_energies, size, cudaMemcpyHostToDevice);
 }
+
+void copyEnergiesDeviceToHost(){
+	int size = gsop.aminoCount*sizeof(float4);
+	cudaMemcpy(gsop.h_energies, gsop.d_energies, size, cudaMemcpyDeviceToHost);
+}
+
 
 void bindTextures(){
 #ifndef NOTEXTURE

@@ -11,8 +11,20 @@
 
 #include "../gsop.cuh"
 #include "ht.cu"
-#include "bdhitea.cuh"
-#include "langevin.cuh"
+#include "bdhitea.h"
+#include "langevin.h"
+
+Tea tea;
+__device__ __constant__ Tea c_tea;
+
+#ifdef TEA_TEXTURE
+texture<float4, 1, cudaReadModeElementType> t_rforce;
+texture<float4, 1, cudaReadModeElementType> t_mforce;
+#endif
+
+SOPIntegrator teaIntegrator;
+SOPUpdater teaUpdater;
+
 #include "bdhitea_kernel.cu"
 
 void createTeaIntegrator(){

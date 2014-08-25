@@ -5,14 +5,19 @@
  *      Author: alekseenko
  */
 #include "../gsop.cuh"
-#include "../Integrators/langevin.cuh"
-#include "pulling_plane.cuh"
-#include "pulling_plane_kernel.cu"
+#include "../Integrators/langevin.h"
+#include "../IO/configreader.h"
+#include "pulling_plane.h"
 
 char pullingPlaneFilename[500];
 FILE* pullingPlaneFile;
 
-extern void replaceString(char* resultString, const char* initialString, const char* replacementString, const char* stringToReplace);
+PullingPlane pullingPlane;
+__device__ __constant__ PullingPlane c_pullingPlane;
+SOPPotential pullingPlanePotential;
+SOPUpdater pullingPlaneUpdater;
+
+#include "pulling_plane_kernel.cu"
 
 void createPullingPlanePotential(){
 	if(getYesNoParameter(PULLINGPLANE_ON_STRING, 0, 1) == 1){

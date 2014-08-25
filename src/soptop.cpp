@@ -7,7 +7,7 @@
 
 #define FILENAME_LENGTH 100
 
-#include "sop.cpp"
+#include "sop.hpp"
 #include "IO/configreader.h"
 #include "IO/topio.h"
 #include "IO/pdbio.h"

@@ -32,11 +32,7 @@ struct Langevin {
 	float deltaT;
 };
 
-Langevin langevin;
-__device__ __constant__ Langevin c_langevin;
-
-SOPIntegrator langevinIntegrator;
-SOPUpdater temperatureUpdater;
+extern Langevin langevin;
 
 void createLangevinIntegrator();
 void initLangevinIntegrator();

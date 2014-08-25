@@ -16,13 +16,15 @@ CXX					:= g++
 LINKER				:= g++ -fPIC
 # files
 CXX_SOURCES			:= main.cpp \
+	param_initializer.cpp \
 	IO/dcdio.cpp \
 	IO/pdbio.cpp \
 	IO/topio.cpp \
 	IO/configreader.cpp \
 	Util/wrapper.cpp \
 	Util/mystl.cpp \
-	param_initializer.cpp
+	Updaters/dcd_manager.cpp \
+	Updaters/output_manager.cpp
 
 CU_SOURCES			:= gsop.cu
 

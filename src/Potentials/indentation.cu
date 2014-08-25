@@ -5,14 +5,20 @@
  *      Author: zhmurov
  */
 #include "../gsop.cuh"
-#include "indentation.cuh"
-#include "../Updaters/output_manager.cuh"
-#include "indentation_kernel.cu"
+#include "indentation.h"
+#include "../Updaters/output_manager.h"
 
 int showTipMica;
 int discreteSurf;
-
 void addTipMicaParticles();
+
+Indentation indentation;
+__device__ __constant__ Indentation c_indentation;
+SOPPotential indentationPotential;
+SOPUpdater indentationUpdater;
+SOPUpdater additionalAminosUpdater;
+
+#include "indentation_kernel.cu"
 
 /*
  * Add potential computation and update functions to lists,

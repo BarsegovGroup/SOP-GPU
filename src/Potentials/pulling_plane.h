@@ -5,8 +5,7 @@
  *      Author: alekseenko
  */
 
-#ifndef PULLING_PLANE_CUH_
-#define PULLING_PLANE_CUH_
+#pragma once
 
 #define PULLINGPLANE_ON_STRING			"pullingPlane"
 
@@ -53,17 +52,9 @@ struct PullingPlane {
 	float4* d_extForces;
 };
 
-PullingPlane pullingPlane;
-__device__ __constant__ PullingPlane c_pullingPlane;
-SOPPotential pullingPlanePotential;
-SOPUpdater pullingPlaneUpdater;
-
 void createPullingPlanePotential();
 void initPullingPlane();
 inline void computePullingPlane();
 inline void computePullingPlaneEnergy();
 inline void updatePullingPlane();
-
-
-#endif /* PULLING_PLANE_CUH_ */
 

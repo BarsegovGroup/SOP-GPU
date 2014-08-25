@@ -5,8 +5,7 @@
  *      Author: zhmurov
  */
 
-#ifndef PAIRS_CUH_
-#define PAIRS_CUH_
+#pragma once
 
 #define PAIRS_CUTOFF_STRING			"pairs_cutoff"
 #define PAIRS_EL_STRING				"el"
@@ -39,13 +38,8 @@ struct Pairs{
 	int blockNum;
 };
 
-Pairs pairs;
-__device__ __constant__ Pairs c_pairs;
-SOPPotential pairsPotential;
-
 void createPairsPotential();
 void initPairs();
 inline void computePairs();
 inline void computePairsEnergy();
 
-#endif /* PAIRS_CUH_ */

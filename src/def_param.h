@@ -9,8 +9,6 @@ const int MODE_CAPSID = 1;
 //#define DEBUG
 //#define DEBUG1
 
-extern int mode;
-
 extern long int numsteps;
 
 extern int nav;
