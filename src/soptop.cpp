@@ -464,9 +464,8 @@ void createModel(){
 	}
 	sop.save(top_filename);
 	FILE* test = fopen(coord_filename, "r");
-    int exists = (test != NULL);
-    fclose(test);
-	if(exists){
+	if(test!=NULL){
+        fclose(test);
 		printf("Coordinates file '%s' exists. Overwrite (y/n)? ", coord_filename);
 		char input;
 		while (scanf("%c", &input) != 1);
