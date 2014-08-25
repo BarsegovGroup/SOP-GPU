@@ -359,11 +359,11 @@ void addTipMicaParticles(){
  * Execute computations on GPU
  */
 inline void computeIndentation(){
-	indentation_kernel<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+	indentation_kernel<<<gsop.aminoCount/gsop.blockSize + 1, gsop.blockSize>>>();
 }
 
 inline void computeIndentationDiscreteSurface(){
-	indentationDiscreteSurf_kernel<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+	indentationDiscreteSurf_kernel<<<gsop.aminoCount/gsop.blockSize + 1, gsop.blockSize>>>();
 }
 
 /*
@@ -418,7 +418,7 @@ inline void updateTipPosition(){
 				}
 				cudaMemcpy(indentation.d_surfacePointsCoord, indentation.h_surfacePointsCoord,
 						indentation.surfaceBeadsCount*sizeof(float4), cudaMemcpyHostToDevice);
-				generateMicaList_kernel<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+				generateMicaList_kernel<<<gsop.aminoCount/gsop.blockSize + 1, gsop.blockSize>>>();
 			} else {
 				indentation.micaR.x = indentation.micaR0.x + indentation.direction.x*indentation.dx;
 				indentation.micaR.y = indentation.micaR0.y + indentation.direction.y*indentation.dx;
@@ -429,7 +429,7 @@ inline void updateTipPosition(){
 			indentation.chipCoord.y = indentation.chipCoord0.y + indentation.direction.y*indentation.dx;
 			indentation.chipCoord.z = indentation.chipCoord0.z + indentation.direction.z*indentation.dx;
 			if(discreteSurf){
-				generateMicaList_kernel<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+				generateMicaList_kernel<<<gsop.aminoCount/gsop.blockSize + 1, gsop.blockSize>>>();
 			}
 		}
 		float4 dr;

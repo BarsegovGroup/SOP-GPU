@@ -122,27 +122,6 @@ int checkCovalent(int i, int j){
 }
 
 int checkNative(int i, int j){
-	/*if(nativeContacts[i][j] > 0){
-		return 1;
-	} else {
-		return 0;
-	}*/
-	// If within the limit and not on the backbone
-	/*if(!(abs(pdbdata.atoms[i1].resid - pdbdata.atoms[i2].resid) <= 2 && pdbdata.atoms[i1].chain == pdbdata.atoms[i2].chain)){
-		if(dr < R_limit_bond){
-			return 1;
-		}
-		/*if(SC_limit_bond > 0.0){
-			int j1 = 0, j2 = 0;
-			for(j1 = aminoStartAtom[i]; j1 < aminoEndAtom[i]; j1++){
-				for(j2 = aminoStartAtom[j]; j2 < aminoEndAtom[j]; j2++){
-					if(getDistanceAtoms(j1, j2) < SC_limit_bond){
-						return 1;
-					}
-				}
-			}
-		}*/
-	//}
 	if(!checkCovalent(i, j)){
 		int i1 = pdbRef[i];
 		int i2 = pdbRef[j];

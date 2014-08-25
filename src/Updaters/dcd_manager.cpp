@@ -8,6 +8,7 @@
 #include "dcd_manager.h"
 #include "../gsop.h"
 #include "../def_param.h"
+#include "../param_initializer.h"
 #include "../IO/dcdio.h"
 #include "../IO/pdbio.h"
 #include "../IO/configreader.h"

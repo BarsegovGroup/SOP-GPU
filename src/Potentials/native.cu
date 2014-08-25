@@ -37,7 +37,7 @@ void initNative(){
 		native.rWater = getFloatParameter(NATIVE_R_WATER_STRING, DEFAULT_NATIVE_R_WATER, 1);;
 	}
 	native.max_native = getIntegerParameter(MAX_NATIVE_STRING, DEFAULT_MAX_NATIVE, 1);
-	native.blockSize = getIntegerParameter(NATIVE_BLOCK_SIZE_STRING, BLOCK_SIZE, 1);
+	native.blockSize = getIntegerParameter(NATIVE_BLOCK_SIZE_STRING, gsop.blockSize, 1);
 	native.blockNum = gsop.aminoCount/native.blockSize + 1;
 
 

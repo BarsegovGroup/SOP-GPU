@@ -34,7 +34,7 @@ void createPairlistUpdater(){
  */
 void initPairlist(){
 	printf("Searching for all possible pairs for repulsive LJ...\n");
-	pairList.blockSize = getIntegerParameter(PAIRLIST_BLOCK_SIZE_STRING, BLOCK_SIZE, 1);
+	pairList.blockSize = getIntegerParameter(PAIRLIST_BLOCK_SIZE_STRING, gsop.blockSize, 1);
 	pairList.blockNum = gsop.aminoCount/pairList.blockSize + 1;
 	pairList.max_possiblePairs = getIntegerParameter(MAX_POSSIBLEPAIRS_STRING, DEFAULT_MAX_POSSIBLEPAIRS, 1);
 	pairList.pairlistCutoff = getFloatParameter(PAIRLIST_CUTOFF_STRING, DEFAULT_PAIRLIST_CUTOFF, 1);

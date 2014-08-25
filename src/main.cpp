@@ -7,6 +7,7 @@
 #include "def_param.h"
 #include "gsop.h"
 
+#include "param_initializer.h"
 #include "IO/configreader.h"
 #include "Util/wrapper.h"
 
@@ -16,17 +17,6 @@ long long int lastTime;
 long int step;
 
 SOP sop;
-
-extern void initGPU();
-extern void initFF();
-extern void copyCoordinates();
-extern void copyCoordinatesTrajectory(int traj);
-extern void runGPU();
-extern void cleanup();
-
-extern void initParameters(const char* configFile);
-
-void getOutputFilnames();
 
 int main(int argc, char *argv[]){
 
@@ -44,15 +34,6 @@ int main(int argc, char *argv[]){
 
 	if(argc < 1){
 		DIE("ERROR: Configuration file should be specified.");
-	}
-
-	int restart = 0;
-
-	for(i = 1; i < argc; i++){
-		if(strcmp(argv[i], "--restart") == 0){
-			restart = 1;
-			DIE("Restart is not currently supported. Sorry.");
-		}
 	}
 
 	// Read main parameters of the simulation (number of steps, etc.)

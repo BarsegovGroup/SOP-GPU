@@ -93,7 +93,7 @@ void initTeaIntegrator(){
 
     if(!tea.exact){
 	    createTeaUpdater();
-	    printf("TEA integrator initialized, a = %f A, freq = %d steps; capricious mode: %s; using pairlist: %s; block size: %d\n", tea.a, tea.epsilon_freq, (tea.capricious ? "on" : "off"), (tea.unlisted ? "no" : "yes"), BLOCK_SIZE);
+	    printf("TEA integrator initialized, a = %f A, freq = %d steps; capricious mode: %s; using pairlist: %s; block size: %d\n", tea.a, tea.epsilon_freq, (tea.capricious ? "on" : "off"), (tea.unlisted ? "no" : "yes"), gsop.blockSize);
     }else{
     	printf("Cholesky integrator initialized, a = %f A\n", tea.a);
     }
@@ -101,7 +101,7 @@ void initTeaIntegrator(){
 
 void integrateTea(){
 	// Pregenerate random forces
-	integrateTea_prepare<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+	integrateTea_prepare<<<gsop.aminoCount/gsop.blockSize + 1, gsop.blockSize>>>();
 	// Integrate
 #ifdef TEA_TEXTURE
 	cudaBindTexture(0, t_rforce, tea.rforce, gsop.aminoCount * sizeof(float4));
@@ -109,11 +109,11 @@ void integrateTea(){
 #endif
     if (!tea.exact){
     	if (tea.unlisted)
-    		integrateTea_kernel_unlisted<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+    		integrateTea_kernel_unlisted<<<gsop.aminoCount/gsop.blockSize + 1, gsop.blockSize>>>();
     	else
-    		integrateTea_kernel<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+    		integrateTea_kernel<<<gsop.aminoCount/gsop.blockSize + 1, gsop.blockSize>>>();
     }else{
-        integrateCholesky_D<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>(tea.d_tensor, 3*tea.namino);
+        integrateCholesky_D<<<gsop.aminoCount/gsop.blockSize + 1, gsop.blockSize>>>(tea.d_tensor, 3*tea.namino);
         integrateCholesky_decompose<<<gsop.Ntr, 3*tea.namino>>>(tea.d_tensor, 3*tea.namino);
     /*
     float *d = (float*) malloc(gsop.Ntr * tea.namino * 3 * tea.namino * 3 * sizeof(float));
@@ -125,7 +125,7 @@ void integrateTea(){
         printf("\n");
     }
     */
-        integrateCholesky_L<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>(tea.d_tensor, 3*tea.namino);
+        integrateCholesky_L<<<gsop.aminoCount/gsop.blockSize + 1, gsop.blockSize>>>(tea.d_tensor, 3*tea.namino);
     }
 #ifdef TEA_TEXTURE
 	cudaUnbindTexture(t_rforce);
@@ -170,9 +170,9 @@ void updateTea(){
 	if (update_epsilon){
 		// Calculate relative coupling
 		if (tea.unlisted)
-			integrateTea_epsilon_unlisted<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+			integrateTea_epsilon_unlisted<<<gsop.aminoCount/gsop.blockSize + 1, gsop.blockSize>>>();
 		else
-			integrateTea_epsilon<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+			integrateTea_epsilon<<<gsop.aminoCount/gsop.blockSize + 1, gsop.blockSize>>>();
 		// Dowload epsilon`s
 		cudaMemcpy(tea.h_epsilon, tea.d_epsilon, gsop.aminoCount * sizeof(float), cudaMemcpyDeviceToHost);
 		checkCUDAError();

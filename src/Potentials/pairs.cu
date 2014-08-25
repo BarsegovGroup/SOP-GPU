@@ -31,7 +31,7 @@ void createPairsPotential(){
  */
 void initPairs(){
 	printf("Initializing pairlist...");
-	pairs.blockSize = getIntegerParameter(PAIRS_BLOCK_SIZE_STRING, BLOCK_SIZE, 1);
+	pairs.blockSize = getIntegerParameter(PAIRS_BLOCK_SIZE_STRING, gsop.blockSize, 1);
 	pairs.blockNum = gsop.aminoCount/pairs.blockSize + 1;
 	pairs.a = getFloatParameter(PAIRS_A_STRING, DEFAULT_PAIRS_A, 1);
 	pairs.a2 = pairs.a*pairs.a;

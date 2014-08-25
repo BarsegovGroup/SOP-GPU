@@ -1,15 +1,14 @@
 /*
- * parameters_initializer.c
+ * parameters_initializer.cpp
  *
  *  Created on: Jan 16, 2009
  *      Author: zhmurov
  */
 
+#include "param_initializer.h"
 #include "def_param.h"
 #include "IO/configreader.h"
 #include "gsop.h"
-
-int BLOCK_SIZE = 256;
 
 long int numsteps;
 
@@ -23,7 +22,6 @@ void initParameters(const char* configFile){
 	getParameter(protein_name, "name", "unnamed", 1);
 	printf("Initializing simulations for '%s'\n", protein_name);
 
-	BLOCK_SIZE = getIntegerParameter("block_size", BLOCK_SIZE, 1);
 
 	int run = getIntegerParameter("run", -1, 1);
 	if(run == -1){

@@ -33,7 +33,7 @@ void createPossiblepairlistUpdater(){
  */
 void initPossiblepairlist(){
 	printf("Initializing possible pairs list generator...\n");
-	possiblepairList.blockSize = getIntegerParameter(POSSIBLEPAIRS_BLOCK_SIZE_STRING, BLOCK_SIZE, 1);
+	possiblepairList.blockSize = getIntegerParameter(POSSIBLEPAIRS_BLOCK_SIZE_STRING, gsop.blockSize, 1);
 	possiblepairList.blockNum = gsop.aminoCount/possiblepairList.blockSize + 1;
 	possiblepairList.pairsThreshold = getFloatParameter(POSSIBLEPAIRS_CUTOFF_STRING, DEFAULT_POSSIBLEPAIRS_CUTOFF, 1);
 	cudaMemcpyToSymbol(c_possiblepairList, &possiblepairList, sizeof(PossiblepairList), 0, cudaMemcpyHostToDevice);
@@ -51,6 +51,5 @@ inline void generatePossiblepairlist(){
 		checkCUDAError();
 		printf("done.\n");
 	}
-
 }
 

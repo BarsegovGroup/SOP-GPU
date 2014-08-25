@@ -41,7 +41,7 @@ void initCovalent(){
 	covalent.R_limit = getFloatParameter(COVALENT_R_LIMIT_STRING, DEFAULT_COVALENT_R_LIMIT, 1);
 	covalent.R_limit_sq = covalent.R_limit*covalent.R_limit;
 	covalent.max_covalent = getIntegerParameter(MAX_COVALENT_STRING, DEFAULT_MAX_COVALENT, 1);
-	covalent.blockSize = getIntegerParameter(COVALENT_BLOCK_SIZE_STRING, BLOCK_SIZE, 1);
+	covalent.blockSize = getIntegerParameter(COVALENT_BLOCK_SIZE_STRING, gsop.blockSize, 1);
 	covalent.blockNum = gsop.aminoCount/covalent.blockSize + 1;
 	// Allocating memory
 	covalent.h_bonds = (GCovalentBond*)calloc(gsop.aminoCount*covalent.max_covalent, sizeof(GCovalentBond));

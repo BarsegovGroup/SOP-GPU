@@ -7,6 +7,7 @@
 
 #include "gsop.cuh"
 #include "def_param.h"
+#include "param_initializer.h"
 
 #include "IO/configreader.h"
 #include "IO/topio.h"
@@ -57,6 +58,7 @@ void initGPU(){
 		gsop.width++;
 	}
 	printf("Will align structures to width of %d.\n", gsop.width);
+	gsop.blockSize = getIntegerParameter("block_size", DEFAULT_BLOCK_SIZE, 1);
 
 	initCoordinates(); // Allocate memory for coordinates
 	initForces(); // Allocate memory for forces

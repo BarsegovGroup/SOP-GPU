@@ -7,6 +7,8 @@
 
 #include "../def_param.h"
 #include "../gsop.h"
+#include "../param_initializer.h"
+
 #include "../IO/configreader.h"
 #include "../Potentials/native.h"
 #include "../Potentials/covalent.h"

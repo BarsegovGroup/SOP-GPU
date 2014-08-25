@@ -18,12 +18,14 @@
 #define max_timers 20
 
 //#define NOTEXTURE
+const int DEFAULT_BLOCK_SIZE = 256;
 
 
 //#define capsid
 
 struct GSOP{
     int deviceId;
+    int blockSize;
 
 	int pullingOn; // TODO: bitfield?
 	int pullingPlaneOn;
@@ -38,11 +40,9 @@ struct GSOP{
 
 	float4* h_coord;
 	float4* d_coord;
-	//float4* d_coordToSave;
 
 	float4* h_energies;   // Energies for output (see printStep())
 	float4* d_energies;
-	//float4* d_energiesToSave;
 
 	float4* h_forces;
 	float4* d_forces;

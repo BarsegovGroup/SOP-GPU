@@ -40,7 +40,7 @@ void initLangevinIntegrator(){
 }
 
 void integrateLangevin(){
-	integrateLangevin_kernel<<<gsop.aminoCount/BLOCK_SIZE + 1, BLOCK_SIZE>>>();
+	integrateLangevin_kernel<<<gsop.aminoCount/gsop.blockSize + 1, gsop.blockSize>>>();
 }
 
 void deleteLangevinIntegrator(){

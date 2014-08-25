@@ -11,8 +11,6 @@
 
 __device__ __constant__ GSOP c_gsop;
 
-extern int BLOCK_SIZE;
-
 #ifndef NOTEXTURE
 texture<float4, 1, cudaReadModeElementType> t_coord; // Coordinates
 #endif
