@@ -469,7 +469,7 @@ void createModel(){
 	if(exists){
 		printf("Coordinates file '%s' exists. Overwrite (y/n)? ", coord_filename);
 		char input;
-		scanf("%c", &input);
+		while (scanf("%c", &input) != 1);
 		if(input == 'y'){
 			savePDB(coord_filename, sop);
 		}
