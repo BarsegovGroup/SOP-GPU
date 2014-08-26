@@ -32,7 +32,7 @@ int main(int argc, char *argv[]){
 
 	int i;
 
-	if(argc < 1){
+	if(argc < 2){
 		DIE("ERROR: Configuration file should be specified.");
 	}
 
