@@ -5,8 +5,7 @@
  *      Author: zhmurov
  */
 
-#ifndef LANGEVIN_CUH_
-#define LANGEVIN_CUH_
+#pragma once
 #include "../gsop.h"
 
 #define LANGEVIN_TIMESTEP_STRING	"timestep"
@@ -26,10 +25,13 @@ public:
     LangevinIntegrator();
     virtual ~LangevinIntegrator();
     virtual void integrate();
-
+    void setTemperature(float temp);
+    void updateParametersOnGPU();
+	
+    float hOverZeta; // Accessed in Potentials/pulling_plane.cu
+private:
 	float zeta;
 	float var;
-	float hOverZeta;
 	float tempNorm;
 	float temp;
 };
@@ -47,4 +49,3 @@ private:
 
 void createLangevinIntegrator();
 
-#endif /* LANGEVIN_CUH_ */

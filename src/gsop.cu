@@ -183,17 +183,14 @@ void runGPU(){
 void initCoordinates(){
 	printf("Initializing coordinates (%d particles)...\n", gsop.aminoCount);
 	int size = gsop.aminoCount*sizeof(float4);
-	//gsop.h_coord = (float4*)calloc(gsop.aminoCount, sizeof(float4));
 	cudaMallocHost((void**)&gsop.h_coord, size);
 	cudaMalloc((void**)&gsop.d_coord, size);
-	//cudaMalloc((void**)&gsop.d_coordToSave, size);
 }
 
 void copyCoordinates(){
 	printf("Copying coordinates...\n");
 	int size = gsop.aminoCount*sizeof(float4);
 	cudaMemcpy(gsop.d_coord, gsop.h_coord, size, cudaMemcpyHostToDevice);
-	//cudaMemcpy(gsop.d_coordToSave, gsop.h_coord, size, cudaMemcpyHostToDevice);
 }
 
 void copyCoordDeviceToHost(){
@@ -249,10 +246,8 @@ void initEnergies(){
 		gsop.h_energies[i].w = 0.0f;
 	}
 	cudaMalloc((void**)&gsop.d_energies, size);
-	//cudaMalloc((void**)&gsop.d_energiesToSave, size);
 	// Copying to the Device
 	cudaMemcpy(gsop.d_energies, gsop.h_energies, size, cudaMemcpyHostToDevice);
-	//cudaMemcpy(gsop.d_energiesToSave, gsop.h_energies, size, cudaMemcpyHostToDevice);
 }
 
 void copyEnergiesDeviceToHost(){

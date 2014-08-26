@@ -14,33 +14,12 @@
 // Get std::map element. If element does not exist, return some default value
 template <typename K, typename V>
 V get_map_wd(const std::map <K,V> &m, const K &key, const V &defval ) {
-   typename std::map<K,V>::const_iterator it = m.find( key );
-   if ( it == m.end() ) {
-      return defval;
-   } else {
-      return it->second;
-   }
-}
-
-// Function to replace inclusions of oldStr in str with newStr
-// You know, like 'string::replace' in normal languages
-std::string string_replace(const std::string& str, const std::string& oldStr, const std::string& newStr);
-// ToLower function
-std::string lower(const std::string& str);
-
-// Function to calculate gretest common divisor
-// Not like it belongs here or anything...
-// I haven't found a better place for it
-// I'm really sorry
-template <typename T>
-T GCD(T a, T b) {
-    T t;
-    while (b != 0) {
-        t = b;
-        b = a % b;
-        a = t;
+    typename std::map<K,V>::const_iterator it = m.find( key );
+    if ( it == m.end() ) {
+        return defval;
+    } else {
+        return it->second;
     }
-    return a;
 }
 
 // Convert anything to string
@@ -50,7 +29,6 @@ inline std::string any2str(const T& in) {
     s << in;
     return s.str();
 }
-
 
 template <typename T> 
 inline T str2any(const char* in) {
@@ -68,4 +46,37 @@ inline T str2any(const std::string& in) {
 	return out;
 }
 
+template <> 
+inline std::string str2any<std::string>(const char *in) {
+    std::string ret(in);
+    ret.erase( 0                                , ret.find_first_not_of( " \t" ) );
+    ret.erase( ret.find_last_not_of( " \t" ) + 1, ret.max_size()                 );
+    return ret;
+}
+
+// Function to replace inclusions of oldStr in str with newStr
+// You know, like 'string::replace' in normal languages
+std::string string_replace(const std::string& str, const std::string& oldStr, const std::string& newStr);
+template <typename T>
+std::string string_replace(const std::string& str, const std::string& oldStr, const T& newStr) {
+    return string_replace(str, oldStr, any2str<T>(newStr));
+}
+
+// ToLower function
+std::string lower(const std::string& str);
+
+// Function to calculate gretest common divisor
+// Not like it belongs here or anything...
+// I haven't found a better place for it
+// I'm really sorry
+template <typename T>
+T GCD(T a, T b) {
+    T t;
+    while (b != 0) {
+        t = b;
+        b = a % b;
+        a = t;
+    }
+    return a;
+}
 

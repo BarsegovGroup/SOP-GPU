@@ -86,32 +86,11 @@ inline T getParameterAs(const char* paramName) {
     return str2any<T>(paramValue);
 }
 
-template <>
-inline std::string getParameterAs<std::string>(const char* paramName) {
-    char paramValue[4096]; // Just hope it will be enough
-    getParameter(paramValue, paramName);
-    std::string ret(paramValue);
-    ret.erase( 0                              , ret.find_first_not_of( " \t" ) );
-    ret.erase( ret.find_last_not_of( " \t" ) + 1, ret.max_size()               );
-    return ret;
-}
-
-
 template <typename T>
 inline T getMaskedParameterAs(const char* paramName) {
     char paramValue[4096]; // Just hope it will be enough
     getMaskedParameter(paramValue, paramName);
     return str2any<T>(paramValue);
-}
-
-template <>
-inline std::string getMaskedParameterAs<std::string>(const char* paramName) {
-    char paramValue[4096]; // Just hope it will be enough
-    getMaskedParameter(paramValue, paramName);
-    std::string ret(paramValue);
-    ret.erase( 0                              , ret.find_first_not_of( " \t" ) );
-    ret.erase( ret.find_last_not_of( " \t" ) + 1, ret.max_size()               );
-    return ret;
 }
 
 template <typename T>
@@ -120,6 +99,24 @@ inline T getParameterAs(const char* paramName, T defVal) {
     getParameter(paramValue, paramName, "{default}", 1);
     if (strcmp(paramValue, "{default}") == 0)
         return defVal;
+    return str2any<T>(paramValue);
+}
+
+template <typename T>
+inline T getMaskedParameterAs(const char* paramName, T defVal) {
+    char paramValue[4096]; // Just hope it will be enough
+    getMaskedParameter(paramValue, paramName, "{default}", 1);
+    if (strcmp(paramValue, "{default}") == 0)
+        return defVal;
+    return str2any<T>(paramValue);
+}
+
+
+template <typename T, typename T1, typename T2>
+inline T getMaskedParameterWithReplacementAs(const char* paramName, T1 defaultValue,
+                        T2 replacementString, const char* stringToReplace) {
+    char paramValue[4096]; // Just hope it will be enough
+    getMaskedParameterWithReplacementT<T1,T2>(paramValue, paramName, any2str(defaultValue).c_str(), any2str(replacementString).c_str(), stringToReplace);
     return str2any<T>(paramValue);
 }
 

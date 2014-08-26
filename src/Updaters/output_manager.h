@@ -14,6 +14,9 @@
 #include "../Integrators/bdhitea.h"
 #include "../Updaters/pairlist.h"
 
+#include <vector>
+#include <string>
+
 #define OUTPUT_FREQUENCY_STRING			"outputtiming"
 #define OUTPUT_FILENAME_STRING			"outputname"
 
@@ -23,23 +26,13 @@
 struct OutputData{
 	long int step;
 	float tempav;
-	float temp;
-	//float endToEnd;
-	//float endToEnd_x;
-	//float f;
-	//float fx;
-	//float fy;
-	//float fz;
 	float epot_tot;
 	float epot_native;
 	float epot_longrange;
 	float epot_LJ;
 	float epot_fene;
 	int nat_num;
-	//float xt;
 	float rg;
-	//float V;
-	//float R;
 	float tea_eps;
 };
 
@@ -53,11 +46,16 @@ private:
     void computeNativeNumber(int traj);
     void computeRg(int traj);
     void computeTEAeps(int traj);
+    void printDataToScreen() const;
+    void printDataToFile(FILE* dat_file) const;
 
     PairList *pairlist;
     CovalentPotential *covalent;
     NativePotential *native;
     TeaIntegrator *tea;
+
+    OutputData outputData;
+    std::vector<std::string> dat_filenames;
 };
 
 void createOutputManager();

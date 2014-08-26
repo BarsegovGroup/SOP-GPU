@@ -29,25 +29,33 @@ LangevinIntegrator::LangevinIntegrator(){
 		printf("Initializing heating protocol...\n");
 		updaters[updatersCount] = new TemperatureUpdater(this);
 		updatersCount++;
-		this->temp = getFloatParameter(TC_INITIAL_T_STRING, 0, 0);
+		this->setTemperature(getFloatParameter(TC_INITIAL_T_STRING, 0, 0));
 	} else {
 		printf("Simulations will be held at constant temperature.\n");
-		this->temp = getFloatParameter(TC_TEMPERATURE_STRING, DEFAULT_TEMPERATURE, 1);
+		this->setTemperature(getFloatParameter(TC_TEMPERATURE_STRING, DEFAULT_TEMPERATURE, 1));
 	}
-	this->var = sqrtf(2.0f* this->temp * this->zeta/this->h);
-
-    hc_langevin.var = this->var;
-    hc_langevin.hOverZeta = this->hOverZeta;
-    hc_langevin.tempNorm = this->tempNorm;
-	cudaMemcpyToSymbol(c_langevin, &hc_langevin, sizeof(LangevinConstant), 0, cudaMemcpyHostToDevice);
 
 	if(deviceProp.major == 2){ // TODO: >= 2
 		cudaFuncSetCacheConfig(integrateLangevin_kernel, cudaFuncCachePreferL1);
 	}
+    this->updateParametersOnGPU();
 }
 
 void LangevinIntegrator::integrate(){
 	integrateLangevin_kernel<<<gsop.aminoCount/gsop.blockSize + 1, gsop.blockSize>>>();
+}
+
+void LangevinIntegrator::setTemperature(float temp){
+    this->temp = temp;
+    this->var = sqrtf(2.0f* this->temp * this->zeta/this->h);
+    this->updateParametersOnGPU();
+}
+
+void LangevinIntegrator::updateParametersOnGPU(){
+    hc_langevin.var = this->var;
+    hc_langevin.hOverZeta = this->hOverZeta;
+    hc_langevin.tempNorm = this->tempNorm;
+	cudaMemcpyToSymbol(c_langevin, &hc_langevin, sizeof(LangevinConstant), 0, cudaMemcpyHostToDevice);
 }
 
 LangevinIntegrator::~LangevinIntegrator(){
@@ -64,12 +72,9 @@ TemperatureUpdater::TemperatureUpdater(LangevinIntegrator* langevin){
 
 void TemperatureUpdater::update(){
 	if(step % this->frequency == 0){
-		langevin->temp = this->initialT + (step/this->frequency)*this->deltaT;
-		langevin->var = sqrtf(2.0f* langevin->temp * langevin->zeta/langevin->h);
-
-        hc_langevin.var = langevin->var;
-		cudaMemcpyToSymbol(c_langevin, &hc_langevin, sizeof(LangevinConstant), 0, cudaMemcpyHostToDevice);
-		printf("Heating: %ld\t%f\n", step, langevin->temp);
+        float temp = this->initialT + (step/this->frequency)*this->deltaT;
+		langevin->setTemperature( temp );
+		printf("Heating: %ld\t%f\n", step, temp);
 	}
 }
 

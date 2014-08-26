@@ -21,6 +21,8 @@ texture<float4, 1, cudaReadModeElementType> t_mforce;
 
 #include "bdhitea_kernel.cu"
 
+// TODO: the code is nonintuitive and variables are scattered over structures
+
 void createTeaIntegrator(){
 	integrator = new TeaIntegrator();
 }

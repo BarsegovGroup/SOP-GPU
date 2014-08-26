@@ -45,12 +45,10 @@ DcdOutputManager::DcdOutputManager(){
 	int traj;
 	dcd_filenames = (char**)calloc(gsop.Ntr, sizeof(char*));
 	for(traj = 0; traj < gsop.Ntr; traj++){
-		//printf("%d.1\n", traj);
 		dcd_filenames[traj] = (char*)calloc(100, sizeof(char));
 		char trajnum[10];
 		sprintf(trajnum, "%d", traj+gsop.firstrun);
 		replaceString(dcd_filenames[traj], dcd_filename, trajnum, "<run>");
-		//printf("%d.2\n", traj);
 		int particleCount = sop.aminoCount;
 		if(sop.additionalAminosCount > 0){
 			particleCount = particleCount + sop.additionalAminosCount;

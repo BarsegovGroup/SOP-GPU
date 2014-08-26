@@ -10,23 +10,13 @@
 #include "../param_initializer.h"
 
 #include "../IO/configreader.h"
+#include "../Util/mystl.h"
 #include <string.h>
 #include <stdio.h>
 #include <cuda.h>
 #include "output_manager.h"
 
-FILE* dat_file;
-char** dat_filenames;
-char tempFilename[100];
-
-
-void printDataToScreen();
-void printDataToFile(int traj);
-void printStep();
-
 int mode;
-
-OutputData outputData;
 
 void createOutputManager(){
 	updaters[updatersCount] = new OutputManager();
@@ -34,30 +24,20 @@ void createOutputManager(){
 }
 
 OutputManager::OutputManager(){
+    FILE *dat_file;
 	printf("Initializing output manager...\n");
 	this->name = "DAT output";
 	this->frequency = getIntegerParameter(OUTPUT_FREQUENCY_STRING, DEFAULT_OUTPUT_FREQUENCY, 1);
 	printf("Initializing output...\n");
 	int traj;
-	/*dat_file = (FILE**)calloc(gsop.Ntr, sizeof(FILE*));
+    std::string dat_filename = getMaskedParameterAs<std::string>(OUTPUT_FILENAME_STRING, DEFAULT_OUTPUT_FILENAME);
+	dat_filenames.resize(gsop.Ntr);
 	for(traj = 0; traj < gsop.Ntr; traj++){
-		char trajnum[10];
-		sprintf(trajnum, "%d", traj+gsop.firstrun);
-		replaceString(tempFilename, dat_filename, trajnum, "<run>");
-		dat_file[traj] = fopen(tempFilename, "w");
-	}*/
-	dat_filenames = (char**)calloc(gsop.Ntr, sizeof(char*));
-	char dat_filename[100];
-	getMaskedParameter(dat_filename, OUTPUT_FILENAME_STRING, DEFAULT_OUTPUT_FILENAME, 1);;
-	for(traj = 0; traj < gsop.Ntr; traj++){
-		dat_filenames[traj] = (char*)calloc(100, sizeof(char));
-		char trajnum[10];
-		sprintf(trajnum, "%d", traj+gsop.firstrun);
-		replaceString(dat_filenames[traj], dat_filename, trajnum, "<run>");
-		dat_file = fopen(dat_filenames[traj], "w");
+        dat_filenames[traj] = string_replace(dat_filename, "<run>", traj+gsop.firstrun);
+		dat_file = fopen(dat_filenames[traj].c_str(), "w");
 		fclose(dat_file);
 	}
-	printf("Output will be saved in '%s'.\n", dat_filename);
+	printf("Output will be saved in '%s'.\n", dat_filename.c_str());
 
     char modeString[100];
 	getParameter(modeString, "mode", "", 1);
@@ -76,10 +56,6 @@ OutputManager::OutputManager(){
 }
 
 OutputManager::~OutputManager(){
-	/*int traj;
-	for(traj = 0; traj < gsop.Ntr; traj++){
-		fclose(dat_file[traj]);
-	}*/
 }
 
 void OutputManager::update(){
@@ -100,19 +76,19 @@ void OutputManager::update(){
 		printf("Writing output at step %ld of %ld. %s on %d [%s].\n", step, numsteps, runstring, gsop.deviceId, deviceProp.name);
 		int traj;
 		for(traj = 0; traj < gsop.Ntr; traj++){
-			dat_file = fopen(dat_filenames[traj], "a");
-			outputData.step = step;
-			//outputData.temp = temp;
-			computeEnergies(traj);
-			computeNativeNumber(traj);
+			this->outputData.step = step;
+			this->computeEnergies(traj);
+			this->computeNativeNumber(traj);
 			if(mode != MODE_CAPSID){
-				computeRg(traj);
+				this->computeRg(traj);
 			}
-			computeTEAeps(traj);
+			this->computeTEAeps(traj);
+
 			if(traj == 0){
-				printDataToScreen();
+				this->printDataToScreen();
 			}
-			printDataToFile(traj);
+			FILE* dat_file = fopen(dat_filenames[traj].c_str(), "a");
+			this->printDataToFile(dat_file);
 			fflush(dat_file);
 			fclose(dat_file);
 		}
@@ -200,50 +176,7 @@ void OutputManager::computeTEAeps(int traj){
 	}
 }
 
-inline void printDataToScreen(){
-	/*switch (stage) {
-		case pull_stage:
-			printf("\tTimeStep\tNative#\tR\tRx\tFext\tfx\tfy\tfz\n");
-			printf("%s: %12ld\t%3d\t"
-					"%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t\n",
-						stageString,
-						outputData.step, outputData.nat_num,
-						outputData.endToEnd);//, outputData.endToEnd_x,
-						//outputData.f, outputData.fx, outputData.fy, outputData.fz);
-			break;
-		case heat_stage:
-			printf("\tTimeStep\tNative#\tR\tTemp\n");
-			printf("%s: %12ld\t%3d\t"
-					"%5.3f\t%5.3f\n",
-						stageString,
-						outputData.step, outputData.nat_num,
-						outputData.endToEnd, outputData.temp);
-			break;
-		case inden_stage:
-			printf("\tTimeStep\tNative#\txt\tFin\tfx\tfy\tfz\n");
-			printf("%s: %12ld\t%3d\t"
-					"%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t\n",
-						stageString,
-						outputData.step, outputData.nat_num,
-						outputData.xt, outputData.f, outputData.fx, outputData.fy, outputData.fz);
-			break;
-		default:
-			printf("\tTimeStep\tNative#\tR\n");
-			printf("%s: %12ld\t%3d\t"
-					"%5.3f\n",
-						stageString,
-						outputData.step, outputData.nat_num,
-						outputData.endToEnd);
-			break;
-	}
-	if(mode == MODE_CAPSID){
-		printf("\tTimeStep\tNative#\tV\tR\tTemp\n");
-		printf("%s: %12ld\t%3d\t"
-					"%8.1f\t%5.3f\t%5.3f\n",
-						stageString,
-						outputData.step, outputData.nat_num,
-						outputData.V, outputData.R, outputData.temp);
-	}*/
+void OutputManager::printDataToScreen() const{
 	printf("TimeStep\tTemp    \tPotent  \tNative  \tLonRan  \tLJ      \tFENE    \tNative# \tRg");
 	if (integratorTea) 
 		printf("	\tTEA-eps");
@@ -258,27 +191,18 @@ inline void printDataToScreen(){
 	if (integratorTea) 
 		printf("\t%2.9f", outputData.tea_eps);
 	printf("\n");
-
 }
 
-inline void printDataToFile(int traj){
-	if(mode != MODE_CAPSID){
-		fprintf(dat_file, "%12ld\t%8.5f\t"
-						"%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t"
-						"%8d\t%8.5f\n",
-						step, outputData.tempav,
-						outputData.epot_tot, outputData.epot_native, outputData.epot_longrange,
-						outputData.epot_LJ, outputData.epot_fene,
-						outputData.nat_num, outputData.rg);
-	} else {
-		fprintf(dat_file, "%12ld\t%8.5f\t"
-						"%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t"
-						"%8d\t%8.5f\n",
-						step, outputData.tempav,
-						outputData.epot_tot, outputData.epot_native, outputData.epot_longrange,
-						outputData.epot_LJ, outputData.epot_fene,
-						outputData.nat_num, outputData.rg);
-	}
-	//fflush(dat_file);
+void OutputManager::printDataToFile(FILE *dat_file) const{
+	fprintf(dat_file, "%12ld\t%8.5f\t"
+					"%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t"
+					"%8d\t%8.5f",
+					step, outputData.tempav,
+					outputData.epot_tot, outputData.epot_native, outputData.epot_longrange,
+					outputData.epot_LJ, outputData.epot_fene,
+					outputData.nat_num, outputData.rg);
+	if (integratorTea) 
+		fprintf(dat_file, "\t%2.9f", outputData.tea_eps);
+	printf("\n");
 }
 
