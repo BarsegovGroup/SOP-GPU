@@ -22,7 +22,7 @@ void createModel();
 int main(int argc, char *argv[]){
 
 	printf("==========================\n");
-	printf("gSOP Topology creator version %s\n", VERSION);
+	printf("SOP-GPU Topology creator version %s\n", VERSION);
 	printf("==========================\n");
 
 	if(argc < 1){

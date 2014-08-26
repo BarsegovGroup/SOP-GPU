@@ -20,9 +20,9 @@ SOP sop;
 
 int main(int argc, char *argv[]){
 
-	printf("==========================\n");
-	printf("gSOP version %s\n", VERSION);
-	printf("==========================\n");
+	printf("===========================\n");
+	printf("SOP-GPU version %s\n", VERSION);
+	printf("===========================\n");
 
 #ifdef DEBUG
 	printf("Running in DEBUG mode.\n");
