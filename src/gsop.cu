@@ -53,7 +53,7 @@ void initGPU(){
 	printf("CUDA Capability revision number: %d.%d\n", deviceProp.major, deviceProp.minor);
 	printf("CUDA PCIe ID: %x:%x:%x\n", deviceProp.pciDomainID, deviceProp.pciBusID, deviceProp.pciDeviceID);
 	gsop.aminoCount = gsop.Ntr*sop.aminoCount;
-	gsop.width = gsop.aminoCount;
+	gsop.width = gsop.aminoCount; // It's only used for mica lists in indentation; do we really need it?
 	while(gsop.width % 8 != 0){
 		gsop.width++;
 	}
@@ -77,16 +77,8 @@ void initFF(){
 	gsop.indentationOn  = (strcmp(stageString, "indent") == 0);
 
 	// Allocating memory for the model
-	int i;
 	potentials = (SOPPotential**)calloc(max_potentials, sizeof(SOPPotential*));
-	for(i = 0; i < max_potentials; i++){
-		potentials[i] = (SOPPotential*)malloc(sizeof(SOPPotential));
-	}
 	updaters = (SOPUpdater**)calloc(max_updaters, sizeof(SOPUpdater*));
-	for(i = 0; i < max_updaters; i++){
-		updaters[i] = (SOPUpdater*)malloc(sizeof(SOPUpdater));
-	}
-	integrator = (SOPIntegrator*)malloc(sizeof(SOPIntegrator));
 
 	// Creating model
 	createCovalentPotential(); // FENE
