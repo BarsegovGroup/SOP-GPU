@@ -202,6 +202,6 @@ void OutputManager::printDataToFile(FILE *dat_file) const{
 					outputData.nat_num, outputData.rg);
 	if (integratorTea) 
 		fprintf(dat_file, "\t%2.9f", outputData.tea_eps);
-	printf("\n");
+	fprintf(dat_file, "\n");
 }
 
