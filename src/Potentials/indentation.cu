@@ -481,7 +481,7 @@ void IndentationTipUpdater::update(){
 			hc_indentation.kDeltaXAv /= factor;
 			float fmod = sqrtf(hc_indentation.fav.x*hc_indentation.fav.x + hc_indentation.fav.y*hc_indentation.fav.y + hc_indentation.fav.z*hc_indentation.fav.z);
 			float dxav = hc_indentation.dx - 0.5*factor*hc_indentation.V;
-			printf("hc_indentation: %ld\t%5.2f\t%5.2f\t%5.2f\n", step, dxav, fmod, hc_indentation.kDeltaXAv);
+			printf("Indentation: %ld\t%5.2f\t%5.2f\t%5.2f\n", step, dxav, fmod, hc_indentation.kDeltaXAv);
 			fprintf(hc_indentation.out, "%ld\t%8.5f\t"
 					"%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t"
 					"%8.5f\t%8.5f\t%8.5f\t"
