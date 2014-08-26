@@ -184,7 +184,6 @@ void PullingPlaneUpdater::update(){
                 step, pullingPlane->d, pullingPlane->cant_d, extForceProj,
                 extForce.x, extForce.y, extForce.z);
 
-        fflush(pullingPlaneFile);
         fclose(pullingPlaneFile);
     }
 

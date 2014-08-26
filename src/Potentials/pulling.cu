@@ -242,7 +242,6 @@ void PullingUpdater::update(){
 					step, endToEnd, endToEnd_x, f,
 					pulling->extForce[traj].x, pulling->extForce[traj].y, pulling->extForce[traj].z);
 
-			fflush(pullFile);
 			fclose(pullFile);
 		}
 

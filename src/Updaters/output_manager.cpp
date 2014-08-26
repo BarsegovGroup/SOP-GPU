@@ -89,7 +89,6 @@ void OutputManager::update(){
 			}
 			FILE* dat_file = fopen(dat_filenames[traj].c_str(), "a");
 			this->printDataToFile(dat_file);
-			fflush(dat_file);
 			fclose(dat_file);
 		}
 		printf("Done writing output.\n");
