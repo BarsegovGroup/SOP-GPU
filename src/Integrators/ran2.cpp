@@ -1,7 +1,5 @@
-#ifndef RAN2_C_
-#define RAN2_C_
-
-double gasdev(int *idum), ran2(int *idum);
+#include "ran2.h"
+#include <math.h>
 
 double gasdev(int *idum){
 
@@ -90,4 +88,3 @@ double ran2(int *idum){
 
 }
 
-#endif

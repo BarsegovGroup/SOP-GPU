@@ -17,6 +17,7 @@ LINKER				:= g++ -fPIC
 # files
 CXX_SOURCES			:= main.cpp \
 	param_initializer.cpp \
+	Integrators/ran2.cpp \
 	IO/dcdio.cpp \
 	IO/pdbio.cpp \
 	IO/topio.cpp \

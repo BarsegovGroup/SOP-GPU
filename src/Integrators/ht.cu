@@ -8,16 +8,13 @@
 #ifndef HT_CU_
 #define HT_CU_
 
-#include "ran2.c"
+#include "ran2.h"
 
-#define PRNGNAME "HybridTaus";
+// HybridTaus PRNG
 
 #define jflone 0x3f800000
 #define jflmsk 0x007fffff
 #define EPS 1.0e-8f
-
-int hasGauss = 0;
-float gauss;
 
 struct HybTau{
 	uint4* h_seeds;
