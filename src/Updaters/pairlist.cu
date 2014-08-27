@@ -81,12 +81,8 @@ PairList::PairList(){
 	cudaMemcpy(this->d_possiblePairs, this->h_possiblePairs, gsop.aminoCount*this->max_possiblePairs*sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(this->d_possiblePairsCount, this->h_possiblePairsCount, gsop.aminoCount*sizeof(int), cudaMemcpyHostToDevice);
 
-    hc_pairList.pairlistCutoff = this->pairlistCutoff;
-    hc_pairList.d_possiblePairs = this->d_possiblePairs;
-    hc_pairList.d_possiblePairsCount = this->d_possiblePairsCount;
-	cudaMemcpyToSymbol(c_pairList, &hc_pairList, sizeof(PairListConstant), 0, cudaMemcpyHostToDevice);
+    this->updateParametersOnGPU();
 
-	checkCUDAError();
 	printf("Total number of LJ pairs possible: %d\n", totalPairs);
 
 	if(deviceProp.major == 2){ // TODO: >=  2
@@ -99,7 +95,6 @@ PairList::~PairList(){
 	free(this->h_possiblePairsCount);
 	cudaFree(this->d_possiblePairs);
 	cudaFree(this->d_possiblePairsCount);
-
 }
 
 void PairList::update(){
@@ -130,5 +125,13 @@ void PairList::update(){
 		printf("Total number of pairs: %d\n", counter);
 #endif
 	}
+}
+
+void PairList::updateParametersOnGPU(){
+    hc_pairList.pairlistCutoff = this->pairlistCutoff;
+    hc_pairList.d_possiblePairs = this->d_possiblePairs;
+    hc_pairList.d_possiblePairsCount = this->d_possiblePairsCount;
+	cudaMemcpyToSymbol(c_pairList, &hc_pairList, sizeof(PairListConstant), 0, cudaMemcpyHostToDevice);
+    checkCUDAError();
 }
 

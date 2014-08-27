@@ -4,8 +4,7 @@
  *  Created on: Mar 11, 2010
  *      Author: zhmurov
  */
-#ifndef NATIVE_CUH_
-#define NATIVE_CUH_
+#pragma once
 
 #define NATIVE_R_LIMIT_BOND_STRING		"R_limit_bond"
 #define NATIVE_DESOLVATION_STRING		"desolvation"
@@ -34,6 +33,8 @@ public:
 
     float R_limit_bond; // Used by Updaters/output_manager.cpp
 private:
+    void buildMap();
+    void updateParametersOnGPU();
 	int max_native;
 
     // TODO: next two parameters are completely unused
@@ -48,10 +49,10 @@ private:
 	int* d_nativeCount;
 	GNativeParameters* d_nativeParameters;
 
+	int totalNative;
+
 	int blockSize;
 	int blockNum;
 
 };
-
-#endif /* NATIVE_CUH_ */
 

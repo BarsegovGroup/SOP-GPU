@@ -27,9 +27,7 @@ PossiblepairList::PossiblepairList(){
 	this->blockNum = gsop.aminoCount/this->blockSize + 1;
 	this->pairsThreshold = getFloatParameter(POSSIBLEPAIRS_CUTOFF_STRING, DEFAULT_POSSIBLEPAIRS_CUTOFF, 1);
 
-    hc_possiblepairList.pairsThreshold = this->pairsThreshold;
-	cudaMemcpyToSymbol(c_possiblepairList, &hc_possiblepairList, sizeof(PossiblepairListConstant), 0, cudaMemcpyHostToDevice);
-	checkCUDAError();
+    this->updateParametersOnGPU();
 
 	if(deviceProp.major == 2){ // TODO: >= 2
 		cudaFuncSetCacheConfig(generate_possiblepairs, cudaFuncCachePreferL1);
@@ -47,5 +45,11 @@ void PossiblepairList::update(){
 		checkCUDAError();
 		printf("done.\n");
 	}
+}
+
+void PossiblepairList::updateParametersOnGPU(){
+    hc_possiblepairList.pairsThreshold = this->pairsThreshold;
+	cudaMemcpyToSymbol(c_possiblepairList, &hc_possiblepairList, sizeof(PossiblepairListConstant), 0, cudaMemcpyHostToDevice);
+	checkCUDAError();
 }
 

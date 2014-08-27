@@ -26,10 +26,10 @@ public:
     virtual ~LangevinIntegrator();
     virtual void integrate();
     void setTemperature(float temp);
-    void updateParametersOnGPU();
 	
     float hOverZeta; // Accessed in Potentials/pulling_plane.cu
 private:
+    void updateParametersOnGPU();
 	float zeta;
 	float var;
 	float tempNorm;

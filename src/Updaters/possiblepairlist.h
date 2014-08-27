@@ -18,6 +18,7 @@ public:
     virtual ~PossiblepairList();
     virtual void update();
 private:
+    void updateParametersOnGPU();
 	float pairsThreshold;
 	int blockSize;
 	int blockNum;

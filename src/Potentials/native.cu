@@ -37,8 +37,44 @@ NativePotential::NativePotential(){
 	cudaMalloc((void**)&this->d_nativeCount, gsop.aminoCount*sizeof(int));
 	this->h_nativeParameters = (GNativeParameters*)calloc(this->max_native*gsop.aminoCount, sizeof(GNativeParameters));
 	cudaMalloc((void**)&this->d_nativeParameters, this->max_native*gsop.aminoCount*sizeof(GNativeParameters));
+
+    this->buildMap();
+
+	// Copying to device
+	cudaMemcpy(this->d_native, this->h_native, this->max_native*gsop.aminoCount*sizeof(int), cudaMemcpyHostToDevice);
+	cudaMemcpy(this->d_nativeCount, this->h_nativeCount, gsop.aminoCount*sizeof(int), cudaMemcpyHostToDevice);
+	cudaMemcpy(this->d_nativeParameters, this->h_nativeParameters, this->max_native*gsop.aminoCount*sizeof(float2), cudaMemcpyHostToDevice);
+
+    this->updateParametersOnGPU();
+	printf("Total number of native contacts: %d \n", totalNative);
+
+	if(deviceProp.major == 2){ // TODO: >= 2
+		cudaFuncSetCacheConfig(native_kernel, cudaFuncCachePreferL1);
+		cudaFuncSetCacheConfig(nativeEnergy_kernel, cudaFuncCachePreferL1);
+	}
+}
+
+void NativePotential::updateParametersOnGPU(){
+    hc_native.d_native = this->d_native;
+    hc_native.d_nativeCount = this->d_nativeCount;
+    hc_native.d_nativeParameters = this->d_nativeParameters;
+	cudaMemcpyToSymbol(c_native, &hc_native, sizeof(NativeConstant), 0, cudaMemcpyHostToDevice);
+    checkCUDAError();
+}
+
+void NativePotential::compute(){
+	native_kernel<<<this->blockNum, this->blockSize>>>();
+	checkCUDAError();
+}
+
+void NativePotential::computeEnergy(){
+	nativeEnergy_kernel<<<this->blockNum, this->blockSize>>>();
+	checkCUDAError();
+}
+
+void NativePotential::buildMap(){
 	// Building map
-	int totalNative = 0;
+    totalNative = 0;
 	int i, j, k;
 	for(k = 0; k < sop.nativeCount; k++){
 		i = sop.natives[k].i;
@@ -84,31 +120,6 @@ NativePotential::NativePotential(){
 		printf("\n");
 	}
 	#endif
-	// Copying to device
-	cudaMemcpy(this->d_native, this->h_native, this->max_native*gsop.aminoCount*sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpy(this->d_nativeCount, this->h_nativeCount, gsop.aminoCount*sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpy(this->d_nativeParameters, this->h_nativeParameters, this->max_native*gsop.aminoCount*sizeof(float2), cudaMemcpyHostToDevice);
 
-    hc_native.d_native = this->d_native;
-    hc_native.d_nativeCount = this->d_nativeCount;
-    hc_native.d_nativeParameters = this->d_nativeParameters;
-	cudaMemcpyToSymbol(c_native, &hc_native, sizeof(NativeConstant), 0, cudaMemcpyHostToDevice);
-
-	printf("Total number of native contacts: %d \n", totalNative);
-
-	if(deviceProp.major == 2){ // TODO: >= 2
-		cudaFuncSetCacheConfig(native_kernel, cudaFuncCachePreferL1);
-		cudaFuncSetCacheConfig(nativeEnergy_kernel, cudaFuncCachePreferL1);
-	}
-}
-
-void NativePotential::compute(){
-	native_kernel<<<this->blockNum, this->blockSize>>>();
-	checkCUDAError();
-}
-
-void NativePotential::computeEnergy(){
-	nativeEnergy_kernel<<<this->blockNum, this->blockSize>>>();
-	checkCUDAError();
 }
 

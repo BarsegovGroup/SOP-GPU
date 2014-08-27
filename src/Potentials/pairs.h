@@ -26,6 +26,7 @@ public:
     virtual void computeEnergy();
 
 private:
+    void updateParametersOnGPU();
 	float pairsCutoff;
 	float pairsCutoff2;
 	float el;

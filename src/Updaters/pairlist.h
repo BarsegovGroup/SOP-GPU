@@ -20,6 +20,7 @@ public:
     virtual ~PairList();
     virtual void update();
 private:
+    void updateParametersOnGPU();
 	float pairlistCutoff;
 	int max_possiblePairs;
 

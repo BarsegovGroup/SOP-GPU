@@ -40,8 +40,18 @@ PairsPotential::PairsPotential(){
 	cudaMalloc((void**)&this->d_pairs, size);
 	checkCUDAError();
 	cudaMalloc((void**)&this->d_pairsCount, gsop.aminoCount*sizeof(int));
-	checkCUDAError();
+    checkCUDAError();
 
+    this->updateParametersOnGPU();
+	printf("done.\n");
+
+	if(deviceProp.major == 2){ // TODO: >= 2
+		cudaFuncSetCacheConfig(pairs_kernel, cudaFuncCachePreferL1);
+		cudaFuncSetCacheConfig(pairsEnergy_kernel, cudaFuncCachePreferL1);
+	}
+}
+
+void PairsPotential::updateParametersOnGPU(){
     hc_pairs.pairsCutoff2 = this->pairsCutoff2;
     hc_pairs.a2 = this->a2;
     hc_pairs.el = this->el;
@@ -51,13 +61,6 @@ PairsPotential::PairsPotential(){
     hc_pairs.max_pairs = this->max_pairs;
 	cudaMemcpyToSymbol(c_pairs, &hc_pairs, sizeof(PairsConstant), 0, cudaMemcpyHostToDevice);
 	checkCUDAError();
-
-	printf("done.\n");
-
-	if(deviceProp.major == 2){ // TODO: >= 2
-		cudaFuncSetCacheConfig(pairs_kernel, cudaFuncCachePreferL1);
-		cudaFuncSetCacheConfig(pairsEnergy_kernel, cudaFuncCachePreferL1);
-	}
 }
 
 void PairsPotential::compute(){
