@@ -6,12 +6,8 @@
  */
 #include "../gsop.cuh"
 #include "../IO/configreader.h"
+#include "../Util/mystl.h"
 #include "pulling.h"
-
-char** pullFilenames;
-FILE* pullFile;
-
-float3 computeForce(PullingPotential *pulling, float4 coordN, int traj);
 
 #include "pulling_kernel.cu"
 
@@ -159,19 +155,15 @@ PullingPotential::PullingPotential(){
 	checkCUDAError();
 
 	if(this->deltax != 0.0f){
-		pullFilenames = (char**)calloc(gsop.Ntr, sizeof(char*));
-		char tempFilename[100];
-
-		getMaskedParameter(tempFilename, PULLING_FILENAME, DEFAULT_PULLING_FILENAME, 1);;
+		pullFilenames.resize(gsop.Ntr);
+        std::string pullFilename;
+        pullFilename = getMaskedParameterAs<std::string>(PULLING_FILENAME, DEFAULT_PULLING_FILENAME);
 		for(traj = 0; traj < gsop.Ntr; traj++){
-			pullFilenames[traj] = (char*)calloc(100, sizeof(char));
-			char trajnum[10];
-			sprintf(trajnum, "%d", traj+gsop.firstrun);
-			replaceString(pullFilenames[traj], tempFilename, trajnum, "<run>");
-			pullFile = fopen(pullFilenames[traj], "w");
+			pullFilenames[traj] = string_replace(pullFilename, "<run>", traj+gsop.firstrun);
+			FILE* pullFile = fopen(pullFilenames[traj].c_str(), "w");
 			fclose(pullFile);
 		}
-		printf("Pulling data will be saved in '%s'.\n", tempFilename);
+		printf("Pulling data will be saved in '%s'.\n", pullFilename.c_str());
 	}
 	
     this->blockSize = getIntegerParameter(COVALENT_BLOCK_SIZE_STRING, gsop.blockSize, 1);
@@ -189,62 +181,68 @@ void PullingPotential::computeEnergy(){
 
 }
 
-void PullingUpdater::update(){
+void PullingPotential::updateForces(float xt){
 	copyCoordDeviceToHost();
 	int traj, j;
 	for(traj = 0; traj < gsop.Ntr; traj++){
-		pulling->extForce[traj] = computeForce(pulling, gsop.h_coord[sop.aminoCount*traj + pulling->pulledEnd], traj);
+		this->extForce[traj] = this->computeForce(gsop.h_coord[sop.aminoCount*traj + this->pulledEnd], traj);
 		// Increasing the force'
-		float xt = pulling->deltax*(step / this->frequency);
-		pulling->cantCoord[traj].x = pulling->cantCoord0[traj].x + xt * pulling->pullVector[traj].x;
-		pulling->cantCoord[traj].y = pulling->cantCoord0[traj].y + xt * pulling->pullVector[traj].y;
-		pulling->cantCoord[traj].z = pulling->cantCoord0[traj].z + xt * pulling->pullVector[traj].z;
-		for(j = 0; j < pulling->pulledCount; j++){
-			pulling->h_extForces[traj*sop.aminoCount + pulling->pulled[j]] =
-					make_float4(pulling->extForce[traj].x, pulling->extForce[traj].y, pulling->extForce[traj].z, 2.0);
+		this->cantCoord[traj].x = this->cantCoord0[traj].x + xt * this->pullVector[traj].x;
+		this->cantCoord[traj].y = this->cantCoord0[traj].y + xt * this->pullVector[traj].y;
+		this->cantCoord[traj].z = this->cantCoord0[traj].z + xt * this->pullVector[traj].z;
+		for(j = 0; j < this->pulledCount; j++){
+			this->h_extForces[traj*sop.aminoCount + this->pulled[j]] =
+					make_float4(this->extForce[traj].x, this->extForce[traj].y, this->extForce[traj].z, 2.0);
 		}
 	}
-	cudaMemcpy(pulling->d_extForces, pulling->h_extForces, gsop.aminoCount*sizeof(float4), cudaMemcpyHostToDevice);
+	cudaMemcpy(this->d_extForces, this->h_extForces, gsop.aminoCount*sizeof(float4), cudaMemcpyHostToDevice);
+}
+
+void PullingPotential::savePullingData(){
+    int traj;
+	if(step % 100000 == 0){
+		printf("'Cantilever chip' coordinates for run #%d: %f, %f, %f\n",
+				gsop.firstrun, this->cantCoord[0].x, this->cantCoord[0].y, this->cantCoord[0].z);
+		printf("'Cantilever tip' coordinates for run #%d: %f, %f, %f\n",
+				gsop.firstrun, gsop.h_coord[this->pulledEnd].x, gsop.h_coord[this->pulledEnd].y, gsop.h_coord[this->pulledEnd].z);
+	}
+	for(traj = 0; traj < gsop.Ntr; traj++){
+		FILE* pullFile = fopen(pullFilenames[traj].c_str(), "a");
+
+		float endToEnd_x = (gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].x - gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].x)*this->pullVector[traj].x +
+				(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].y - gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].y)*this->pullVector[traj].y +
+				(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].z - gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].z)*this->pullVector[traj].z;
+		float endToEnd = sqrtf((gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].x-gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].x)*
+				(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].x-gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].x) +
+				(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].y-gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].y)*
+				(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].y-gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].y) +
+				(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].z-gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].z)*
+				(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].z-gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].z));
+		float f = this->extForce[traj].x*this->pullVector[traj].x + this->extForce[traj].y*this->pullVector[traj].y + this->extForce[traj].z*this->pullVector[traj].z;
+
+		fprintf(pullFile, "%12ld\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\n",
+				step, endToEnd, endToEnd_x, f,
+				this->extForce[traj].x, this->extForce[traj].y, this->extForce[traj].z);
+
+		fclose(pullFile);
+	}
+	checkCUDAError();
+}
+
+void PullingUpdater::update(){
+    float xt = pulling->deltax*(step / this->frequency);
+    pulling->updateForces(xt);
 	if(step % this->frequency == 0){
-		if(step % 100000 == 0){
-			printf("'Cantilever chip' coordinates for run #%d: %f, %f, %f\n",
-					gsop.firstrun, pulling->cantCoord[0].x, pulling->cantCoord[0].y, pulling->cantCoord[0].z);
-			printf("'Cantilever tip' coordinates for run #%d: %f, %f, %f\n",
-					gsop.firstrun, gsop.h_coord[pulling->pulledEnd].x, gsop.h_coord[pulling->pulledEnd].y, gsop.h_coord[pulling->pulledEnd].z);
-		}
-		for(traj = 0; traj < gsop.Ntr; traj++){
-			pullFile = fopen(pullFilenames[traj], "a");
-
-			float endToEnd_x = (gsop.h_coord[traj*sop.aminoCount + pulling->pulledEnd].x - gsop.h_coord[traj*sop.aminoCount + pulling->fixedEnd].x)*pulling->pullVector[traj].x +
-					(gsop.h_coord[traj*sop.aminoCount + pulling->pulledEnd].y - gsop.h_coord[traj*sop.aminoCount + pulling->fixedEnd].y)*pulling->pullVector[traj].y +
-					(gsop.h_coord[traj*sop.aminoCount + pulling->pulledEnd].z - gsop.h_coord[traj*sop.aminoCount + pulling->fixedEnd].z)*pulling->pullVector[traj].z;
-			float endToEnd = sqrtf((gsop.h_coord[traj*sop.aminoCount + pulling->pulledEnd].x-gsop.h_coord[traj*sop.aminoCount + pulling->fixedEnd].x)*
-					(gsop.h_coord[traj*sop.aminoCount + pulling->pulledEnd].x-gsop.h_coord[traj*sop.aminoCount + pulling->fixedEnd].x) +
-					(gsop.h_coord[traj*sop.aminoCount + pulling->pulledEnd].y-gsop.h_coord[traj*sop.aminoCount + pulling->fixedEnd].y)*
-					(gsop.h_coord[traj*sop.aminoCount + pulling->pulledEnd].y-gsop.h_coord[traj*sop.aminoCount + pulling->fixedEnd].y) +
-					(gsop.h_coord[traj*sop.aminoCount + pulling->pulledEnd].z-gsop.h_coord[traj*sop.aminoCount + pulling->fixedEnd].z)*
-					(gsop.h_coord[traj*sop.aminoCount + pulling->pulledEnd].z-gsop.h_coord[traj*sop.aminoCount + pulling->fixedEnd].z));
-			float f = pulling->extForce[traj].x*pulling->pullVector[traj].x + pulling->extForce[traj].y*pulling->pullVector[traj].y + pulling->extForce[traj].z*pulling->pullVector[traj].z;
-
-			fprintf(pullFile, "%12ld\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\n",
-					step, endToEnd, endToEnd_x, f,
-					pulling->extForce[traj].x, pulling->extForce[traj].y, pulling->extForce[traj].z);
-
-			fclose(pullFile);
-		}
-
-
-
-		checkCUDAError();
+        pulling->savePullingData();
 	}
 }
 
-float3 computeForce(PullingPotential *pulling, float4 coordN, int traj){
-	float3 f = make_float3(0.0f, 0.0f, 0.0f);
+float3 PullingPotential::computeForce(float4 coordN, int traj) const{
+	float3 f;
 
-	f.x = pulling->Ks * (pulling->cantCoord[traj].x - coordN.x);
-	f.y = pulling->Ks * (pulling->cantCoord[traj].y - coordN.y);
-	f.z = pulling->Ks * (pulling->cantCoord[traj].z - coordN.z);
+	f.x = this->Ks * (this->cantCoord[traj].x - coordN.x);
+	f.y = this->Ks * (this->cantCoord[traj].y - coordN.y);
+	f.z = this->Ks * (this->cantCoord[traj].z - coordN.z);
 
 	return f;
 }

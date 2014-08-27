@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include <vector>
+#include <string>
+
 #define PULLING_ON_STRING			"pulling"
 
 #define PULLING_DELTAX_STRING		"deltax"
@@ -36,9 +39,11 @@ public:
     virtual ~PullingPotential() { }
     virtual void compute();
     virtual void computeEnergy();
-
+    void updateForces(float xt);
+    void savePullingData();
+	float deltax; // Used by updater
+private:
     float Ks;
-	float deltax;
 	float fconst;
 	int fixedEnd;
 	int pulledEnd;
@@ -53,8 +58,10 @@ public:
 	float3* cantCoord0;
 	float3* cantCoord;
 
-private:
     int blockSize, blockNum;
+    std::vector<std::string> pullFilenames;
+
+    float3 computeForce(float4 coordN, int traj) const;
 };
 
 class PullingUpdater : public SOPUpdater{
