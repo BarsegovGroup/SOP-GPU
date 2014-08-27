@@ -43,6 +43,7 @@ public:
     void savePullingData();
 	float deltax; // Used by updater
 private:
+    void updateParametersOnGPU();
     float Ks;
 	float fconst;
 	int fixedEnd;
@@ -61,7 +62,7 @@ private:
     int blockSize, blockNum;
     std::vector<std::string> pullFilenames;
 
-    float3 computeForce(float4 coordN, int traj) const;
+    float3 computeForce(const float4 &coordN, int traj) const;
 };
 
 class PullingUpdater : public SOPUpdater{

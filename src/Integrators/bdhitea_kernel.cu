@@ -9,6 +9,7 @@
 
 //#define PRINT_HI_TENSORS // Enable to print tensor values. Should never be used in production. Calling `cudaDeviceSetLimit(cudaLimitPrintfFifoSize, 900000000);` is recommended if you do not want to lose any values!
 
+#include "../Util/vector_helpers.h"
 
 TeaConstant hc_tea;
 __device__ __constant__ TeaConstant c_tea;
@@ -28,13 +29,6 @@ struct float6 {
 #define _ZX xx.z
 #define _ZY yz.y
 #define _ZZ yz.z
-
-__device__ inline void operator+=(float4 &a, const float4 &b){
-	a.x+=b.x; a.y+=b.y; a.z+=b.z; a.w+=b.w;
-}
-__device__ inline void operator+=(double4 &a, const float4 &b){
-	a.x+=b.x; a.y+=b.y; a.z+=b.z; a.w+=b.w;
-}
 
 __global__ void integrateTea_prepare(){
 	// Precalculate random forces and apply pulling forces

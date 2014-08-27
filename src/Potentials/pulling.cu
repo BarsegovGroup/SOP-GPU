@@ -7,6 +7,7 @@
 #include "../gsop.cuh"
 #include "../IO/configreader.h"
 #include "../Util/mystl.h"
+#include "../Util/vector_helpers.h"
 #include "pulling.h"
 
 #include "pulling_kernel.cu"
@@ -76,39 +77,21 @@ PullingPotential::PullingPotential(){
 		this->pulledEnd = getIntegerParameter(PULLING_PULLED_END_STRING, 2, 1);
 		getVectorParameter(PULLING_VECTOR_STRING, &pullVector.x, &pullVector.y, &pullVector.z, 0, 0, 0, 0);
 		for(traj = 0; traj < gsop.Ntr; traj++){
-			this->pullVector[traj].x = pullVector.x;
-			this->pullVector[traj].y = pullVector.y;
-			this->pullVector[traj].z = pullVector.z;
-			this->cantCoord0[traj].x = gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].x;
-			this->cantCoord0[traj].y = gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].y;
-			this->cantCoord0[traj].z = gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].z;
-			this->cantCoord[traj].x = gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].x;
-			this->cantCoord[traj].y = gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].y;
-			this->cantCoord[traj].z = gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].z;
+			this->pullVector[traj] = pullVector;
+			this->cantCoord0[traj] = make_float3(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd]);
+			this->cantCoord[traj]  = make_float3(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd]);
 		}
 		printf("Pulling in direction of vector (%f, %f, %f).\n", pullVector.x, pullVector.y, pullVector.z);
 	} else if(strcmp(pullDirection, PULLING_DIRECTION_ENDTOEND_STRING) == 0){
 		this->fixedEnd = getIntegerParameter(PULLING_FIXED_END_STRING, 0, 0);
 		this->pulledEnd = getIntegerParameter(PULLING_PULLED_END_STRING, 0, 0);
 		for(traj = 0; traj < gsop.Ntr; traj++){
-			this->pullVector[traj].x = gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].x
-					- gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].x;
-			this->pullVector[traj].y = gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].y
-					- gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].y;
-			this->pullVector[traj].z = gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].z
-					- gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].z;
-			float norm = sqrtf(this->pullVector[traj].x*this->pullVector[traj].x +
-					this->pullVector[traj].y*this->pullVector[traj].y +
-					this->pullVector[traj].z*this->pullVector[traj].z);
-			this->pullVector[traj].x /= norm;
-			this->pullVector[traj].y /= norm;
-			this->pullVector[traj].z /= norm;
-			this->cantCoord0[traj].x = gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].x;
-			this->cantCoord0[traj].y = gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].y;
-			this->cantCoord0[traj].z = gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].z;
-			this->cantCoord[traj].x = gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].x;
-			this->cantCoord[traj].y = gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].y;
-			this->cantCoord[traj].z = gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].z;
+			this->pullVector[traj] = make_float3(
+                    gsop.h_coord[traj*sop.aminoCount + this->pulledEnd]
+					- gsop.h_coord[traj*sop.aminoCount + this->fixedEnd]);
+			normalize(this->pullVector[traj]);
+			this->cantCoord0[traj] = make_float3(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd]);
+			this->cantCoord[traj]  = make_float3(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd]);
 		}
 		printf("Pulling in end-to-end direction: %c%d(%s) - %c%d(%s).\n",
 				sop.aminos[this->fixedEnd].chain, sop.aminos[this->fixedEnd].resid, sop.aminos[this->fixedEnd].resName,
@@ -131,9 +114,7 @@ PullingPotential::PullingPotential(){
 				printf("Pulling bead #%d (%s %d chain %c).\n", i, sop.aminos[i].resName, sop.aminos[i].resid, sop.aminos[i].chain);
 			}
 			this->h_extForces[traj*sop.aminoCount + i] = make_float4(
-					this->pullVector[traj].x*this->fconst,
-					this->pullVector[traj].y*this->fconst,
-					this->pullVector[traj].z*this->fconst, 2.0);
+					this->pullVector[traj] * this->fconst, 2.0f);
 		}
 		for(j = 0; j < this->fixedCount; j++){
 			i = this->fixed[j];
@@ -150,9 +131,7 @@ PullingPotential::PullingPotential(){
 	cudaMemcpy(this->d_extForces, this->h_extForces, gsop.aminoCount*sizeof(float4), cudaMemcpyHostToDevice);
     checkCUDAError();
 
-    hc_pulling.d_extForces = this->d_extForces;
-	cudaMemcpyToSymbol(c_pulling, &hc_pulling, sizeof(PullingConstant), 0, cudaMemcpyHostToDevice);
-	checkCUDAError();
+    this->updateParametersOnGPU();
 
 	if(this->deltax != 0.0f){
 		pullFilenames.resize(gsop.Ntr);
@@ -187,12 +166,10 @@ void PullingPotential::updateForces(float xt){
 	for(traj = 0; traj < gsop.Ntr; traj++){
 		this->extForce[traj] = this->computeForce(gsop.h_coord[sop.aminoCount*traj + this->pulledEnd], traj);
 		// Increasing the force'
-		this->cantCoord[traj].x = this->cantCoord0[traj].x + xt * this->pullVector[traj].x;
-		this->cantCoord[traj].y = this->cantCoord0[traj].y + xt * this->pullVector[traj].y;
-		this->cantCoord[traj].z = this->cantCoord0[traj].z + xt * this->pullVector[traj].z;
+		this->cantCoord[traj] = this->cantCoord0[traj] + xt * this->pullVector[traj];
 		for(j = 0; j < this->pulledCount; j++){
 			this->h_extForces[traj*sop.aminoCount + this->pulled[j]] =
-					make_float4(this->extForce[traj].x, this->extForce[traj].y, this->extForce[traj].z, 2.0);
+					make_float4(this->extForce[traj], 2.0f);
 		}
 	}
 	cudaMemcpy(this->d_extForces, this->h_extForces, gsop.aminoCount*sizeof(float4), cudaMemcpyHostToDevice);
@@ -209,16 +186,10 @@ void PullingPotential::savePullingData(){
 	for(traj = 0; traj < gsop.Ntr; traj++){
 		FILE* pullFile = fopen(pullFilenames[traj].c_str(), "a");
 
-		float endToEnd_x = (gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].x - gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].x)*this->pullVector[traj].x +
-				(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].y - gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].y)*this->pullVector[traj].y +
-				(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].z - gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].z)*this->pullVector[traj].z;
-		float endToEnd = sqrtf((gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].x-gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].x)*
-				(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].x-gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].x) +
-				(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].y-gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].y)*
-				(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].y-gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].y) +
-				(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].z-gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].z)*
-				(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd].z-gsop.h_coord[traj*sop.aminoCount + this->fixedEnd].z));
-		float f = this->extForce[traj].x*this->pullVector[traj].x + this->extForce[traj].y*this->pullVector[traj].y + this->extForce[traj].z*this->pullVector[traj].z;
+        float3 endToEnd_vector = make_float3(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd] - gsop.h_coord[traj*sop.aminoCount + this->fixedEnd]);
+		float endToEnd_x = dot( endToEnd_vector , this->pullVector[traj] );
+		float endToEnd = abs( endToEnd_vector );
+        float f = dot(this->extForce[traj] , this->pullVector[traj]);
 
 		fprintf(pullFile, "%12ld\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\n",
 				step, endToEnd, endToEnd_x, f,
@@ -226,6 +197,12 @@ void PullingPotential::savePullingData(){
 
 		fclose(pullFile);
 	}
+	checkCUDAError();
+}
+
+void PullingPotential::updateParametersOnGPU(){
+    hc_pulling.d_extForces = this->d_extForces;
+	cudaMemcpyToSymbol(c_pulling, &hc_pulling, sizeof(PullingConstant), 0, cudaMemcpyHostToDevice);
 	checkCUDAError();
 }
 
@@ -237,7 +214,7 @@ void PullingUpdater::update(){
 	}
 }
 
-float3 PullingPotential::computeForce(float4 coordN, int traj) const{
+float3 PullingPotential::computeForce(const float4 &coordN, int traj) const{
 	float3 f;
 
 	f.x = this->Ks * (this->cantCoord[traj].x - coordN.x);
