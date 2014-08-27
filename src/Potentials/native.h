@@ -32,10 +32,11 @@ public:
 	virtual void compute();
 	virtual void computeEnergy();
 
+    float R_limit_bond; // Used by Updaters/output_manager.cpp
+private:
 	int max_native;
 
-	float R_limit_bond;
-    // To do: next two parameters are completely unused
+    // TODO: next two parameters are completely unused
 	int desolvation;
 	float rWater;
 

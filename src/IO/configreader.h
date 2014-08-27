@@ -93,6 +93,7 @@ inline T getMaskedParameterAs(const char* paramName) {
     return str2any<T>(paramValue);
 }
 
+
 template <typename T>
 inline T getParameterAs(const char* paramName, T defVal) {
     char paramValue[4096]; // Just hope it will be enough

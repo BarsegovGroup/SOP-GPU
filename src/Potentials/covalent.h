@@ -38,9 +38,10 @@ public:
     virtual void compute();
     virtual void computeEnergy();
 
+	float R_limit; // FENE parameter // Used by Updaters/output_manager.cpp
+private:
 	int max_covalent; // Max number of covalent bonds per particle
 	float kspring_cov; // Covalent spring constant (FENE)
-	float R_limit; // FENE parameter
 	float R_limit_sq; // Same, squared
 
 	GCovalentBond* h_bonds; // Map of covalent bonds (host)

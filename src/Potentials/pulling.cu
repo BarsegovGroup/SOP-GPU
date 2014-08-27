@@ -52,7 +52,7 @@ PullingPotential::PullingPotential(){
 	this->fconst = getFloatParameter(PULLING_FCONST_STRING, 0, 1);
 
 	if(this->deltax == 0 && this->fconst == 0){
-		DIE("ERROR: Either 'deltax' or 'fconst' parameter should be specified to initiate this->\n");
+		DIE("ERROR: Either 'deltax' or 'fconst' parameter should be specified to initiate pulling\n");
 	}
 
 	this->fixedCount = getIntegerParameter(PULLING_FIXED_COUNT_STRING, 0, 0);
@@ -64,19 +64,11 @@ PullingPotential::PullingPotential(){
 	for(i = 0; i < this->fixedCount; i++){
 		sprintf(paramName, "%s%d", PULLING_FIXED_STRING, i+1);
 		this->fixed[i] = getIntegerParameter(paramName, 0, 0);
-		/*if(fixed_beads[i] < 0 || fixed_beads[i] >= sop.aminoCount){
-			printf("ERROR: Fixed bead %d not exists. Protein has only %d amino-acids. Bead numbers should start with zero.\n", fixed_beads[i], sop.aminoCount);
-			exit(-1);
-		}*/
 		printf("Resid %d is fixed.\n", this->fixed[i]);
 	}
 	for(i = 0; i < this->pulledCount; i++){
 		sprintf(paramName, "%s%d", PULLING_PULLED_STRING, i+1);
 		this->pulled[i] = getIntegerParameter(paramName, 0, 0);
-		/*if(pulled_beads[i] < 0 || pulled_beads[i] >= sop.aminoCount){
-			printf("ERROR: Pulled bead %d not exists. Protein has only %d amino-acids. Bead numbers should start with zero.\n", pulled_beads[i], sop.aminoCount);
-			exit(-1);
-		}*/
 		printf("Pulling resid %d.\n", this->pulled[i]);
 	}
 
@@ -130,8 +122,7 @@ PullingPotential::PullingPotential(){
 				this->pullVector[0].y,
 				this->pullVector[0].z);
 	} else {
-		printf("ERROR: 'pullDirection' parameter should be set to 'endToEnd' or 'vector'.\n");
-		exit(-1);
+		DIE("ERROR: 'pullDirection' parameter should be set to 'endToEnd' or 'vector'.\n");
 	}
 
 	for(traj = 0; traj < gsop.Ntr; traj++){
@@ -155,9 +146,6 @@ PullingPotential::PullingPotential(){
 			}
 			this->h_extForces[traj*sop.aminoCount + i] = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
 		}
-		/*for(i = 0; i < sop.aminoCount; i++){
-			printf("%d - %f\n", i, this->h_extForces[traj*sop.aminoCount + i].w);
-		}*/
 	}
 
 	for(i = 0; i < sop.aminoCount; i++){
