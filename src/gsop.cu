@@ -92,7 +92,6 @@ void initFF(){
 		createPossiblepairlistUpdater(); // Updates the list of all pairs (for Verlet list)
 	}
 	createPairlistUpdater(); // Verlet list
-	createOutputManager(); // Save dat output
 	createDCDOutputManager(); // Save coordinates (dcd + pdb restart)
 
 	// Create integrator
@@ -103,6 +102,8 @@ void initFF(){
 		createLangevinIntegrator();
 		integratorTea = 0;
 	}
+
+	createOutputManager(); // Save dat output
 
 	initEnergies(); // Allocate memory for energy output (move to initGPU() ?)
 
