@@ -12,7 +12,6 @@
 #include "../Potentials/native.h"
 #include "../Potentials/covalent.h"
 #include "../Integrators/bdhitea.h"
-#include "../Updaters/pairlist.h"
 
 #include <vector>
 #include <string>
@@ -48,8 +47,8 @@ private:
     void computeTEAeps(int traj);
     void printDataToScreen() const;
     void printDataToFile(FILE* dat_file) const;
+    void resetTemperatureCounter();
 
-    PairList *pairlist;
     CovalentPotential *covalent;
     NativePotential *native;
     TeaIntegrator *tea;

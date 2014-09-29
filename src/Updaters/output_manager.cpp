@@ -47,7 +47,6 @@ OutputManager::OutputManager(){
 		mode = 0;
 	}
 
-    this->pairlist = (PairList*)updaterByName("Pairlist");
     this->covalent = (CovalentPotential*)potentialByName("Covalent");
     this->native = (NativePotential*)potentialByName("Native");
     this->tea = (TeaIntegrator*)integrator;
@@ -93,6 +92,11 @@ void OutputManager::update(){
 		}
 		printf("Done writing output.\n");
 	}
+    if (step % updaterByName("Pairlist")->frequency == 0) {
+        //TODO: resetting should be done in OutputManager::computeEnergies
+        //It is here only to provide complete compatibility with old SOP
+        this->resetTemperatureCounter();
+    }
 }
 
 void OutputManager::computeEnergies(int traj){
@@ -125,7 +129,10 @@ void OutputManager::computeEnergies(int traj){
 	outputData.epot_longrange /= 2.0f;
 
 	// Normalizing the temperature
-	outputData.tempav /= ((double)(sop.aminoCount*this->pairlist->frequency));
+	outputData.tempav /= ((double)(sop.aminoCount*updaterByName("Pairlist")->frequency));
+    //TODO: we should use following code:
+	//outputData.tempav /= ((double)(sop.aminoCount*this->frequency));
+    //this->resetTemperatureCounter();
 
 	// Other energies
 	outputData.epot_LJ = outputData.epot_native + outputData.epot_longrange;

@@ -72,6 +72,5 @@ __global__ void generate_pairs(){
 		}
 		// Write number of pairs added
 		c_pairs.d_pairsCount[d_i] = counter;
-		c_gsop.d_energies[d_i].w = 0.0f;
 	}
 }

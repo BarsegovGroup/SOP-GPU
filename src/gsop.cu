@@ -26,6 +26,7 @@
 #include "Updaters/pairlist.cu"
 #include "Updaters/possiblepairlist.cu"
 #include "Updaters/output_manager.h"
+#include "Updaters/output_manager_kernel.cu"
 #include "Updaters/dcd_manager.h"
 
 long int lastStepCoordCopied = -1;
@@ -91,6 +92,7 @@ void initFF(){
 	if(gsop.Ntr == 1){
 		createPossiblepairlistUpdater(); // Updates the list of all pairs (for Verlet list)
 	}
+	createOutputManager(); // Save dat output
 	createPairlistUpdater(); // Verlet list
 	createDCDOutputManager(); // Save coordinates (dcd + pdb restart)
 
@@ -102,8 +104,6 @@ void initFF(){
 		createLangevinIntegrator();
 		integratorTea = 0;
 	}
-
-	createOutputManager(); // Save dat output
 
 	initEnergies(); // Allocate memory for energy output (move to initGPU() ?)
 
