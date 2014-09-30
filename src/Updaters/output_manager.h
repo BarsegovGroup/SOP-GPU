@@ -51,7 +51,6 @@ private:
 
     CovalentPotential *covalent;
     NativePotential *native;
-    TeaIntegrator *tea;
 
     OutputData outputData;
     std::vector<std::string> dat_filenames;

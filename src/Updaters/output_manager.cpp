@@ -49,7 +49,6 @@ OutputManager::OutputManager(){
 
     this->covalent = (CovalentPotential*)potentialByName("Covalent");
     this->native = (NativePotential*)potentialByName("Native");
-    this->tea = (TeaIntegrator*)integrator;
 
 	printf("Done initializing output manager...\n");
 }
@@ -64,7 +63,6 @@ void OutputManager::update(){
 		for(p = 0; p < potentialsCount; p++){
 			potentials[p]->computeEnergy();
 		}
-		int size = gsop.aminoCount*sizeof(float4);
         copyEnergiesDeviceToHost();
 		char runstring[20];
 		if(gsop.Ntr == 1){
@@ -175,8 +173,11 @@ void OutputManager::computeRg(int traj){
 }
 
 void OutputManager::computeTEAeps(int traj){
-	if (integratorTea && !this->tea->exact){
-		outputData.tea_eps = this->tea->h_epsilon[traj];
+	if (integratorTea) {
+        TeaIntegrator *tea = (TeaIntegrator*)integrator;
+        if (!tea->exact){
+    		outputData.tea_eps = tea->h_epsilon[traj];
+        }
 	}else{
 		outputData.tea_eps = 0./0.;
 	}
