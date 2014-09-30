@@ -152,8 +152,6 @@ PullingPotential::PullingPotential(){
 }
 
 void PullingPotential::compute(){
-	pulling_kernel<<<this->blockNum, this->blockSize>>>();
-	checkCUDAError();
 }
 
 void PullingPotential::computeEnergy(){
