@@ -51,13 +51,13 @@ int main(int argc, char *argv[]){
 		copyCoordinatesTrajectory(i); // Copy coordinates to a specific location in a coordinates array
 	}
 
+	copyCoordinates(); // Copy all coordinates to a gpu
+	initFF(); // Initialize all potentials and updaters
+
     char ref_filename[100];
     getMaskedParameter(ref_filename, "reffilename", "<name>.ref.pdb", 1);
     printf("Saving reference PDB: '%s'.\n", ref_filename);
 	savePDB(ref_filename, sop); // Save reference PDB at the begining of the trajectory
-
-	copyCoordinates(); // Copy all coordinates to a gpu
-	initFF(); // Initialize all potentials and updaters
 
 	lastTime = time(NULL); // Reset timer
 
