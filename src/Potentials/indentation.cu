@@ -31,6 +31,11 @@ void createIndentationPotential(){
 
 		updaters[updatersCount] = new IndentationTipUpdater(pot);
 		updatersCount++;
+        if (sop.additionalAminos > 0){
+            // Reorder indentationTipUpdater and indentationAminoUpdater
+            // FIXME: this is ugly
+            std::swap(updaters[updatersCount-1], updaters[updatersCount-2]);
+        }
 	}
 }
 
@@ -206,7 +211,6 @@ IndentationPotential::IndentationPotential(){
 IndentationAminoUpdater::IndentationAminoUpdater(){
 	this->name = "AdditionalAminos";
 	this->frequency = getIntegerParameter(OUTPUT_FREQUENCY_STRING, DEFAULT_OUTPUT_FREQUENCY, 1);
-
 
 	hc_indentation.surfaceSize = getIntegerParameter(INDENTATION_MICA_SIZE_STRING, 51, 1);
 	hc_indentation.surfaceStep = getFloatParameter(INDENTATION_MICA_STEP_STRING, 1.4, 1);
