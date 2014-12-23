@@ -29,11 +29,8 @@ __global__ void pullingPlane_kernel(){
 		}
 		// Pulled beads
 		if(extF.w == 2.0f){
-#ifdef NOTEXTURE
+
     		float4 coord = c_gsop.d_coord[d_i];
-#else
-	    	float4 coord = tex1Dfetch(t_coord, d_i);
-#endif
             float3 norm = c_pullingPlane.pullVector;
             float dis = norm.x*coord.x + norm.y*coord.y + norm.z*coord.z + c_pullingPlane.d;
             dis = dis*c_pullingPlane.Ks;

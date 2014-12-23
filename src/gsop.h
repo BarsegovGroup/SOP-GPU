@@ -13,6 +13,7 @@
 #include <vector_types.h>
 #include <cuda.h>
 #include "IO/topio.h"
+#include "Util/wrapper.h"
 
 #define max_potentials 10
 #define max_updaters 10
@@ -42,8 +43,8 @@ struct GSOP{
 	float4* h_coord;
 	float4* d_coord;
 
-	float4* h_energies;   // Energies for output (see printStep())
-	float4* d_energies;
+	float* h_T;   // Energies for output (see printStep())
+	float* d_T;
 
 	float4* h_forces;
 	float4* d_forces;
@@ -55,7 +56,21 @@ public:
     std::string name;
 
 	virtual void compute() = 0;
-	virtual void computeEnergy() = 0;
+
+	virtual int getEnergiesCount(){
+		return 0;
+	}
+
+	virtual float* computeEnergy(int id){
+		DIE("No energy computation is implemented for this potential");
+		return NULL;
+	}
+	virtual float getEnergy(int traj, int id){
+		DIE("No energy computation is implemented for this potential");
+		return 0.0f;
+	}
+protected:
+	void sumEnergies(const float *h_energies, float *energies);
 };
 
 class SOPUpdater{
@@ -102,8 +117,8 @@ void initCoordinates();
 void copyCoordinates();
 void copyCoordinatesTrajectory(int traj);
 void initForces();
-void initEnergies();
-void copyEnergiesDeviceToHost();
+void initTemperature();
+void copyTemperatureDeviceToHost();
 
 void __checkCUDAError(const char *file, int line);
 void copyCoordDeviceToHost();

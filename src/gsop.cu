@@ -25,8 +25,7 @@
 #include "Integrators/bdhitea.cu"
 #include "Updaters/pairlist.cu"
 #include "Updaters/possiblepairlist.cu"
-#include "Updaters/output_manager.h"
-#include "Updaters/output_manager_kernel.cu"
+#include "Updaters/output_manager.cu"
 #include "Updaters/dcd_manager.h"
 
 long int lastStepCoordCopied = -1;
@@ -63,6 +62,7 @@ void initGPU(){
 
 	initCoordinates(); // Allocate memory for coordinates
 	initForces(); // Allocate memory for forces
+	initTemperature(); //Allocate memory for temperature
 }
 
 void initFF(){
@@ -104,8 +104,6 @@ void initFF(){
 		createLangevinIntegrator();
 		integratorTea = 0;
 	}
-
-	initEnergies(); // Allocate memory for energy output (move to initGPU() ?)
 
 	cudaMemcpyToSymbol(c_gsop, &gsop, sizeof(GSOP), 0, cudaMemcpyHostToDevice);
 	bindTextures();
@@ -223,29 +221,26 @@ void initForces(){
 }
 
 /*
- * Initialize array of energies for output
+ * Initialize array for temperature output
  */
-void initEnergies(){
+void initTemperature(){
 	// Allocating memory
 	printf("Allocating memory for energies...\n");
-	int size = gsop.aminoCount*sizeof(float4);
+	int size = gsop.aminoCount*sizeof(float);
 	//gsop.h_energies = (float4*)calloc(gsop.aminoCount, sizeof(float4));
-	cudaMallocHost((void**)&gsop.h_energies, size);
+	cudaMallocHost((void**)&gsop.h_T, size);
 	int i;
 	for(i = 0; i < gsop.aminoCount; i++){
-		gsop.h_energies[i].x = 0.0f;
-		gsop.h_energies[i].y = 0.0f;
-		gsop.h_energies[i].z = 0.0f;
-		gsop.h_energies[i].w = 0.0f;
+		gsop.h_T[i] = 0.0f;
 	}
-	cudaMalloc((void**)&gsop.d_energies, size);
+	cudaMalloc((void**)&gsop.d_T, size);
 	// Copying to the Device
-	cudaMemcpy(gsop.d_energies, gsop.h_energies, size, cudaMemcpyHostToDevice);
+	cudaMemcpy(gsop.d_T, gsop.h_T, size, cudaMemcpyHostToDevice);
 }
 
-void copyEnergiesDeviceToHost(){
-	int size = gsop.aminoCount*sizeof(float4);
-	cudaMemcpy(gsop.h_energies, gsop.d_energies, size, cudaMemcpyDeviceToHost);
+void copyTemperatureDeviceToHost(){
+	int size = gsop.aminoCount*sizeof(float);
+	cudaMemcpy(gsop.h_T, gsop.d_T, size, cudaMemcpyDeviceToHost);
 }
 
 SOPPotential* potentialByName(const char *name){
@@ -264,6 +259,24 @@ SOPUpdater* updaterByName(const char *name){
             return updaters[i];
     }
     DIE("Unable to find requested updater '%s'", name);
+}
+
+void SOPPotential::sumEnergies(const float *h_energies, float *energies) {
+	int traj, i;
+	for(traj = 0; traj < gsop.Ntr; traj++){
+		double energy = 0.0;
+		for(i = 0; i < sop.aminoCount; i++){
+			int index = traj*sop.aminoCount + i;
+			energy += h_energies[index];
+			if(isinf(h_energies[index])){
+				printf("WARNING: Bead #%d in trajectory #%d has infinite %s energy\n", i, traj, this->name.c_str());
+			}
+			if(isnan(h_energies[index])){
+				printf("WARNING: The %s energy of bead #%d in trajectory #%d is NaN\n", this->name.c_str(), i, traj);
+			}
+		}
+		energies[traj] = energy*0.5f;
+	}
 }
 
 void bindTextures(){

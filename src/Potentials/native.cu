@@ -21,6 +21,7 @@ NativePotential::NativePotential(){
 
 	printf("Building map of native contacts...\n");
 
+	// Reading parameters
 	this->R_limit_bond = getFloatParameter(NATIVE_R_LIMIT_BOND_STRING, DEFAULT_NATIVE_R_LIMIT_BOND, 1);
 	this->desolvation = getYesNoParameter(NATIVE_DESOLVATION_STRING, DEFAULT_NATIVE_DESOLVATION, 1);
 	if(this->desolvation){
@@ -30,14 +31,18 @@ NativePotential::NativePotential(){
 	this->blockSize = getIntegerParameter(NATIVE_BLOCK_SIZE_STRING, gsop.blockSize, 1);
 	this->blockNum = gsop.aminoCount/this->blockSize + 1;
 
-
+	// Allocating memory
 	this->h_native = (int*)calloc(gsop.aminoCount*this->max_native, sizeof(int));
 	cudaMalloc((void**)&this->d_native, gsop.aminoCount*this->max_native*sizeof(int));
 	this->h_nativeCount = (int*)calloc(gsop.aminoCount, sizeof(int));
 	cudaMalloc((void**)&this->d_nativeCount, gsop.aminoCount*sizeof(int));
 	this->h_nativeParameters = (GNativeParameters*)calloc(this->max_native*gsop.aminoCount, sizeof(GNativeParameters));
 	cudaMalloc((void**)&this->d_nativeParameters, this->max_native*gsop.aminoCount*sizeof(GNativeParameters));
+	this->h_energies = (float*)calloc(gsop.aminoCount, sizeof(float));
+	cudaMalloc((void**)&this->d_energies, gsop.aminoCount*sizeof(float));
+	this->energies = (float*)calloc(gsop.Ntr, sizeof(float));
 
+	// Building the native contacts map
     this->buildMap();
 
 	// Copying to device
@@ -52,24 +57,6 @@ NativePotential::NativePotential(){
 		cudaFuncSetCacheConfig(native_kernel, cudaFuncCachePreferL1);
 		cudaFuncSetCacheConfig(nativeEnergy_kernel, cudaFuncCachePreferL1);
 	}
-}
-
-void NativePotential::updateParametersOnGPU(){
-    hc_native.d_native = this->d_native;
-    hc_native.d_nativeCount = this->d_nativeCount;
-    hc_native.d_nativeParameters = this->d_nativeParameters;
-	cudaMemcpyToSymbol(c_native, &hc_native, sizeof(NativeConstant), 0, cudaMemcpyHostToDevice);
-    checkCUDAError();
-}
-
-void NativePotential::compute(){
-	native_kernel<<<this->blockNum, this->blockSize>>>();
-	checkCUDAError();
-}
-
-void NativePotential::computeEnergy(){
-	nativeEnergy_kernel<<<this->blockNum, this->blockSize>>>();
-	checkCUDAError();
 }
 
 void NativePotential::buildMap(){
@@ -95,6 +82,7 @@ void NativePotential::buildMap(){
 		totalNative++;
 	}
 
+	// Multiply map over trajectories for many-runs-per-GPU
 	for(j = 1; j < gsop.Ntr; j++){
 		for(i = 0; i < sop.aminoCount; i++){
 			for(k = 0; k < this->max_native; k++){
@@ -121,5 +109,45 @@ void NativePotential::buildMap(){
 	}
 	#endif
 
+}
+
+void NativePotential::updateParametersOnGPU(){
+    hc_native.d_native = this->d_native;
+    hc_native.d_nativeCount = this->d_nativeCount;
+    hc_native.d_nativeParameters = this->d_nativeParameters;
+    hc_native.d_energies = this->d_energies;
+	cudaMemcpyToSymbol(c_native, &hc_native, sizeof(NativeConstant), 0, cudaMemcpyHostToDevice);
+    checkCUDAError();
+}
+
+void NativePotential::compute(){
+	native_kernel<<<this->blockNum, this->blockSize>>>();
+	checkCUDAError();
+}
+
+int NativePotential::getEnergiesCount(){
+	return 1;
+}
+
+float* NativePotential::computeEnergy(int id){
+	if(id == 0){
+		nativeEnergy_kernel<<<this->blockNum, this->blockSize>>>();
+		cudaMemcpy(this->h_energies, this->d_energies, gsop.aminoCount*sizeof(float), cudaMemcpyDeviceToHost);
+		SOPPotential::sumEnergies(this->h_energies, this->energies);
+		checkCUDAError();
+		return this->energies;
+	} else {
+		DIE("Native potential can compute only one energy term.\n");
+		return NULL;
+	}
+}
+
+float NativePotential::getEnergy(int traj, int id){
+	if(traj < gsop.Ntr && id == 0){
+		return this->energies[traj];
+	} else {
+		DIE("Either trajectory or energy index is out of boundary");
+		return 0.0f;
+	}
 }
 

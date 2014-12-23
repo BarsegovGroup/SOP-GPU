@@ -26,7 +26,6 @@ SOPGPU_SOURCES	:= \
 	Util/wrapper.cpp \
 	Util/mystl.cpp \
 	Updaters/dcd_manager.cpp \
-	Updaters/output_manager.cpp \
 	gsop.cu
 
 SOPTOP_SOURCES 	:= \
@@ -48,7 +47,7 @@ sop-gpu: $(SOPGPU_OBJS)
 
 sop-top: $(SOPTOP_OBJS)
 	$(LINKER) -o $@ $(SOPTOP_OBJS) $(LDFLAGS)
- 
+
 clean:
 	rm -f sop-gpu sop-top 
 	rm -rf "$(OBJDIR)"

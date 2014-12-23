@@ -134,12 +134,18 @@ void PullingPlanePotential::compute(){
 	checkCUDAError();
 }
 
-void PullingPlanePotential::computeEnergy(){
+/*int PullingPlanePotential::getEnergiesCount(){
+	return 0;
+}
+
+float* PullingPlanePotential::computeEnergy(int id){
+	DIE("No energy terms are returned by pulling plane potential.");
+	return NULL;
     // Perl has operator "..."
     // It should be used inside functions to be implemented
     // Unlike just empty functions, the warning is generated when "..." is used
     // This comment is completely useless and barely related, because this function is empty by design
-}
+}*/
 
 void PullingPlaneUpdater::update(){
 

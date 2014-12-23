@@ -23,7 +23,9 @@ public:
     PairsPotential();
     virtual ~PairsPotential() { }
     virtual void compute();
-    virtual void computeEnergy();
+    virtual int getEnergiesCount();
+    virtual float* computeEnergy(int id);
+    virtual float getEnergy(int traj, int id);
 
 private:
     void updateParametersOnGPU();
@@ -40,6 +42,10 @@ private:
 
 	int* d_pairs;
 	int* d_pairsCount;
+
+	float* h_energies;
+	float* d_energies;
+	float* energies;
 
 	int blockSize;
 	int blockNum;

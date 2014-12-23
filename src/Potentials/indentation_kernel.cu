@@ -62,11 +62,7 @@ __device__ __constant__ IndentationConstant c_indentation;
 __global__ void indentation_kernel(){
 	int d_i = blockIdx.x*blockDim.x + threadIdx.x;
 	if(d_i < c_gsop.aminoCount){
-#ifdef NOTEXTURE
 		float4 coord = c_gsop.d_coord[d_i];
-#else
-		float4 coord = tex1Dfetch(t_coord, d_i);
-#endif
 		float4 f = c_gsop.d_forces[d_i];
 		float4 f_in = c_indentation.d_tipForces[d_i];//make_float4(0.0, 0.0, 0.0, 0.0);
 		float4 df;
@@ -125,11 +121,7 @@ __global__ void indentation_kernel(){
 __global__ void indentationDiscreteSurf_kernel(){
 	int d_i = blockIdx.x*blockDim.x + threadIdx.x;
 	if(d_i < c_gsop.aminoCount){
-#ifdef NOTEXTURE
 		float4 coord = c_gsop.d_coord[d_i];
-#else
-		float4 coord = tex1Dfetch(t_coord, d_i);
-#endif
 		float4 f = c_gsop.d_forces[d_i];
 		float4 dr;
 		dr.x =  coord.x - c_indentation.tipCoord.x;
@@ -154,11 +146,7 @@ __global__ void indentationDiscreteSurf_kernel(){
 		coord.y += dr.y;
 		coord.z += dr.z;
 		c_indentation.d_tipForces[d_i] = coord;
-#ifdef NOTEXTURE
 		coord = c_gsop.d_coord[d_i];
-#else
-		coord = tex1Dfetch(t_coord, d_i);
-#endif
 
 		int i;
 		for(i = 0; i < c_indentation.d_micaListCounts[d_i]; i++){
@@ -187,11 +175,7 @@ __global__ void generateMicaList_kernel(){
 	if(d_i < c_gsop.aminoCount){
 		int i;
 		int count = 0;
-#ifdef NOTEXTURE
 		float4 coord = c_gsop.d_coord[d_i];
-#else
-		float4 coord = tex1Dfetch(t_coord, d_i);
-#endif
 		for(i = 0; i < c_indentation.surfaceBeadsCount; i++){
 			float4 r2 = c_indentation.d_surfacePointsCoord[i];
 			r2.x = coord.x - r2.x;

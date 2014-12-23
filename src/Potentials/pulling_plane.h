@@ -31,7 +31,6 @@ public:
     PullingPlanePotential();
     virtual ~PullingPlanePotential() { }
     virtual void compute();
-    virtual void computeEnergy();
 
 	float Ks;
 	float deltax;

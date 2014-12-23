@@ -152,10 +152,7 @@ PullingPotential::PullingPotential(){
 }
 
 void PullingPotential::compute(){
-}
-
-void PullingPotential::computeEnergy(){
-
+	// The force is added in integrator
 }
 
 void PullingPotential::updateForces(float xt){

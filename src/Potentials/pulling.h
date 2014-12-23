@@ -38,7 +38,6 @@ public:
     PullingPotential();
     virtual ~PullingPotential() { }
     virtual void compute();
-    virtual void computeEnergy();
     void updateForces(float xt);
     void savePullingData();
 	float deltax; // Used by updater

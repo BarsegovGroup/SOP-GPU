@@ -28,8 +28,10 @@ class NativePotential : public SOPPotential{
 public:
     NativePotential();
     virtual ~NativePotential() { }
-	virtual void compute();
-	virtual void computeEnergy();
+    virtual void compute();
+	virtual int getEnergiesCount();
+	virtual float* computeEnergy(int id);
+	virtual float getEnergy(int traj, int id);
 
     float R_limit_bond; // Used by Updaters/output_manager.cpp
 private:
@@ -48,6 +50,10 @@ private:
 	int* d_native;
 	int* d_nativeCount;
 	GNativeParameters* d_nativeParameters;
+
+	float* h_energies;
+	float* d_energies;
+	float* energies;
 
 	int totalNative;
 

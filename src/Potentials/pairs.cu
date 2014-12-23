@@ -14,10 +14,7 @@ void createPairsPotential(){
 	potentials[potentialsCount] = new PairsPotential();
 	potentialsCount++;
 }
-/*
- * Constructing initial pairlist map
- * (see description of map for covalent bonds)
- */
+
 PairsPotential::PairsPotential(){
     this->name = "Long Range";
 	printf("Initializing pairlist...");
@@ -30,17 +27,17 @@ PairsPotential::PairsPotential(){
 	this->max_pairs = getIntegerParameter(MAX_PAIRS_STRING, DEFAULT_MAX_PAIRS, 1);
 	this->pairsCutoff = getFloatParameter(PAIRS_CUTOFF_STRING, DEFAULT_PAIRS_CUTOFF, 1);
 	this->pairsCutoff2 = this->pairsCutoff*this->pairsCutoff;
+
 	// Allocating memory
-	unsigned int width = gsop.aminoCount;
-	unsigned int height = this->max_pairs;
-	unsigned int size = width*height*sizeof(int);
-	this->h_pairs = (int*)calloc(width*height, sizeof(int));
+	this->h_pairs = (int*)calloc(gsop.aminoCount*this->max_pairs, sizeof(int));
 	this->h_pairsCount = (int*)calloc(gsop.aminoCount, sizeof(int));
-	// Allocating memory on the Device
-	cudaMalloc((void**)&this->d_pairs, size);
+	cudaMalloc((void**)&this->d_pairs, gsop.aminoCount*this->max_pairs*sizeof(int));
 	checkCUDAError();
 	cudaMalloc((void**)&this->d_pairsCount, gsop.aminoCount*sizeof(int));
     checkCUDAError();
+    this->h_energies = (float*)calloc(gsop.aminoCount, sizeof(float));
+    cudaMalloc((void**)&this->d_energies, gsop.aminoCount*sizeof(float));
+    this->energies = (float*)calloc(gsop.Ntr, sizeof(float));
 
     this->updateParametersOnGPU();
 	printf("done.\n");
@@ -59,6 +56,7 @@ void PairsPotential::updateParametersOnGPU(){
     hc_pairs.d_pairs = this->d_pairs;
     hc_pairs.d_pairsCount = this->d_pairsCount;
     hc_pairs.max_pairs = this->max_pairs;
+    hc_pairs.d_energies = this->d_energies;
 	cudaMemcpyToSymbol(c_pairs, &hc_pairs, sizeof(PairsConstant), 0, cudaMemcpyHostToDevice);
 	checkCUDAError();
 }
@@ -68,8 +66,29 @@ void PairsPotential::compute(){
 	checkCUDAError();
 }
 
-void PairsPotential::computeEnergy(){
-	pairsEnergy_kernel<<<this->blockNum, this->blockSize>>>();
-	checkCUDAError();
+int PairsPotential::getEnergiesCount(){
+	return 1;
+}
+
+float* PairsPotential::computeEnergy(int id){
+	if(id == 0){
+		pairsEnergy_kernel<<<this->blockNum, this->blockSize>>>();
+		cudaMemcpy(this->h_energies, this->d_energies, gsop.aminoCount*sizeof(float), cudaMemcpyDeviceToHost);
+		SOPPotential::sumEnergies(this->h_energies, this->energies);
+		checkCUDAError();
+		return this->energies;
+	} else {
+		DIE("Pairs potential returns only one energy term");
+		return NULL;
+	}
+}
+
+float PairsPotential::getEnergy(int traj, int id){
+	if(traj < gsop.Ntr && id == 0){
+		return this->energies[traj];
+	} else {
+		DIE("Either trajectory or energy index is out of boundary");
+		return 0.0f;
+	}
 }
 

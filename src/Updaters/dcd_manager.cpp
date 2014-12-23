@@ -106,7 +106,9 @@ void DcdOutputManager::update(){
 		int hours = timer / 3600 - days * 24;
 		int minutes = timer / 60 - hours * 60 - days * 24 * 60;
 		int seconds = timer - hours * 3600 - days * 24 * 3600 - minutes * 60;
-		printf("Computation time: %dd %dh %dm %ds (%f s/step current, %f ms/step overall)\n", days, hours, minutes, seconds, ((float)time(NULL) - lastTime)/((float)restartfreq), 1000.0f*((float)timer)/((float)(step)));
+		printf("Computation time: %dd %dh %dm %ds (%f ms/step current, %f ms/step overall)\n", days, hours, minutes, seconds,
+				1000.0f*((float)time(NULL) - (float)lastTime)/((float)restartfreq),
+				1000.0f*((float)timer)/((float)(step)));
 		if(step != 0){
 			timer = ((time(NULL)-initialTime) * (numsteps - step)) / step;
 			days = timer / (3600*24);

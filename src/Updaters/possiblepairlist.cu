@@ -40,10 +40,10 @@ PossiblepairList::~PossiblepairList(){
 
 void PossiblepairList::update(){
 	if(step % this->frequency == 0){
-		printf("Regenerating the list of possible pairs...");
+		//printf("Regenerating the list of possible pairs...");
 		generate_possiblepairs<<<this->blockNum, this->blockSize>>>();
 		checkCUDAError();
-		printf("done.\n");
+		//printf("done.\n");
 	}
 }
 

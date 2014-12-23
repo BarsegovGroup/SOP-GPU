@@ -357,14 +357,6 @@ void IndentationPotential::compute(){
 	}
 }
 
-/*
- * Stub for energy evaluation
- */
-void IndentationPotential::computeEnergy(){
-	// TODO (if needed)
-}
-
-
 IndentationTipUpdater::IndentationTipUpdater(IndentationPotential *indentation) {
 	this->name = "Indentation";
     this->frequency = nav;

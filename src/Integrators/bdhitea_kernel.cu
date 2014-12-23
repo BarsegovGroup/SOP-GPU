@@ -354,9 +354,9 @@ __global__ void integrateCholesky_L(const float* L, int stride){
 		coord.z += dr.z;
 		c_gsop.d_coord[d_i] = coord;
 		// Update energies
-		coord = c_gsop.d_energies[d_i];
+		coord.w = c_gsop.d_T[d_i];
 		coord.w += c_langevin.tempNorm*(dr.x*dr.x + dr.y*dr.y + dr.z*dr.z);
-		c_gsop.d_energies[d_i] = coord;
+		c_gsop.d_T[d_i] = coord.w;
 	}
 }
 
@@ -449,9 +449,9 @@ __global__ void integrateTea_kernel(){
 		coord.z += dr.z;
 		c_gsop.d_coord[d_i] = coord;
 		// Update energies
-		coord = c_gsop.d_energies[d_i];
+		coord.w = c_gsop.d_T[d_i];
 		coord.w += c_langevin.tempNorm*(dr.x*dr.x + dr.y*dr.y + dr.z*dr.z);
-		c_gsop.d_energies[d_i] = coord;
+		c_gsop.d_T[d_i] = coord.w;
 	}
 }
 
@@ -508,9 +508,9 @@ __global__ void integrateTea_kernel_unlisted(){
 		coord.z += dr.z;
 		c_gsop.d_coord[d_i] = coord;
 		// Update energies
-		coord = c_gsop.d_energies[d_i];
+		coord.w = c_gsop.d_T[d_i];
 		coord.w += c_langevin.tempNorm*(dr.x*dr.x + dr.y*dr.y + dr.z*dr.z);
-		c_gsop.d_energies[d_i] = coord;
+		c_gsop.d_T[d_i] = coord.w;
 	}
 }
 

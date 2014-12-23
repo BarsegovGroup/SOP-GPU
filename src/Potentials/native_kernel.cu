@@ -10,6 +10,7 @@ struct NativeConstant {
 	int* d_native;
 	int* d_nativeCount;
 	GNativeParameters* d_nativeParameters;
+	float* d_energies;
 };
 
 NativeConstant hc_native;
@@ -22,27 +23,18 @@ __device__ __constant__ NativeConstant c_native;
  * r0 - equilibrium distance (in general, depend on a particular contact)
  * Computational procedure is done in N threads, where N is the total number of particles.
  * d_i - thread index - is an index of a particle, thread computes force for.
- * This kernel uses 18 registers. Should be <= 16. Using ~75% of GPU resources here.
  */
 __global__ void native_kernel(){
 	int d_i = blockIdx.x*blockDim.x + threadIdx.x; // Thread id, or particle id in this case (1 register)
 	if(d_i < c_gsop.aminoCount){
-#ifdef NOTEXTURE
 		float4 coord = c_gsop.d_coord[d_i];
-#else
-		float4 coord = tex1Dfetch(t_coord, d_i); // Coordinates of this thread's particle (4 registers)
-#endif
 		float4 f = c_gsop.d_forces[d_i]; // Force, acting on a particle (4 registers)
 		int i2 = c_native.d_native[d_i]; // First interacting particle (1 register, reading ASAP)
 		GNativeParameters par = c_native.d_nativeParameters[d_i]; // par.x = r0*r0, par.y = -12.0*eh/(r0*r0) (2 registers)
 		int i; // Iterating index (1 register)
 		float4 r2; // Coordinates of the second particle (4 registers)
 		for(i = 1; i <= c_native.d_nativeCount[d_i]; i++){
-#ifdef NOTEXTURE
 			r2 = c_gsop.d_coord[i2];
-#else
-			r2 = tex1Dfetch(t_coord, i2);
-#endif
 			i2 = c_native.d_native[i*c_gsop.aminoCount + d_i]; // Index of the next interacting particle (reading ASAP)
 			r2.x -= coord.x;
 			r2.y -= coord.y;
@@ -65,22 +57,14 @@ __global__ void native_kernel(){
 __global__ void nativeEnergy_kernel(){
 	int d_i = blockIdx.x*blockDim.x + threadIdx.x;
 	if(d_i < c_gsop.aminoCount){
-#ifdef NOTEXTURE
 		float4 coord = c_gsop.d_coord[d_i];
-#else
-		float4 coord = tex1Dfetch(t_coord, d_i);
-#endif
 		int i2 = c_native.d_native[d_i];
 		GNativeParameters par = c_native.d_nativeParameters[d_i]; // par.x = r0*r0, par.y = -12.0*eh/(r0*r0)
 		float pot = 0.0f;
 		int i;
 		float4 r2;
 		for(i = 1; i <= c_native.d_nativeCount[d_i]; i++){
-#ifdef NOTEXTURE
-		r2 = c_gsop.d_coord[i2];
-#else
-		r2 = tex1Dfetch(t_coord, i2);
-#endif
+			r2 = c_gsop.d_coord[i2];
 			i2 = c_native.d_native[i*c_gsop.aminoCount + d_i];
 			r2.x -= coord.x;
 			r2.y -= coord.y;
@@ -93,6 +77,6 @@ __global__ void nativeEnergy_kernel(){
 			pot +=  par.minus12ehOverR02*(p6 + p12);
 			par = c_native.d_nativeParameters[i*c_gsop.aminoCount + d_i];
 		}
-		c_gsop.d_energies[d_i].y = pot;
+		c_native.d_energies[d_i] = pot;
 	}
 }

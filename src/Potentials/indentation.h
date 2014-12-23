@@ -65,7 +65,6 @@ public:
     virtual ~IndentationPotential() { }
 
     virtual void compute();
-    virtual void computeEnergy();
     bool discreteSurf;
 };
 

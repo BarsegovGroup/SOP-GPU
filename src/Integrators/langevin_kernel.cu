@@ -61,7 +61,7 @@ __global__ void integrateLangevin_kernel(){
 		coord.x += dr.x;
 		coord.y += dr.y;
 		coord.z += dr.z;
-		c_gsop.d_energies[d_i].w += c_langevin.tempNorm*(dr.x*dr.x + dr.y*dr.y + dr.z*dr.z);
+		c_gsop.d_T[d_i] += c_langevin.tempNorm*(dr.x*dr.x + dr.y*dr.y + dr.z*dr.z);
 		c_gsop.d_coord[d_i] = coord;
 	}
 }

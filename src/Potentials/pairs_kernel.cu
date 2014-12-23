@@ -13,6 +13,7 @@ struct PairsConstant {
 	float minus6elovera2;
 	int* d_pairs;
 	int* d_pairsCount;
+	float* d_energies;
 	int max_pairs;
 };
 
@@ -22,6 +23,7 @@ __device__ __constant__ PairsConstant c_pairs;
 /*
  * CUDA Kernel for computation of repulsive LJ. The general formula is:
  * U = el*(a/r)^6
+ * fx1=-(dU)/(x1)=-6*el*(a/r)^6*(x2-x1)/r12^2
  * el - strength of the interaction
  * a - repel distance
  * Computational procedure is done in N threads, where N is the total number of particles.
@@ -31,33 +33,25 @@ __device__ __constant__ PairsConstant c_pairs;
 __global__ void pairs_kernel(){
 	int d_i = blockIdx.x*blockDim.x + threadIdx.x; // Thread id, or particle id in this case (1 register)
 	if(d_i < c_gsop.aminoCount){
-#ifdef NOTEXTURE
 		float4 coord = c_gsop.d_coord[d_i]; // Coordinates of the particle associated with a thread
-#else
-		float4 coord = tex1Dfetch(t_coord, d_i); // Coordinates of the particle associated with a thread read using texture reference (4 registers)
-#endif
 		float4 f = c_gsop.d_forces[d_i]; // Total force, acting on a particle (4 registers)
 		int i2 = c_pairs.d_pairs[d_i];  // Reading the first interacting particle index from a map (1 register, reading ASAP)
 		int i; // Loop counter (1 register)
 		float4 r2; // Coordinates of second interacting particle (4 registers)
 		for(i = 1; i <= c_pairs.d_pairsCount[d_i]; i++){ // Iterating over all interacting pairs
-#ifdef NOTEXTURE
 			r2 = c_gsop.d_coord[i2];
-#else
-			r2 = tex1Dfetch(t_coord, i2); // Reading the coordinates of the current interacting particle
-#endif
 			i2 = c_pairs.d_pairs[i*c_gsop.aminoCount + d_i]; // Index of the next interacting particle (reading ASAP)
 			r2.x -= coord.x;
 			r2.y -= coord.y;
 			r2.z -= coord.z;
-			r2.w = r2.x*r2.x+r2.y*r2.y+r2.z*r2.z;
+			r2.w = r2.x*r2.x+r2.y*r2.y+r2.z*r2.z; // r2.w = (r2-r1)^2
 			if(r2.w < c_pairs.pairsCutoff2){ // pairsCutoff2 = pairsCutoff*pairsCutoff
-				r2.w = c_pairs.a2/r2.w; // a2 = a*a
-				r2.w = r2.w*r2.w;
-				r2.w = c_pairs.minus6elovera2*r2.w*r2.w; // minus6elovera2 = -6.0*el/(a*a)
-				f.x += r2.x*r2.w;
-				f.y += r2.y*r2.w;
-				f.z += r2.z*r2.w;
+				r2.w = c_pairs.a2/r2.w; // a2 = a*a; r2.w = (a/r12)^2
+				r2.w = r2.w*r2.w; // r2.w = (a/r12)^4
+				r2.w = c_pairs.minus6elovera2*r2.w*r2.w; // minus6elovera2 = -6*el/(a*a); r2.w = -6*el*a^6/r12^8
+				f.x += r2.x*r2.w; // fx = -6*el*(a/r12)^6*(x2-x1)/r12^2
+				f.y += r2.y*r2.w; // fy = -6*el*(a/r12)^6*(y2-y1)/r12^2
+				f.z += r2.z*r2.w; // fz = -6*el*(a/r12)^6*(z2-z1)/r12^2
 			}
 		}
 		c_gsop.d_forces[d_i] = f; // Saving the resulting force
@@ -75,21 +69,13 @@ __global__ void pairs_kernel(){
 __global__ void pairsEnergy_kernel(){
 	int d_i = blockIdx.x*blockDim.x + threadIdx.x;
 	if(d_i < c_gsop.aminoCount){
-#ifdef NOTEXTURE
 		float4 coord = c_gsop.d_coord[d_i];
-#else
-		float4 coord = tex1Dfetch(t_coord, d_i);
-#endif
 		float pot = 0.0f;
 		int i2 = c_pairs.d_pairs[d_i];
 		int i;
 		float4 r2;
 		for(i = 1; i <= c_pairs.d_pairsCount[d_i]; i++){
-#ifdef NOTEXTURE
 			r2 = c_gsop.d_coord[i2];
-#else
-			r2 = tex1Dfetch(t_coord, i2);
-#endif
 			i2 = c_pairs.d_pairs[i*c_gsop.aminoCount + d_i];
 			r2.x -= coord.x;
 			r2.y -= coord.y;
@@ -100,6 +86,6 @@ __global__ void pairsEnergy_kernel(){
 				pot += c_pairs.el*r2.w*r2.w*r2.w;
 			}
 		}
-		c_gsop.d_energies[d_i].z = pot;
+		c_pairs.d_energies[d_i] = pot;
 	}
 }
