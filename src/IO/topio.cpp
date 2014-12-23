@@ -103,7 +103,7 @@ void SOP::load(const char* filename){
 
 void SOP::save(const char* filename) const {
 	int i;
-	FILE* topFile = fopen(filename, "w");
+	FILE* topFile = safe_fopen(filename, "w");
 	fprintf(topFile, "; Created by topio.cpp utility\n\n");
 
 	fprintf(topFile, "[ atoms ]\n");

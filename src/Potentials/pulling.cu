@@ -7,6 +7,7 @@
 #include "../gsop.cuh"
 #include "../IO/configreader.h"
 #include "../Util/mystl.h"
+#include "../Util/wrapper.h"
 #include "../Util/vector_helpers.h"
 #include "pulling.h"
 
@@ -139,13 +140,13 @@ PullingPotential::PullingPotential(){
         pullFilename = getMaskedParameterAs<std::string>(PULLING_FILENAME, DEFAULT_PULLING_FILENAME);
 		for(traj = 0; traj < gsop.Ntr; traj++){
 			pullFilenames[traj] = string_replace(pullFilename, "<run>", traj+gsop.firstrun);
-			FILE* pullFile = fopen(pullFilenames[traj].c_str(), "w");
+			FILE* pullFile = safe_fopen(pullFilenames[traj].c_str(), "w");
 			fclose(pullFile);
 		}
 		printf("Pulling data will be saved in '%s'.\n", pullFilename.c_str());
 	}
 	
-    this->blockSize = getIntegerParameter(COVALENT_BLOCK_SIZE_STRING, gsop.blockSize, 1);
+    this->blockSize = gsop.blockSize;
 	this->blockNum = gsop.aminoCount/this->blockSize + 1;
 
 	printf("Done initializing pulling protocol...\n");
@@ -179,7 +180,7 @@ void PullingPotential::savePullingData(){
 				gsop.firstrun, gsop.h_coord[this->pulledEnd].x, gsop.h_coord[this->pulledEnd].y, gsop.h_coord[this->pulledEnd].z);
 	}
 	for(traj = 0; traj < gsop.Ntr; traj++){
-		FILE* pullFile = fopen(pullFilenames[traj].c_str(), "a");
+		FILE* pullFile = safe_fopen(pullFilenames[traj].c_str(), "a");
 
         float3 endToEnd_vector = make_float3(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd] - gsop.h_coord[traj*sop.aminoCount + this->fixedEnd]);
 		float endToEnd_x = dot( endToEnd_vector , this->pullVector[traj] );

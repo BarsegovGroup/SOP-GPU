@@ -86,7 +86,7 @@ IndentationPotential::IndentationPotential(){
 	hc_indentation.surfBprime = 6.0f*hc_indentation.surfel*hc_indentation.surfa6*surfB;
 
 	/*float x = 201;
-	FILE* tempFile = fopen("temp.dat", "w");
+	FILE* tempFile = safe_fopen("temp.dat", "w");
 	while(x < 300){
 		float xprime = pow(x - hc_indentation.tipRadius, 6.0);
 		float y = hc_indentation.el*((tipA*hc_indentation.a6*hc_indentation.a6)/(xprime*xprime) + (tipB*hc_indentation.a6)/(xprime));
@@ -116,7 +116,7 @@ IndentationPotential::IndentationPotential(){
 	hc_indentation.h_tipForces = (float4*)calloc(gsop.aminoCount, sizeof(float4));
 	cudaMalloc((void**)&hc_indentation.d_tipForces, gsop.aminoCount*sizeof(float4));
 	cudaMemcpy(hc_indentation.d_tipForces, hc_indentation.h_tipForces, gsop.aminoCount*sizeof(float4), cudaMemcpyHostToDevice);
-	hc_indentation.out = fopen(INDENTATION_filename, "w");
+	hc_indentation.out = safe_fopen(INDENTATION_filename, "w");
 	hc_indentation.retractionStep = getLongIntegerParameter(INDENTATION_RETRACTION_STEP_STRING, -1, 1);
 	checkCUDAError();
 
@@ -316,7 +316,7 @@ IndentationAminoUpdater::IndentationAminoUpdater(){
 	hc_indentation.fav.w = 0.0f;
 	char tempFilename[100];
 	getMaskedParameter(tempFilename, INDENTATION_VMD_CONNECT_SCRIPT, "connect_mica.vmd", 1);
-	FILE* micaConnectFile = fopen(tempFilename, "w");
+	FILE* micaConnectFile = safe_fopen(tempFilename, "w");
 	printf("Dumping VMD script to connect surface elements into '%s'.\n", tempFilename);
 	fprintf(micaConnectFile, "set sel [atomselect top \"index %d\"]\n", gsop.aminoCount);
 	fprintf(micaConnectFile, "set bonds {%d}\n", gsop.aminoCount + 1);

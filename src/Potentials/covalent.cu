@@ -161,7 +161,7 @@ float CovalentPotential::getEnergy(int traj, int id){
 	if(traj < gsop.Ntr && id == 0){
 		return this->energies[traj];
 	} else {
-		DIE("Either trajectory or energy index is out of boundary");
+		DIE("Either trajectory or energy index is out of bounds");
 		return 0.0f;
 	}
 }

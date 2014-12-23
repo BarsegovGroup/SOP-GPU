@@ -10,6 +10,7 @@
 #include <map>
 #include <string>
 #include <sstream>
+#include <stdexcept>
 
 // Get std::map element. If element does not exist, return some default value
 template <typename K, typename V>
@@ -40,10 +41,13 @@ inline T str2any(const char* in) {
 
 template <typename T>
 inline T str2any(const std::string& in) {
-	std::stringstream s(in);
-	T out = T();
-	s >> out;
-	return out;
+    std::stringstream s(in);
+    T out = T();
+    s >> out;
+    if (s.fail()) {
+        throw std::invalid_argument(std::string("Error converting string `") + in + "` to value.");
+    }
+    return out;
 }
 
 template <> 

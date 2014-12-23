@@ -11,6 +11,7 @@
 
 #include "../IO/configreader.h"
 #include "../Util/mystl.h"
+#include "../Util/wrapper.h"
 #include <string.h>
 #include <stdio.h>
 #include <cuda.h>
@@ -38,8 +39,8 @@ OutputManager::OutputManager(){
 	this->computeRgFlag = getYesNoParameter(OUTPUT_COMPUTE_RG_STRING, DEFAULT_OUTPUT_COMPUTE_RG, 1);
 
 	// Parameters to define native contacts
-	this->R_limit = getFloatParameter(COVALENT_R_LIMIT_STRING, DEFAULT_COVALENT_R_LIMIT, 1);
-	this->R_limit_bond = getFloatParameter(NATIVE_R_LIMIT_BOND_STRING, DEFAULT_NATIVE_R_LIMIT_BOND, 1);
+	this->R_limit = reinterpret_cast<CovalentPotential*>(potentialByName("Covalent"))->R_limit;
+	this->R_limit_bond = reinterpret_cast<NativePotential*>(potentialByName("Native"))->R_limit_bond;
 
 	// Deprecated 'mode capsid' (if defined, the gyration radius is not computed due to the performance issues).
 	char modeString[100];
@@ -58,7 +59,7 @@ OutputManager::OutputManager(){
 	dat_filenames.resize(gsop.Ntr);
 	for(traj = 0; traj < gsop.Ntr; traj++){
         dat_filenames[traj] = string_replace(dat_filename, "<run>", traj+gsop.firstrun);
-		dat_file = fopen(dat_filenames[traj].c_str(), "w");
+		dat_file = safe_fopen(dat_filenames[traj].c_str(), "w");
 		fclose(dat_file);
 	}
 	printf("Output will be saved in '%s'.\n", dat_filename.c_str());
@@ -120,7 +121,7 @@ void OutputManager::update(){
 			}
 
 			// .dat file output
-			FILE* dat_file = fopen(dat_filenames[traj].c_str(), "a");
+			FILE* dat_file = safe_fopen(dat_filenames[traj].c_str(), "a");
 			this->printDataToFile(dat_file, traj);
 			fclose(dat_file);
 		}
