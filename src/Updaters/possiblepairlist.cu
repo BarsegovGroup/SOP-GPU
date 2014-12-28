@@ -39,7 +39,7 @@ PossiblepairList::~PossiblepairList(){
 }
 
 void PossiblepairList::update(){
-	if(step % this->frequency == 0){
+	if(gsop.step % this->frequency == 0){
 		//printf("Regenerating the list of possible pairs...");
 		generate_possiblepairs<<<this->blockNum, this->blockSize>>>();
 		checkCUDAError();

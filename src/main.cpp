@@ -4,21 +4,18 @@
 #include <math.h>
 #include <time.h>
 
-#include "def_param.h"
 #include "gsop.h"
 
-#include "param_initializer.h"
 #include "IO/configreader.h"
 #include "Util/wrapper.h"
 
-long long int initialTime;
-long long int lastTime;
-
-long int step;
-
 SOP sop;
 
+void initParameters(const char* configFile);
+
 int main(int argc, char *argv[]){
+
+	time_t initialTime = time(NULL);
 
 	printf("===========================\n");
 	printf("SOP-GPU version %s\n", VERSION);
@@ -27,8 +24,7 @@ int main(int argc, char *argv[]){
 #ifdef DEBUG
 	printf("Running in DEBUG mode.\n");
 #endif
-	initialTime = time(NULL);
-	step = 0;
+	gsop.step = 0;
 
 	int i;
 
@@ -59,12 +55,37 @@ int main(int argc, char *argv[]){
     printf("Saving reference PDB: '%s'.\n", ref_filename);
 	savePDB(ref_filename, sop); // Save reference PDB at the begining of the trajectory
 
-	lastTime = time(NULL); // Reset timer
+	printf("System initialization took %.f second(s).\n", difftime(time(NULL), initialTime));
 
-	printf("Starting %d runs (%ld steps).\n", gsop.Ntr, numsteps);
+	printf("Starting %d runs (%ld steps).\n", gsop.Ntr, gsop.numsteps);
 	runGPU(); // Strart simulations
 	//savePDB(final_filename);
 	// All done. Release memory/close files.
 	//cleanup();
+}
+
+void initParameters(const char* configFile){
+
+	parseParametersFile(configFile);
+
+    char protein_name[100];
+	getParameter(protein_name, "name", "unnamed", 1);
+	printf("Initializing simulations for '%s'\n", protein_name);
+
+
+	int run = getIntegerParameter("run", -1, 1);
+	if(run == -1){
+		gsop.Ntr = getIntegerParameter("runnum", 0, 0);
+		gsop.firstrun = getIntegerParameter("firstrun", 0 ,0);
+	} else {
+		gsop.Ntr = 1;
+		gsop.firstrun = run;
+	}
+
+	gsop.numsteps = getLongIntegerParameter("numsteps", 0, 0);
+
+	gsop.nav = getIntegerParameter("nav", 1000, 1);
+
+    gsop.deviceId = getIntegerParameter("device", 0, 1);
 }
 

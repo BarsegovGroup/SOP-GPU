@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../def_param.h"
 #include "../Util/wrapper.h"
 #include "topio.h"
 

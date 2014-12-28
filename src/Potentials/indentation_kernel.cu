@@ -7,53 +7,62 @@
  */
 
 struct IndentationConstant {
-	float3 tipCoord;
-	float3 chipCoord;
-	float3 chipCoord0;
-	float3 direction;
-	float V;
-	float dx;
-	int moveSurface;
-	int fixTransversal;
-	float tipRadius;
-	float cantileverKs;
-	float tipa6;
-	float tipel;
-	float surfa6;
-	float surfel;
-	float tipAprime;
-	float tipBprime;
-	float surfAprime;
-	float surfBprime;
-	float tipZeta;
-	float3 micaN;
-	float3 micaR0;
-	float3 micaR;
-	float4* h_tipForces;
-	float4* d_tipForces;
-	float4 tipForce;
-	FILE* out;
-	long int retractionStep;
-	int showTipSurface;
-	int surfaceSize;
-	int surfaceBeadsCount;
-	float surfaceStep;
-	float3* surfacePointsR0;
-	float4* h_surfacePointsCoord;
-	float4* d_surfacePointsCoord;
 
+	/*
+	 * Cantilever tip parameters
+	 */
+	float3 tipCoord;  // Coordinates of the cantilever tip
+	float3 chipCoord; // Coordinates of the cantilever base
+	float3 chipCoord0; // Initial coordinates of the cantilever base
+	float3 direction; // Direction of the cantilever base movement
+	float V; // Velocity of the cantilever base (in A/indentation update period)
+	float dx; // Current displacement of the cantilever base
+	int moveSurface; // If the surface should be moved rather than cantilever base
+	int fixTransversal; // If the cantilever tip should be fixed to the vector of the base movement (all perpendicular movement is supressed)
+	float cantileverKs; // Spring constant for the spring connecting cantilever base with the tip
+	float tipZeta;
+
+	/*
+	 * The interaction potentials between cantilever tip and amino acid and between the surface and amino acid are computed as
+	 * U=epsilon*(A*(sigma/r)^12 + B*(sigma/r)^6),
+	 * where epsilon (in kcal/mol) is the repulsion strength, sigma (in A) is the repulsion radii,
+	 * A and B are dimentionless potential coefficients. Usually:
+	 * A = 0, B = 1 for pure repulsion (U~1/r^6)
+	 * A = 1, B = -2 for full LJ (U=epsilon*((sigma/r)^12 - 2*(sigma/r)^6)
+	 * For the interaction between the tip and amino acid, r=r_ti-R, with r_ti is the distance between the tip center and the amino-acid, R is the tip Radii
+	 * For the interaction between the surface and amino acid, r is the distance between the surface and the amino-acid
+	 * For the computational purposes, the A'=12.0*epsilon*sigma^12*A and B'=6.0*epsilon*sigma^6*B are used
+	 */
+	float tipRadius; // Radius of the cantilever tip (in A) for the interaction between the tip and aminos
+	float tipAprime; // A' for the tip-amino interactions
+	float tipBprime; // B' for the tip-amino interactions
+	float surfAprime; // A' for the surface-amino interactions
+	float surfBprime; // B' for the surface-amino interactions
+
+	/*
+	 * Mica parameters
+	 */
+	float3 micaN; // Normal vector
+	float3 micaR0; // A sample point on the surface to define its position at the start of simulation
+	float3 micaR; // A sample point on the surface to define its position at the current timestep
+	float4* h_tipForces; // Forces, acting on each amino-acid due to the interaction with the cantilever tip (on CPU)
+	float4* d_tipForces; // Forces, acting on each amino-acid due to the interaction with the cantilever tip (on GPU)
+	int surfaceSize; // Number of beads to add for the surface representation (along each axis, the total number would be squared)
+	int surfaceBeadsCount; // Total number (surfaceSize^2)
+	float surfaceStep; // Distance between beads that represent surface
+	float3* surfacePointsR0; // Positions of all the beads representing the surface at the start
+	float4* h_surfacePointsCoord; // Current position of all the beads representing the surface (on CPU)
+	float4* d_surfacePointsCoord; // Current position of all the beads representing the surface (on GPU)
+
+	/*
+	 * Pairlist for the interactions of the amino-acids with the surface beads
+	 */
 	float pairsCutoff2;
 	int* h_micaListCounts;
 	int* d_micaListCounts;
 	int* h_micaList;
 	int* d_micaList;
 
-	int outputFreq;
-	float3 cantileverVector;
-	float4 fav;
-	float3 tipCoordAv;
-	float3 chipCoordAv;
-	float kDeltaXAv;
 };
 
 IndentationConstant hc_indentation;

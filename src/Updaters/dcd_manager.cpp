@@ -6,8 +6,6 @@
  */
 
 #include "dcd_manager.h"
-#include "../def_param.h"
-#include "../param_initializer.h"
 #include "../IO/dcdio.h"
 #include "../IO/pdbio.h"
 #include "../IO/configreader.h"
@@ -78,7 +76,7 @@ DcdOutputManager::DcdOutputManager(){
  */
 void DcdOutputManager::update(){
 	int i, traj;
-	if(step % this->frequency == 0){
+	if(gsop.step % this->frequency == 0){
 		printf("Saving coordinates into dcd...");
 		copyCoordDeviceToHost();
 		int particleCount = sop.aminoCount;
@@ -101,25 +99,9 @@ void DcdOutputManager::update(){
 			dcd.close();
 		}
 		printf("done.\n");
-		long long int timer = time(NULL) - initialTime;
-		int days = timer / (3600*24);
-		int hours = timer / 3600 - days * 24;
-		int minutes = timer / 60 - hours * 60 - days * 24 * 60;
-		int seconds = timer - hours * 3600 - days * 24 * 3600 - minutes * 60;
-		printf("Computation time: %dd %dh %dm %ds (%f ms/step current, %f ms/step overall)\n", days, hours, minutes, seconds,
-				1000.0f*((float)time(NULL) - (float)lastTime)/((float)restartfreq),
-				1000.0f*((float)timer)/((float)(step)));
-		if(step != 0){
-			timer = ((time(NULL)-initialTime) * (numsteps - step)) / step;
-			days = timer / (3600*24);
-			hours = timer / 3600 - days * 24;
-			minutes = timer / 60 - hours * 60 - days * 24 * 60;
-			printf("Estimated time left: %dd %dh %dm\n", days, hours, minutes);
-		}
-		lastTime = time(NULL); // Timer stop-line
 	}
 
-	if(step % restartfreq == 0){
+	if(gsop.step % restartfreq == 0){
 		for(int traj = 0; traj < gsop.Ntr; traj++){
 			char trajnum[10];
 			char tempRestartFilename[100];

@@ -28,6 +28,8 @@
 #define DEFAULT_OUTPUT_PRINT_RUNS		10
 #define DEFAULT_OUTPUT_COMPUTE_RG		1
 
+const int MODE_CAPSID = 1;
+
 struct OutputData{
 	float tea_eps;
 };
@@ -39,15 +41,19 @@ public:
     virtual void update();
 private:
     void computeNativeCounts();
+    void resetTemperatures();
     void computeTemperatures();
     void computeRgs();
     float getRg(int traj);
     void computeTEAeps(int traj);
+    void printTimeEstimates();
     void printDataTitleToScreen() const;
     void printDataToScreen(int traj) const;
     void printDataLdotsToScreen() const;
     void printDataToFile(FILE* dat_file, int traj) const;
 
+    long long int initialTime;
+    long long int lastTime;
 
     OutputData outputData;
     std::vector<std::string> dat_filenames;

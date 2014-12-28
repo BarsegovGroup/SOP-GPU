@@ -131,7 +131,7 @@ TeaUpdater::TeaUpdater(TeaIntegrator *tea_integrator){
 }
 
 void TeaUpdater::update(){
-	const int update_epsilon = (step % this->frequency) == 0;
+	const int update_epsilon = (gsop.step % this->frequency) == 0;
 	const int N = sop.aminoCount;
 	if (update_epsilon){
 		// Calculate relative coupling

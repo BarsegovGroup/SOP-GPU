@@ -29,7 +29,7 @@ void createPullingPlanePotential(){
 
 PullingPlaneUpdater::PullingPlaneUpdater(PullingPlanePotential *pullingPlane){
 	this->name = "Pulling Plane";
-    this->frequency = getIntegerParameter(PULLINGPLANE_FREQ, nav, 1);
+    this->frequency = getIntegerParameter(PULLINGPLANE_FREQ, gsop.nav, 1);
     this->pullingPlane = pullingPlane;
 }
 
@@ -152,7 +152,7 @@ void PullingPlaneUpdater::update(){
 	//copyCoordDeviceToHost();
 	int j;
 	// Increasing the force
-	float xt = pullingPlane->deltax * step / this->frequency;
+	float xt = pullingPlane->deltax * gsop.step / this->frequency;
     /*
 	pullingPlane->cantCoord.x = pullingPlane->planeCoord0.x + xt * pullingPlane->pullVector.x;
 	pullingPlane->cantCoord.y = pullingPlane->planeCoord0.y + xt * pullingPlane->pullVector.y;
@@ -162,8 +162,8 @@ void PullingPlaneUpdater::update(){
 	checkCUDAError();
 	cudaMemcpy(pullingPlane->h_extForces, pullingPlane->d_extForces, gsop.aminoCount*sizeof(float4), cudaMemcpyDeviceToHost);
 	checkCUDAError();
-	if(step % this->frequency == 0){
-		if(step % 100000 == 0){
+	if(gsop.step % this->frequency == 0){
+		if(gsop.step % 100000 == 0){
 			printf("Cantilever coordinates for run #%d: %f, %f, %f\n",
 					gsop.firstrun, pullingPlane->cantCoord.x, pullingPlane->cantCoord.y, pullingPlane->cantCoord.z);
 			printf("Plane coordinates for run #%d: %f, %f, %f\n",
@@ -187,7 +187,7 @@ void PullingPlaneUpdater::update(){
         cudaMemcpyToSymbol(c_pullingPlane, &hc_pullingPlane, sizeof(PullingPlaneConstant), 0, cudaMemcpyHostToDevice);
 
         fprintf(pullingPlaneFile, "%12ld\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\n",
-                step, pullingPlane->d, pullingPlane->cant_d, extForceProj,
+                gsop.step, pullingPlane->d, pullingPlane->cant_d, extForceProj,
                 extForce.x, extForce.y, extForce.z);
 
         fclose(pullingPlaneFile);

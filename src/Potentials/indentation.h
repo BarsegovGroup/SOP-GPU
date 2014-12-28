@@ -74,11 +74,20 @@ public:
     virtual void update();
 private:
     IndentationPotential *indentation;
+	int outputFreq;
+	float4 fav;
+	float3 tipCoordAv;
+	float3 chipCoordAv;
+	float kDeltaXAv;
+	FILE* outputFile; // .dat output file
+	long int retractionStep; // Step at which the direction of the cantilever base movement will be reversed
 };
 
 class IndentationAminoUpdater : public SOPUpdater{
 public:
     IndentationAminoUpdater();
     virtual void update();
+private:
+    float3 cantileverVector;
 };
 

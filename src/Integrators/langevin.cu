@@ -71,10 +71,10 @@ TemperatureUpdater::TemperatureUpdater(LangevinIntegrator* langevin){
 }
 
 void TemperatureUpdater::update(){
-	if(step % this->frequency == 0){
-        float temp = this->initialT + (step/this->frequency)*this->deltaT;
+	if(gsop.step % this->frequency == 0){
+        float temp = this->initialT + (gsop.step/this->frequency)*this->deltaT;
 		langevin->setTemperature( temp );
-		printf("Heating: %ld\t%f\n", step, temp);
+		printf("Heating: %ld\t%f\n", gsop.step, temp);
 	}
 }
 

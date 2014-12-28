@@ -19,6 +19,8 @@
 #define max_updaters 10
 #define max_timers 20
 
+#define VERSION "trunk"
+
 //#define NOTEXTURE
 const int DEFAULT_BLOCK_SIZE = 256;
 
@@ -34,6 +36,13 @@ struct GSOP{
 	int minimizationOn;
 	int heatingOn;
 	int indentationOn;
+
+	/*
+	 * These do not belong here.
+	 */
+	long int step;
+	long int numsteps;
+	int nav;
 
 	int aminoCount; // total aminoCount in all trajectories
 	int width; // aligned aminoCount

@@ -9,8 +9,6 @@
 #include "indentation.h"
 #include "../Updaters/output_manager.h"
 
-int showTipMica;
-
 #include "indentation_kernel.cu"
 
 /*
@@ -25,17 +23,46 @@ void createIndentationPotential(){
 		}
 		gsop.indentationOn = 1;
 
-        IndentationPotential *pot;
-		potentials[potentialsCount] = pot = new IndentationPotential();
+		int showTipMica;
+		int discreteSurf;
+		showTipMica = getYesNoParameter(INDENTATION_SHOW_TIP_SURFACE_STRING, 0, 1);
+		discreteSurf = getYesNoParameter(INDENTATION_DISCRETE_SURF_STRING, 0, 1);
+		if(!discreteSurf){
+			printf("Discrete mica representation requires saving mica beads into dcd. Forcing \"showTipSurf\".\n");
+			showTipMica = 1;
+		}
+
+		/*
+		 * Creating updaters and potential
+		 */
+
+		IndentationTipUpdater* tipUpdater;
+		IndentationAminoUpdater* aminoUpdater;
+		IndentationPotential* pot;
+
+		if(showTipMica){
+			aminoUpdater = new IndentationAminoUpdater();
+		}
+		pot = new IndentationPotential();
+		tipUpdater =  new IndentationTipUpdater(pot);
+
+		/*
+		 * Adding the created updaters and potential
+		 */
+
+		updaters[updatersCount] = tipUpdater;
+		updatersCount++;
+
+		if(showTipMica){
+			updaters[updatersCount] = aminoUpdater;
+			updatersCount++;
+		} else {
+			sop.additionalAminosCount = 0;
+		}
+
+		potentials[potentialsCount] = pot;
 		potentialsCount++;
 
-		updaters[updatersCount] = new IndentationTipUpdater(pot);
-		updatersCount++;
-        if (sop.additionalAminos > 0){
-            // Reorder indentationTipUpdater and indentationAminoUpdater
-            // FIXME: this is ugly
-            std::swap(updaters[updatersCount-1], updaters[updatersCount-2]);
-        }
 	}
 }
 
@@ -48,61 +75,55 @@ void createIndentationPotential(){
  */
 IndentationPotential::IndentationPotential(){
 	this->name = "Indentation";
-	this->discreteSurf = getYesNoParameter(INDENTATION_DISCRETE_SURF_STRING, 0, 1);
 
 	printf("Initializing indentation protocol...\n");
-	// Read poteintial from configuration file
+	// Read parameters from configuration file
+
+	// Cantilever parameters
 	getVectorParameter(INDENTATION_CHIP_POSITION_STRING, &hc_indentation.chipCoord.x, &hc_indentation.chipCoord.y, &hc_indentation.chipCoord.z, 0.0, 0.0, 0.0, 0);
 	hc_indentation.chipCoord0 = hc_indentation.chipCoord;
 	getVectorParameter(INDENTATION_TIP_POSITION_STRING, &hc_indentation.tipCoord.x, &hc_indentation.tipCoord.y, &hc_indentation.tipCoord.z,
 			hc_indentation.chipCoord.x, hc_indentation.chipCoord.y, hc_indentation.chipCoord.z, 1);
 	getVectorParameter(INDENTATION_DIRECTION_STRING, &hc_indentation.direction.x, &hc_indentation.direction.y, &hc_indentation.direction.z, 0.0, 0.0, 0.0, 0);
-	getVectorParameter(INDENTATION_SURFACE_R0_STRING, &hc_indentation.micaR0.x, &hc_indentation.micaR0.y, &hc_indentation.micaR0.z, 0.0, 0.0, 0.0, 0);
-	hc_indentation.micaR = hc_indentation.micaR0;
-	getVectorParameter(INDENTATION_SURFACE_N_STRING, &hc_indentation.micaN.x, &hc_indentation.micaN.y, &hc_indentation.micaN.z, 0.0, 0.0, 0.0, 0);
 	hc_indentation.tipRadius = getFloatParameter(INDENTATION_TIP_RADIUS_STRING, 0.0, 0);
 	hc_indentation.cantileverKs = getFloatParameter(INDENTATION_KS_STRING, 0.0, 0);
 	hc_indentation.V = getFloatParameter(INDENTATION_DELTAX_STRING, 0.0, 0);
 	hc_indentation.dx = 0;
+	hc_indentation.tipZeta = getFloatParameter(INDENTATION_TIP_ZETA_STRING, 5000.0, 1);
+	printf("Initial cantilever base coordinates: (%5.2f, %5.2f, %5.2f).\n", hc_indentation.chipCoord.x, hc_indentation.chipCoord.y, hc_indentation.chipCoord.z);
+
+	// Surface parameters
+	this->discreteSurf = getYesNoParameter(INDENTATION_DISCRETE_SURF_STRING, 0, 1);
 	hc_indentation.moveSurface = getYesNoParameter(INDENTATION_MOVE_SURFACE, 0, 1);
+	getVectorParameter(INDENTATION_SURFACE_R0_STRING, &hc_indentation.micaR0.x, &hc_indentation.micaR0.y, &hc_indentation.micaR0.z, 0.0, 0.0, 0.0, 0);
+	hc_indentation.micaR = hc_indentation.micaR0;
+	getVectorParameter(INDENTATION_SURFACE_N_STRING, &hc_indentation.micaN.x, &hc_indentation.micaN.y, &hc_indentation.micaN.z, 0.0, 0.0, 0.0, 0);
 	hc_indentation.fixTransversal = getYesNoParameter(INDENTATION_FIX_TRANSVERSAL,
 			DEFAULT_INDENTATION_FIX_TRANSVERSAL, 1);
-	float tempVar;
-	tempVar = getFloatParameter(INDENTATION_SIGMA_STRING, 1.0, 1);
-	hc_indentation.tipa6 = powf(getFloatParameter(INDENTATION_TIP_SIGMA_STRING, tempVar, 1), 6.0);
-	hc_indentation.surfa6 = powf(getFloatParameter(INDENTATION_SURF_SIGMA_STRING, tempVar, 1), 6.0);
-	tempVar = getFloatParameter(INDENTATION_EL_STRING, 1.0, 1);
-	hc_indentation.tipel = getFloatParameter(INDENTATION_TIP_EL_STRING, tempVar, 1);
-	hc_indentation.surfel = getFloatParameter(INDENTATION_SURF_EL_STRING, tempVar, 1);
+
+	// Tip-amino and surface-amino interactions
+	float tempVar, tipSigma, surfSigma, tipel, surfel;
+
+	tempVar = getFloatParameter(INDENTATION_SIGMA_STRING, 1.0, 1); // If the same sigma is defined for both surface and tip
+	tipSigma = getFloatParameter(INDENTATION_TIP_SIGMA_STRING, tempVar, 1);
+	surfSigma = getFloatParameter(INDENTATION_SURF_SIGMA_STRING, tempVar, 1);
+
+	tempVar = getFloatParameter(INDENTATION_EL_STRING, 1.0, 1); // If the same epsilon is defined for both surface and tip
+	tipel = getFloatParameter(INDENTATION_TIP_EL_STRING, tempVar, 1);
+	surfel = getFloatParameter(INDENTATION_SURF_EL_STRING, tempVar, 1);
 
 	float tipA, tipB, surfA, surfB;
 	tipA = getFloatParameter(INDENTATION_TIP_A, DEFAULT_INDENTATION_TIP_A, 1);
 	tipB = getFloatParameter(INDENTATION_TIP_B, DEFAULT_INDENTATION_TIP_B, 1);
 	surfA = getFloatParameter(INDENTATION_SURFACE_A, DEFAULT_INDENTATION_SURFACE_A, 1);
 	surfB = getFloatParameter(INDENTATION_SURFACE_B, DEFAULT_INDENTATION_SURFACE_B, 1);
-	hc_indentation.tipAprime = 12.0f*hc_indentation.tipel*hc_indentation.tipa6*hc_indentation.tipa6*tipA;
-	hc_indentation.tipBprime = 6.0f*hc_indentation.tipel*hc_indentation.tipa6*tipB;
-	hc_indentation.surfAprime = 12.0f*hc_indentation.surfel*hc_indentation.surfa6*hc_indentation.surfa6*surfA;
-	hc_indentation.surfBprime = 6.0f*hc_indentation.surfel*hc_indentation.surfa6*surfB;
 
-	/*float x = 201;
-	FILE* tempFile = fopen("temp.dat", "w");
-	while(x < 300){
-		float xprime = pow(x - hc_indentation.tipRadius, 6.0);
-		float y = hc_indentation.el*((tipA*hc_indentation.a6*hc_indentation.a6)/(xprime*xprime) + (tipB*hc_indentation.a6)/(xprime));
-		fprintf(tempFile, "%f\t%f\n", x, y);
-		x += 0.1;
-	}
-	fclose(tempFile);
-	exit(-1);*/
+	hc_indentation.tipAprime = 12.0f*tipel*powf(tipSigma, 12.0f)*tipA;
+	hc_indentation.tipBprime = 6.0f*tipel*powf(tipSigma, 6.0f)*tipB;
+	hc_indentation.surfAprime = 12.0f*surfel*powf(surfSigma, 12.0f)*surfA;
+	hc_indentation.surfBprime = 6.0f*surfel*powf(surfSigma, 6.0f)*surfB;
 
-	hc_indentation.tipZeta = getFloatParameter(INDENTATION_TIP_ZETA_STRING, 5000.0, 1);
-	char INDENTATION_filename[100];
-	getMaskedParameter(INDENTATION_filename, INDENTATION_OUTPUT_FILENAME_STRING, DEFAULT_INDENTATION_FILENAME, 1);
-
-	printf("Initial cantilever base coordinates: (%5.2f, %5.2f, %5.2f).\n", hc_indentation.chipCoord.x, hc_indentation.chipCoord.y, hc_indentation.chipCoord.z);
-
-	// Normilize vectors
+	// Normalize vectors
 	float norm = sqrt(hc_indentation.direction.x*hc_indentation.direction.x + hc_indentation.direction.y*hc_indentation.direction.y + hc_indentation.direction.z*hc_indentation.direction.z);
 	hc_indentation.direction.x /= norm;
 	hc_indentation.direction.y /= norm;
@@ -112,27 +133,13 @@ IndentationPotential::IndentationPotential(){
 	hc_indentation.micaN.y /= norm;
 	hc_indentation.micaN.z /= norm;
 
-	// Allocatae memory, copy data to the device
+	// Allocate memory, copy data to the device
 	hc_indentation.h_tipForces = (float4*)calloc(gsop.aminoCount, sizeof(float4));
 	cudaMalloc((void**)&hc_indentation.d_tipForces, gsop.aminoCount*sizeof(float4));
 	cudaMemcpy(hc_indentation.d_tipForces, hc_indentation.h_tipForces, gsop.aminoCount*sizeof(float4), cudaMemcpyHostToDevice);
-	hc_indentation.out = fopen(INDENTATION_filename, "w");
-	hc_indentation.retractionStep = getLongIntegerParameter(INDENTATION_RETRACTION_STEP_STRING, -1, 1);
+
 	checkCUDAError();
 
-	// Add dummy particles to show surface and cantilever in dcd
-	showTipMica = getYesNoParameter(INDENTATION_SHOW_TIP_SURFACE_STRING, 0, 1);
-	if(!this->discreteSurf){
-		printf("Discrete mica representation requires saving mica beads into dcd. Forcing \"showTipSurf\".\n");
-		showTipMica = 1;
-	}
-
-	if(showTipMica){
-		updaters[updatersCount] = new IndentationAminoUpdater();
-		updatersCount++;
-	} else {
-		sop.additionalAminosCount = 0;
-	}
 	if(this->discreteSurf){
 
 		hc_indentation.pairsCutoff2 = getFloatParameter(INDENTATION_PAIRS_CUTOFF_STRING,
@@ -146,7 +153,7 @@ IndentationPotential::IndentationPotential(){
 		for(i = 0; i < hc_indentation.surfaceSize; i++){
 			for(j = 0; j < hc_indentation.surfaceSize; j++){
 				hc_indentation.h_surfacePointsCoord[i*hc_indentation.surfaceSize + j].x =
-						hc_indentation.surfacePointsR0[i*hc_indentation.surfaceSize + j].x;
+						hc_indentation.surfacePointsR0[i*hc_indentation.surfaceSize + j].x; // These are defined in IndentationAminoUpdater initialization
 				hc_indentation.h_surfacePointsCoord[i*hc_indentation.surfaceSize + j].y =
 						hc_indentation.surfacePointsR0[i*hc_indentation.surfaceSize + j].y;
 				hc_indentation.h_surfacePointsCoord[i*hc_indentation.surfaceSize + j].z =
@@ -197,7 +204,6 @@ IndentationPotential::IndentationPotential(){
 		cudaMemcpy(hc_indentation.d_surfacePointsCoord, hc_indentation.h_surfacePointsCoord,
 				hc_indentation.surfaceSize*hc_indentation.surfaceSize*sizeof(float4), cudaMemcpyHostToDevice);
 	}
-	hc_indentation.outputFreq = getIntegerParameter(INDENTATION_OUTPUT_FREQ_STRING, DEFAULT_INDENTATION_OUTPUT_FREQ, 1);
 	cudaMemcpyToSymbol(c_indentation, &hc_indentation, sizeof(hc_indentation), 0, cudaMemcpyHostToDevice);
 
 	if(deviceProp.major == 2){ // TODO: >= 2
@@ -206,30 +212,75 @@ IndentationPotential::IndentationPotential(){
 }
 
 /*
+ * An updater that shifts the cantilever tip or surface
+ */
+IndentationTipUpdater::IndentationTipUpdater(IndentationPotential *indentation) {
+	this->name = "Indentation";
+    this->frequency = gsop.nav;
+    this->indentation = indentation;
+    outputFreq = getIntegerParameter(INDENTATION_OUTPUT_FREQ_STRING, DEFAULT_INDENTATION_OUTPUT_FREQ, 1);
+    chipCoordAv.x = 0.0f;
+	chipCoordAv.y = 0.0f;
+	chipCoordAv.z = 0.0f;
+	tipCoordAv.x = 0.0f;
+	tipCoordAv.y = 0.0f;
+	tipCoordAv.z = 0.0f;
+	fav.x = 0.0f;
+	fav.y = 0.0f;
+	fav.z = 0.0f;
+	fav.w = 0.0f;
+	kDeltaXAv = 0.0f;
+	// Output parameters
+	char INDENTATION_filename[100];
+	getMaskedParameter(INDENTATION_filename, INDENTATION_OUTPUT_FILENAME_STRING, DEFAULT_INDENTATION_FILENAME, 1);
+	this->outputFile = fopen(INDENTATION_filename, "w");
+	this->retractionStep = getLongIntegerParameter(INDENTATION_RETRACTION_STEP_STRING, -1, 1);
+}
+
+/*
  * Create dummy particles, showing grid as a surface and a couple of beads for cantilever
+ * Since this updater saves the information of the tip and surface position it should update after IndentationTipUpdater
+ * Since it creates the surface beads, it should be initialized before IndentationPotential
  */
 IndentationAminoUpdater::IndentationAminoUpdater(){
 	this->name = "AdditionalAminos";
 	this->frequency = getIntegerParameter(OUTPUT_FREQUENCY_STRING, DEFAULT_OUTPUT_FREQUENCY, 1);
 
+	/*
+	 * We do re-read these parameters in indentation potential, though it is used only for the first frame and only
+	 * if IndentationAminoUpdater is not updated before dcd output.
+	 */
+	float3 chipCoord;
+	float3 tipCoord;
+	getVectorParameter(INDENTATION_CHIP_POSITION_STRING, &chipCoord.x, &chipCoord.y, &chipCoord.z, 0.0, 0.0, 0.0, 0);
+	getVectorParameter(INDENTATION_TIP_POSITION_STRING, &tipCoord.x, &tipCoord.y, &tipCoord.z,
+				chipCoord.x, chipCoord.y, chipCoord.z, 1);
+
+	// Generating additional amino-acids to represent cantilever and surface
 	hc_indentation.surfaceSize = getIntegerParameter(INDENTATION_MICA_SIZE_STRING, 51, 1);
 	hc_indentation.surfaceStep = getFloatParameter(INDENTATION_MICA_STEP_STRING, 1.4, 1);
 	sop.additionalAminosCount = 2 + hc_indentation.surfaceSize*hc_indentation.surfaceSize;
 	sop.additionalAminos = (PDBAtom*)calloc(sop.additionalAminosCount, sizeof(PDBAtom));
+
+	// Cantilever base amino acid
 	sop.additionalAminos[0].id = sop.aminoCount;
 	strcpy(sop.additionalAminos[0].resName, "TIP");
 	sop.additionalAminos[0].chain = 'T';
-	sop.additionalAminos[0].x = hc_indentation.chipCoord.x;
-	sop.additionalAminos[0].y = hc_indentation.chipCoord.y;
-	sop.additionalAminos[0].z = hc_indentation.chipCoord.z;
+	sop.additionalAminos[0].x = chipCoord.x;
+	sop.additionalAminos[0].y = chipCoord.y;
+	sop.additionalAminos[0].z = chipCoord.z;
 	sop.additionalAminos[0].resid = 1;
+	// Cantilever tip amino acid
 	sop.additionalAminos[1].id = sop.aminoCount + 1;
 	strcpy(sop.additionalAminos[1].resName, "TIP");
 	sop.additionalAminos[1].chain = 'T';
-	sop.additionalAminos[1].x = hc_indentation.tipCoord.x;
-	sop.additionalAminos[1].y = hc_indentation.tipCoord.y;
-	sop.additionalAminos[1].z = hc_indentation.tipCoord.z;
+	sop.additionalAminos[1].x = tipCoord.x;
+	sop.additionalAminos[1].y = tipCoord.y;
+	sop.additionalAminos[1].z = tipCoord.z;
 	sop.additionalAminos[1].resid = 2;
+
+	// Shifting cantilever base amino for representation purpose
+	// Finding vector, perpendicular to indentation direction
 	float3 r1, r2, n, r0;
 	float3 r;
 	float len;
@@ -247,16 +298,18 @@ IndentationAminoUpdater::IndentationAminoUpdater(){
 		r.y = 0.0f;
 		r.z = 0.0f;
 	}
+	// Shifting cantilever base amino along the found vector
 	len = getFloatParameter(INDENTATION_CANTILEVER_LENGTH, DEFAULT_INDENTATION_CANTILEVER_LENGTH, 1);
 	r.x *= len;
 	r.y *= len;
 	r.z *= len;
 	printf("Cantilever representation vector: (%5.3f, %5.3f, %5.3f)\n", r.x, r.y, r.z);
-	hc_indentation.cantileverVector = r;
+	cantileverVector = r;
 	sop.additionalAminos[0].x += r.x;
 	sop.additionalAminos[0].y += r.y;
 	sop.additionalAminos[0].z += r.z;
 
+	// Generating amino-acids to represent the surface
 	hc_indentation.surfacePointsR0 = (float3*)calloc(hc_indentation.surfaceSize*hc_indentation.surfaceSize,
 			sizeof(float3));
 	n = hc_indentation.micaN;
@@ -301,19 +354,13 @@ IndentationAminoUpdater::IndentationAminoUpdater(){
 			sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].x = r.x;
 			sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].y = r.y;
 			sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].z = r.z;
-			hc_indentation.surfacePointsR0[i*hc_indentation.surfaceSize + j] = r;
+			hc_indentation.surfacePointsR0[i*hc_indentation.surfaceSize + j] = r; // These will use in case discrete surface representation is selected
 		}
 	}
-	hc_indentation.chipCoordAv.x = 0.0f;
-	hc_indentation.chipCoordAv.y = 0.0f;
-	hc_indentation.chipCoordAv.z = 0.0f;
-	hc_indentation.tipCoordAv.x = 0.0f;
-	hc_indentation.tipCoordAv.y = 0.0f;
-	hc_indentation.tipCoordAv.z = 0.0f;
-	hc_indentation.fav.x = 0.0f;
-	hc_indentation.fav.y = 0.0f;
-	hc_indentation.fav.z = 0.0f;
-	hc_indentation.fav.w = 0.0f;
+
+	/*
+	 *  VMD script to connect surface beads (for representation purposes)
+	 */
 	char tempFilename[100];
 	getMaskedParameter(tempFilename, INDENTATION_VMD_CONNECT_SCRIPT, "connect_mica.vmd", 1);
 	FILE* micaConnectFile = fopen(tempFilename, "w");
@@ -357,25 +404,19 @@ void IndentationPotential::compute(){
 	}
 }
 
-IndentationTipUpdater::IndentationTipUpdater(IndentationPotential *indentation) {
-	this->name = "Indentation";
-    this->frequency = nav;
-    this->indentation = indentation;
-}
-
 /*
- * Move cantilever
+ * Move cantilever or surface
  */
 void IndentationTipUpdater::update(){
 	// Change moving direction to switch to retraction
-	if(step == hc_indentation.retractionStep){
-		printf("Starting tip retraction at step %ld.\n", hc_indentation.retractionStep);
+	if(gsop.step == this->retractionStep){
+		printf("Starting tip retraction at step %ld.\n", this->retractionStep);
 		/*hc_indentation.direction.x = -hc_indentation.direction.x;
 		hc_indentation.direction.y = -hc_indentation.direction.y;
 		hc_indentation.direction.z = -hc_indentation.direction.z;*/
 		hc_indentation.V = -hc_indentation.V;
 	}
-	if(step % this->frequency == 0){
+	if(gsop.step % this->frequency == 0){
 		// Copy forces acting onto tip to host memory
 		cudaMemcpy(hc_indentation.h_tipForces, hc_indentation.d_tipForces, gsop.aminoCount*sizeof(float4), cudaMemcpyDeviceToHost);
 		int i;
@@ -395,7 +436,6 @@ void IndentationTipUpdater::update(){
 		f.y /= (float)this->frequency;
 		f.z /= (float)this->frequency;
 		f.w = sqrtf(f.x*f.x + f.y*f.y + f.z*f.z);
-		hc_indentation.tipForce = f;
 		// Move chip or surface
 		hc_indentation.dx += hc_indentation.V;//(step/nav)*hc_indentation.chipV;
 		if(hc_indentation.moveSurface == 1){
@@ -433,16 +473,16 @@ void IndentationTipUpdater::update(){
 		df.z = -f.z + dr.z*hc_indentation.cantileverKs;
 		df.w = sqrtf(df.x*df.x + df.y*df.y + df.z*df.z);
 
-		float mult = ((integrator->h*((float)nav))/(hc_indentation.tipZeta));
+		float mult = ((integrator->h*((float)gsop.nav))/(hc_indentation.tipZeta));
 
 		if(hc_indentation.fixTransversal == 1){
-			float acostheta =
+			float costheta =
 					mult*df.x*hc_indentation.direction.x +
 					mult*df.y*hc_indentation.direction.y +
 					mult*df.z*hc_indentation.direction.z;
-			hc_indentation.tipCoord.x += acostheta*hc_indentation.direction.x;
-			hc_indentation.tipCoord.y += acostheta*hc_indentation.direction.y;
-			hc_indentation.tipCoord.z += acostheta*hc_indentation.direction.z;
+			hc_indentation.tipCoord.x += costheta*hc_indentation.direction.x;
+			hc_indentation.tipCoord.y += costheta*hc_indentation.direction.y;
+			hc_indentation.tipCoord.z += costheta*hc_indentation.direction.z;
 		} else {
 			hc_indentation.tipCoord.x += mult*df.x;//hc_indentationChipCoordX;// + dx*hc_indentation.direction.x;
 			hc_indentation.tipCoord.y += mult*df.y;//hc_indentationChipCoordY;// + dx*hc_indentation.direction.y;
@@ -450,107 +490,86 @@ void IndentationTipUpdater::update(){
 		}
 		// Moving cantilever dummy beads for representation purposes
 
-		hc_indentation.chipCoordAv.x += hc_indentation.chipCoord.x;
-		hc_indentation.chipCoordAv.y += hc_indentation.chipCoord.y;
-		hc_indentation.chipCoordAv.z += hc_indentation.chipCoord.z;
-		hc_indentation.tipCoordAv.x += hc_indentation.tipCoord.x;
-		hc_indentation.tipCoordAv.y += hc_indentation.tipCoord.y;
-		hc_indentation.tipCoordAv.z += hc_indentation.tipCoord.z;
-		hc_indentation.fav.x += f.x;
-		hc_indentation.fav.y += f.y;
-		hc_indentation.fav.z += f.z;
-		hc_indentation.fav.w += f.w;
-		hc_indentation.kDeltaXAv += dr.w*hc_indentation.cantileverKs;
+		chipCoordAv.x += hc_indentation.chipCoord.x;
+		chipCoordAv.y += hc_indentation.chipCoord.y;
+		chipCoordAv.z += hc_indentation.chipCoord.z;
+		tipCoordAv.x += hc_indentation.tipCoord.x;
+		tipCoordAv.y += hc_indentation.tipCoord.y;
+		tipCoordAv.z += hc_indentation.tipCoord.z;
+		fav.x += f.x;
+		fav.y += f.y;
+		fav.z += f.z;
+		fav.w += f.w;
+		kDeltaXAv += dr.w*hc_indentation.cantileverKs;
 		// Output the resulting data on the screen and into the file
-		if(step % hc_indentation.outputFreq == 0){
-			int factor = hc_indentation.outputFreq/this->frequency;
-			hc_indentation.chipCoordAv.x /= factor;
-			hc_indentation.chipCoordAv.y /= factor;
-			hc_indentation.chipCoordAv.z /= factor;
-			hc_indentation.tipCoordAv.x /= factor;
-			hc_indentation.tipCoordAv.y /= factor;
-			hc_indentation.tipCoordAv.z /= factor;
-			hc_indentation.fav.x /= factor;
-			hc_indentation.fav.y /= factor;
-			hc_indentation.fav.z /= factor;
-			hc_indentation.fav.w /= factor;
-			hc_indentation.kDeltaXAv /= factor;
-			float fmod = sqrtf(hc_indentation.fav.x*hc_indentation.fav.x + hc_indentation.fav.y*hc_indentation.fav.y + hc_indentation.fav.z*hc_indentation.fav.z);
+		if(gsop.step % outputFreq == 0){
+			int factor = outputFreq/this->frequency;
+			chipCoordAv.x /= factor;
+			chipCoordAv.y /= factor;
+			chipCoordAv.z /= factor;
+			tipCoordAv.x /= factor;
+			tipCoordAv.y /= factor;
+			tipCoordAv.z /= factor;
+			fav.x /= factor;
+			fav.y /= factor;
+			fav.z /= factor;
+			fav.w /= factor;
+			kDeltaXAv /= factor;
+			float fmod = sqrtf(fav.x*fav.x + fav.y*fav.y + fav.z*fav.z);
 			float dxav = hc_indentation.dx - 0.5*factor*hc_indentation.V;
-			printf("Indentation: %ld\t%5.2f\t%5.2f\t%5.2f\n", step, dxav, fmod, hc_indentation.kDeltaXAv);
-			fprintf(hc_indentation.out, "%ld\t%8.5f\t"
+			printf("Indentation: %ld\t%5.2f\t%5.2f\t%5.2f\n", gsop.step, dxav, fmod, kDeltaXAv);
+			fprintf(this->outputFile, "%ld\t%8.5f\t"
 					"%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t"
 					"%8.5f\t%8.5f\t%8.5f\t"
 					"%8.5f\t%8.5f\t%8.5f\n",
-							step, hc_indentation.dx,
-							hc_indentation.fav.w, fmod, abs(dr.w*hc_indentation.cantileverKs), hc_indentation.kDeltaXAv, hc_indentation.fav.x, hc_indentation.fav.y, hc_indentation.fav.z,
+							gsop.step, hc_indentation.dx,
+							fav.w, fmod, abs(dr.w*hc_indentation.cantileverKs), kDeltaXAv, fav.x, fav.y, fav.z,
 							hc_indentation.tipCoord.x, hc_indentation.tipCoord.y, hc_indentation.tipCoord.z,
 							hc_indentation.chipCoord.x, hc_indentation.chipCoord.y, hc_indentation.chipCoord.z);
-			fflush(hc_indentation.out);
-			hc_indentation.chipCoordAv.x = 0.0f;
-			hc_indentation.chipCoordAv.y = 0.0f;
-			hc_indentation.chipCoordAv.z = 0.0f;
-			hc_indentation.tipCoordAv.x = 0.0f;
-			hc_indentation.tipCoordAv.y = 0.0f;
-			hc_indentation.tipCoordAv.z = 0.0f;
-			hc_indentation.fav.x = 0.0f;
-			hc_indentation.fav.y = 0.0f;
-			hc_indentation.fav.z = 0.0f;
-			hc_indentation.fav.w = 0.0f;
-			hc_indentation.kDeltaXAv = 0.0f;
+			fflush(this->outputFile);
+			chipCoordAv.x = 0.0f;
+			chipCoordAv.y = 0.0f;
+			chipCoordAv.z = 0.0f;
+			tipCoordAv.x = 0.0f;
+			tipCoordAv.y = 0.0f;
+			tipCoordAv.z = 0.0f;
+			fav.x = 0.0f;
+			fav.y = 0.0f;
+			fav.z = 0.0f;
+			fav.w = 0.0f;
+			kDeltaXAv = 0.0f;
 		}
 		// Update device data
 		cudaMemcpyToSymbol(c_indentation, &hc_indentation, sizeof(IndentationConstant), 0, cudaMemcpyHostToDevice);
 	}
 }
 
+/*
+ * Update cantilever tip/surface position
+ */
 void IndentationAminoUpdater::update(){
-	if(step % this->frequency == 0){
-		if(showTipMica){
-			int i;
-			sop.additionalAminos[1].x = hc_indentation.tipCoord.x;
-			sop.additionalAminos[1].y = hc_indentation.tipCoord.y;
-			sop.additionalAminos[1].z = hc_indentation.tipCoord.z;
-			/*if(hc_indentation.moveSurface == 1){
-					float displ = hc_indentation.surfaceStep;
-					for(i = 0; i < hc_indentation.surfaceSize; i++){
-						for(j = 0; j < hc_indentation.surfaceSize; j++){
-							int i1 = i-hc_indentation.surfaceSize/2;
-							int i2 = j-hc_indentation.surfaceSize/2;
-							sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].x =
-									hc_indentation.micaR.x + i1*displ*r1.x + i2*displ*r2.x;
-							sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].y =
-									hc_indentation.micaR.y + i1*displ*r1.y + i2*displ*r2.y;
-							sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].z =
-									hc_indentation.micaR.z + i1*displ*r1.z + i2*displ*r2.z;
-						}
-					}
-				}*/
+	if(gsop.step % this->frequency == 0){
+		int i;
+		sop.additionalAminos[1].x = hc_indentation.tipCoord.x;
+		sop.additionalAminos[1].y = hc_indentation.tipCoord.y;
+		sop.additionalAminos[1].z = hc_indentation.tipCoord.z;
 
-
-			if(hc_indentation.moveSurface == 1){
-				for(i = 0; i < hc_indentation.surfaceBeadsCount; i++){
-						/*float mult = hc_indentation.V*(this->frequency/hc_indentationUpdater.frequency);
-						sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].x += mult*hc_indentation.direction.x;
-						sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].y += mult*hc_indentation.direction.y;
-						sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].z += mult*hc_indentation.direction.z;*/
-
-						sop.additionalAminos[2+i].x =
-								hc_indentation.surfacePointsR0[i].x +
-								hc_indentation.dx*hc_indentation.direction.x;
-						sop.additionalAminos[2+i].y =
-								hc_indentation.surfacePointsR0[i].y +
-								hc_indentation.dx*hc_indentation.direction.y;
-						sop.additionalAminos[2+i].z =
-								hc_indentation.surfacePointsR0[i].z +
-								hc_indentation.dx*hc_indentation.direction.z;
-
-				}
-			} else {
-				sop.additionalAminos[0].x = hc_indentation.chipCoord.x + hc_indentation.cantileverVector.x;
-				sop.additionalAminos[0].y = hc_indentation.chipCoord.y + hc_indentation.cantileverVector.y;
-				sop.additionalAminos[0].z = hc_indentation.chipCoord.z + hc_indentation.cantileverVector.z;
+		if(hc_indentation.moveSurface == 1){
+			for(i = 0; i < hc_indentation.surfaceBeadsCount; i++){
+					sop.additionalAminos[2+i].x =
+							hc_indentation.surfacePointsR0[i].x +
+							hc_indentation.dx*hc_indentation.direction.x;
+					sop.additionalAminos[2+i].y =
+							hc_indentation.surfacePointsR0[i].y +
+							hc_indentation.dx*hc_indentation.direction.y;
+					sop.additionalAminos[2+i].z =
+							hc_indentation.surfacePointsR0[i].z +
+							hc_indentation.dx*hc_indentation.direction.z;
 			}
+		} else {
+			sop.additionalAminos[0].x = hc_indentation.chipCoord.x + cantileverVector.x;
+			sop.additionalAminos[0].y = hc_indentation.chipCoord.y + cantileverVector.y;
+			sop.additionalAminos[0].z = hc_indentation.chipCoord.z + cantileverVector.z;
 		}
 	}
 }

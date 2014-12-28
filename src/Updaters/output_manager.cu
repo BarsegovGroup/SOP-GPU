@@ -5,9 +5,7 @@
  *      Author: zhmurov
  */
 
-#include "../def_param.h"
 #include "../gsop.h"
-#include "../param_initializer.h"
 
 #include "../IO/configreader.h"
 #include "../Util/mystl.h"
@@ -27,6 +25,11 @@ void createOutputManager(){
 OutputManager::OutputManager(){
     FILE *dat_file;
 	printf("Initializing output manager...\n");
+
+	printf("Starting timer...\n");
+	initialTime = time(NULL);
+	lastTime = time(NULL); // Reset timer
+
 	this->name = "DAT output";
 	this->frequency = getIntegerParameter(OUTPUT_FREQUENCY_STRING, DEFAULT_OUTPUT_FREQUENCY, 1);
 
@@ -77,7 +80,7 @@ OutputManager::~OutputManager(){
 }
 
 void OutputManager::update(){
-	if(step % this->frequency == 0){
+	if(gsop.step % this->frequency == 0){
 
 		// Compute all values for the output
 		int p, id;
@@ -101,7 +104,7 @@ void OutputManager::update(){
 		} else {
 			sprintf(runstring, "%d runs", gsop.Ntr);
 		}
-		printf("Writing output at step %ld of %ld. %s on %d [%s].\n", step, numsteps, runstring, gsop.deviceId, deviceProp.name);
+		printf("Writing output at step %ld of %ld. %s on %d [%s].\n", gsop.step, gsop.numsteps, runstring, gsop.deviceId, deviceProp.name);
 		this->printDataTitleToScreen();
 
 		// Output for all trajectories
@@ -124,8 +127,21 @@ void OutputManager::update(){
 			this->printDataToFile(dat_file, traj);
 			fclose(dat_file);
 		}
+		this->printTimeEstimates();
 		printf("Done writing output.\n");
     }
+	if(gsop.step % gsop.nav == 0){
+		this->resetTemperatures();
+	}
+}
+
+/*
+ *
+ */
+void OutputManager::resetTemperatures(){
+	const int blockSize = gsop.blockSize;
+	const int blockNum = gsop.aminoCount/blockSize + 1;
+	reset_temperature<<<blockNum, blockSize>>>();
 }
 
 
@@ -142,12 +158,9 @@ void OutputManager::computeTemperatures(){
 		for(i = 0; i < sop.aminoCount; i++){
 			tempav += gsop.h_T[traj*sop.aminoCount + i];
 		}
-		tempav /= ((double)(sop.aminoCount*this->frequency));
+		tempav /= ((double)(sop.aminoCount*gsop.nav));
 		this->temperatures[traj] = tempav;
 	}
-    const int blockSize = gsop.blockSize;
-    const int blockNum = gsop.aminoCount/blockSize + 1;
-    reset_temperature<<<blockNum, blockSize>>>();
 }
 
 /*
@@ -215,6 +228,28 @@ void OutputManager::computeTEAeps(int traj){
 }
 
 /*
+ * Computation timings
+ */
+void OutputManager::printTimeEstimates(){
+	long long int timer = time(NULL) - initialTime;
+	int days = timer / (3600*24);
+	int hours = timer / 3600 - days * 24;
+	int minutes = timer / 60 - hours * 60 - days * 24 * 60;
+	int seconds = timer - hours * 3600 - days * 24 * 3600 - minutes * 60;
+	printf("Computation time: %dd %dh %dm %ds (%f steps/second current, %f steps/second overall)\n", days, hours, minutes, seconds,
+			((double)this->frequency)/(difftime(time(NULL), lastTime)),
+			((double)gsop.step)/((double)timer));
+	if(gsop.step != 0){
+		timer = ((time(NULL)-initialTime) * (gsop.numsteps - gsop.step)) / gsop.step;
+		days = timer / (3600*24);
+		hours = timer / 3600 - days * 24;
+		minutes = timer / 60 - hours * 60 - days * 24 * 60;
+		printf("Estimated time left: %dd %dh %dm\n", days, hours, minutes);
+	}
+	lastTime = time(NULL); // Timer stop-line
+}
+
+/*
  * Print energy titles to the standard output
  */
 void OutputManager::printDataTitleToScreen() const{
@@ -250,7 +285,7 @@ void OutputManager::printDataToScreen(int traj) const{
 	int p, id;
 	printf("%*d%*ld%*f",
 			this->outputWidth, traj + gsop.firstrun,
-			this->outputWidth, step,
+			this->outputWidth, gsop.step,
 			this->outputWidth, this->temperatures[traj]);
 
 	double total = 0.0;
@@ -312,7 +347,7 @@ void OutputManager::printDataLdotsToScreen() const{
  */
 void OutputManager::printDataToFile(FILE *dat_file, int traj) const{
 
-	fprintf(dat_file, "%12ld\t%8.5f\t", step, this->temperatures[traj]);
+	fprintf(dat_file, "%12ld\t%8.5f\t", gsop.step, this->temperatures[traj]);
 
 	double total = 0.0;
 	int p, id;

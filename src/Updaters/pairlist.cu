@@ -98,7 +98,7 @@ PairList::~PairList(){
 }
 
 void PairList::update(){
-	if(step % this->frequency == 0){
+	if(gsop.step % this->frequency == 0){
 		//printf("Generating new pairlist...");
 		generate_pairs<<<this->blockNum, this->blockSize>>>();
 		cudaDeviceSynchronize();

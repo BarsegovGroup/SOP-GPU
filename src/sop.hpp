@@ -5,8 +5,10 @@
  *      Author: zhmurov
  */
 
-#include "def_param.h"
 #include <string.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "IO/pdbio.h"
 #include "IO/topio.h"
 

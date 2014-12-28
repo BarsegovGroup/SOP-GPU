@@ -6,8 +6,6 @@
  */
 
 #include "gsop.cuh"
-#include "def_param.h"
-#include "param_initializer.h"
 
 #include "IO/configreader.h"
 #include "IO/topio.h"
@@ -122,7 +120,7 @@ void runGPU(){
 	int i, j, p, u;
 
 	// Leave internal loop only when updater execution is needed (most frequent updater)
-	int stride = nav;
+	int stride = gsop.nav;
 	for(u = 0; u < updatersCount; u ++){
 		if(updaters[u]->frequency < stride){
 			stride = updaters[u]->frequency;
@@ -134,7 +132,7 @@ void runGPU(){
     updaterByName("Pairlist")->update();
 
 	// External loop
-	for(i = step/stride; i <= numsteps/stride; i++){
+	for(i = gsop.step/stride; i <= gsop.numsteps/stride; i++){
 		// Run all updaters
 		for(u = 0; u < updatersCount; u++){
 			updaters[u]->update();
@@ -150,7 +148,7 @@ void runGPU(){
 		}
 
 		//cudaMemcpy(gsop.h_coord, gsop.d_coord, size, cudaMemcpyDeviceToHost);
-		step += stride;
+		gsop.step += stride;
 
 		checkCUDAError();
 	}
@@ -185,9 +183,9 @@ void copyCoordinates(){
 }
 
 void copyCoordDeviceToHost(){
-	if(step != lastStepCoordCopied){
+	if(gsop.step != lastStepCoordCopied){
 		cudaMemcpy(gsop.h_coord, gsop.d_coord, gsop.aminoCount*sizeof(float4), cudaMemcpyDeviceToHost);
-		lastStepCoordCopied = step;
+		lastStepCoordCopied = gsop.step;
 	}
 }
 

@@ -29,7 +29,7 @@ void createPullingPotential(){
 
 PullingUpdater::PullingUpdater(PullingPotential *pulling){
 	this->name = "Pulling";
-    this->frequency = getIntegerParameter(PULLING_FREQ, nav, 1);
+    this->frequency = getIntegerParameter(PULLING_FREQ, gsop.nav, 1);
     this->pulling = pulling;
 }
 
@@ -172,7 +172,7 @@ void PullingPotential::updateForces(float xt){
 
 void PullingPotential::savePullingData(){
     int traj;
-	if(step % 100000 == 0){
+	if(gsop.step % 100000 == 0){
 		printf("'Cantilever chip' coordinates for run #%d: %f, %f, %f\n",
 				gsop.firstrun, this->cantCoord[0].x, this->cantCoord[0].y, this->cantCoord[0].z);
 		printf("'Cantilever tip' coordinates for run #%d: %f, %f, %f\n",
@@ -187,7 +187,7 @@ void PullingPotential::savePullingData(){
         float f = dot(this->extForce[traj] , this->pullVector[traj]);
 
 		fprintf(pullFile, "%12ld\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\n",
-				step, endToEnd, endToEnd_x, f,
+				gsop.step, endToEnd, endToEnd_x, f,
 				this->extForce[traj].x, this->extForce[traj].y, this->extForce[traj].z);
 
 		fclose(pullFile);
@@ -202,9 +202,9 @@ void PullingPotential::updateParametersOnGPU(){
 }
 
 void PullingUpdater::update(){
-    float xt = pulling->deltax*(step / this->frequency);
+    float xt = pulling->deltax*(gsop.step / this->frequency);
     pulling->updateForces(xt);
-	if(step % this->frequency == 0){
+	if(gsop.step % this->frequency == 0){
         pulling->savePullingData();
 	}
 }
