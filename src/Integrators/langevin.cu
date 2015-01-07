@@ -56,6 +56,7 @@ void LangevinIntegrator::updateParametersOnGPU(){
     hc_langevin.hOverZeta = this->hOverZeta;
     hc_langevin.tempNorm = this->tempNorm;
 	cudaMemcpyToSymbol(c_langevin, &hc_langevin, sizeof(LangevinConstant), 0, cudaMemcpyHostToDevice);
+    checkCUDAError();
 }
 
 LangevinIntegrator::~LangevinIntegrator(){

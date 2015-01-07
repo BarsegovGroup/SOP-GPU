@@ -70,7 +70,7 @@ public:
 		return 0;
 	}
 
-	virtual float* computeEnergy(int id){
+	virtual float* computeEnergy(int id){ // TODO: make const
 		DIE("No energy computation is implemented for this potential");
 		return NULL;
 	}

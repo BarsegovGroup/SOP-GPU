@@ -363,7 +363,7 @@ IndentationAminoUpdater::IndentationAminoUpdater(){
 	 */
 	char tempFilename[100];
 	getMaskedParameter(tempFilename, INDENTATION_VMD_CONNECT_SCRIPT, "connect_mica.vmd", 1);
-	FILE* micaConnectFile = fopen(tempFilename, "w");
+	FILE* micaConnectFile = safe_fopen(tempFilename, "w");
 	printf("Dumping VMD script to connect surface elements into '%s'.\n", tempFilename);
 	fprintf(micaConnectFile, "set sel [atomselect top \"index %d\"]\n", gsop.aminoCount);
 	fprintf(micaConnectFile, "set bonds {%d}\n", gsop.aminoCount + 1);

@@ -115,7 +115,7 @@ PullingPlanePotential::PullingPlanePotential(){
 	char trajnum[10];
 	sprintf(trajnum, "%d", gsop.firstrun);
 	replaceString(pullingPlaneFilename, tmpstr, trajnum, "<run>");
-	pullingPlaneFile = fopen(pullingPlaneFilename, "w");
+	pullingPlaneFile = safe_fopen(pullingPlaneFilename, "w");
 	fclose(pullingPlaneFile);
 	printf("PullingPlane data will be saved in '%s'.\n", pullingPlaneFilename);
 	
@@ -123,7 +123,7 @@ PullingPlanePotential::PullingPlanePotential(){
 		cudaFuncSetCacheConfig(pullingPlane_kernel, cudaFuncCachePreferL1);
 	}
 
-    this->blockSize = getIntegerParameter(COVALENT_BLOCK_SIZE_STRING, gsop.blockSize, 1);
+    this->blockSize = gsop.blockSize;
 	this->blockNum = gsop.aminoCount/this->blockSize + 1;
 
 	printf("Done initializing pulling plane protocol...\n");
@@ -169,7 +169,7 @@ void PullingPlaneUpdater::update(){
 			printf("Plane coordinates for run #%d: %f, %f, %f\n",
 					gsop.firstrun, pullingPlane->planeCoord.x, pullingPlane->planeCoord.y, pullingPlane->planeCoord.z);
 		}
-        pullingPlaneFile = fopen(pullingPlaneFilename, "a");
+        pullingPlaneFile = safe_fopen(pullingPlaneFilename, "a");
         float3 extForce = make_float3(0.f, 0.f, 0.f);
         for (j = 0; j < gsop.aminoCount; j++){
             extForce.x += pullingPlane->h_extForces[j].x;

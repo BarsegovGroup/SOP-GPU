@@ -42,7 +42,7 @@ PairsPotential::PairsPotential(){
     this->updateParametersOnGPU();
 	printf("done.\n");
 
-	if(deviceProp.major == 2){ // TODO: >= 2
+	if(deviceProp.major == 2){ // TODO: >= 2 // TODO: do we really need it?
 		cudaFuncSetCacheConfig(pairs_kernel, cudaFuncCachePreferL1);
 		cudaFuncSetCacheConfig(pairsEnergy_kernel, cudaFuncCachePreferL1);
 	}
@@ -87,7 +87,7 @@ float PairsPotential::getEnergy(int traj, int id){
 	if(traj < gsop.Ntr && id == 0){
 		return this->energies[traj];
 	} else {
-		DIE("Either trajectory or energy index is out of boundary");
+		DIE("Either trajectory or energy index is out of bounds");
 		return 0.0f;
 	}
 }

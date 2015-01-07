@@ -38,44 +38,40 @@ void PDB::read(const char* filename){
 	int ss_count = 0, atoms_count = 0;
 	char buffer[BUF_SIZE];
 	FILE* file = safe_fopen(filename, "r");
-	if ( file != NULL ){
-		while(fgets(buffer, BUF_SIZE, file) != NULL){
-			if(strncmp(buffer,"SSBOND",6) == 0){
-				ss_count++;
-			}
-			if(strncmp(buffer, "ATOM", 4) == 0){
-				atoms_count++;
-			}
+	while(fgets(buffer, BUF_SIZE, file) != NULL){
+		if(strncmp(buffer,"SSBOND",6) == 0){
+			ss_count++;
 		}
-		printf("Found %d atoms.\n", atoms_count);
-
-		this->atomCount = atoms_count;
-		this->ssCount = ss_count;
-		this->atoms = (PDBAtom*)malloc(atoms_count*sizeof(PDBAtom));
-		this->ssbonds = (PDBSSBond*)malloc(ss_count*sizeof(PDBSSBond));
-
-		int current_atom = 0;
-		int current_ss = 0;
-
-		rewind(file);
-
-		while(fgets(buffer, BUF_SIZE, file) != NULL){
-			char* pch = strtok(buffer, " ");
-			if(strcmp(pch, "SSBOND") == 0){
-				this->ssbonds[current_ss].parse(buffer);
-				current_ss++;
-			}
-			if(strcmp(pch, "ATOM") == 0){
-                this->atoms[current_atom].parse(buffer);
-				current_atom ++;
-			}
-
+		if(strncmp(buffer, "ATOM", 4) == 0){
+			atoms_count++;
 		}
+	}
+	printf("Found %d atoms.\n", atoms_count);
+
+	this->atomCount = atoms_count;
+	this->ssCount = ss_count;
+	this->atoms = (PDBAtom*)malloc(atoms_count*sizeof(PDBAtom));
+	this->ssbonds = (PDBSSBond*)malloc(ss_count*sizeof(PDBSSBond));
+
+	int current_atom = 0;
+	int current_ss = 0;
+
+	rewind(file);
+
+	while(fgets(buffer, BUF_SIZE, file) != NULL){
+		char* pch = strtok(buffer, " ");
+		if(strcmp(pch, "SSBOND") == 0){
+			this->ssbonds[current_ss].parse(buffer);
+			current_ss++;
+		}
+		if(strcmp(pch, "ATOM") == 0){
+            this->atoms[current_atom].parse(buffer);
+			current_atom ++;
+		}
+
+	}
 	printf("Done reading '%s'.\n", filename);
 	fclose(file);
-	} else {
-        DIE("Error opening '%s': %s", filename, strerror(errno));
-	}
 }
 
 /*
@@ -196,7 +192,7 @@ void PDBSSBond::parse(const char* line){
 
 
 void savePDB(const char* filename, const SOP& sop){
-	FILE* file = fopen(filename, "w");
+	FILE* file = safe_fopen(filename, "w");
 	int i;
 	for(i = 0; i < sop.aminoCount; i++){
 		fprintf(file, "ATOM %6d  CA  %3s %c%4d    %8.3f%8.3f%8.3f%6.2f%6.2f\n",
@@ -354,7 +350,7 @@ void PDBAtom::fprint(FILE* file) const {
 void readCoord(const char* filename, SOP& sop){
 	//printf("Reading coordinates from '%s'.\n", filename);
 	char buffer[BUF_SIZE+1];
-	FILE* file = fopen(filename, "r");
+	FILE* file = safe_fopen(filename, "r");
 	if(file == NULL){
 		printf("ERROR: Coordinates file %s can not be found.\n", filename);
 		exit(-1);
