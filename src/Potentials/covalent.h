@@ -8,14 +8,11 @@
 #ifndef COVALENT_CUH_
 #define COVALENT_CUH_
 
-#define COVALENT_KS_STRING 			"kspring_cov"
-#define COVALENT_R_LIMIT_STRING		"R_limit"
-#define COVALENT_BLOCK_SIZE_STRING	"block_size_covalent"
-#define MAX_COVALENT_STRING			"max_covalent" //Maximum number of covalent bonds per particle
+#include "../Util/parameters.h"
 
-#define DEFAULT_COVALENT_KS			20.0f // Default value for Ks (in kcal/mol)
-#define DEFAULT_COVALENT_R_LIMIT	2.0f // Default value for Rc (in A)
-#define DEFAULT_MAX_COVALENT		8 // Default maximum of covalent bonds per particle
+PARAMETER(kspring_cov, float, 20.0f, "kcal/mol", "Covalent spring constant (FENE)")
+PARAMETER(R_limit, float, 2.0f, "A", "FENE parameter")
+PARAMETER(max_covalent, int, 8, "", "Max number of covalent bonds per particle")
 
 /*
  * Data structure for covalent bond on GPU (int for map + float for r0)

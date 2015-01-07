@@ -7,7 +7,6 @@
 
 #include "../gsop.h"
 
-#include "../IO/configreader.h"
 #include "../Util/mystl.h"
 #include "../Util/wrapper.h"
 #include <string.h>
@@ -32,25 +31,25 @@ OutputManager::OutputManager(){
 	lastTime = time(NULL); // Reset timer
 
 	this->name = "DAT output";
-	this->frequency = getIntegerParameter(OUTPUT_FREQUENCY_STRING, DEFAULT_OUTPUT_FREQUENCY, 1);
+	this->frequency = parameters::outputtiming.get();
 
 	// Parameters for std out
-	this->outputWidth = getIntegerParameter(OUTPUT_DATA_WIDTH_STRING, DEFAULT_OUTPUT_DATA_WIDTH, 1);
-	this->printRuns = getIntegerParameter(OUTPUT_PRINT_RUNS_STRING, DEFAULT_OUTPUT_PRINT_RUNS, 1);
+	this->outputWidth = parameters::outputcolwidth.get();
+	this->printRuns = parameters::printruns.get();
 
 	// If the gyration radius is needed
-	this->computeRgFlag = getYesNoParameter(OUTPUT_COMPUTE_RG_STRING, DEFAULT_OUTPUT_COMPUTE_RG, 1);
+	this->computeRgFlag = parameters::computeRg.get();
 
 	// Parameters to define native contacts
-	this->R_limit = reinterpret_cast<CovalentPotential*>(potentialByName("Covalent"))->R_limit;
-	this->R_limit_bond = reinterpret_cast<NativePotential*>(potentialByName("Native"))->R_limit_bond;
+	this->R_limit = parameters::R_limit.get();
+	this->R_limit_bond = parameters::R_limit_bond.get();
 
 	// Deprecated 'mode capsid' (if defined, the gyration radius is not computed due to the performance issues).
 	char modeString[100];
 	getParameter(modeString, "mode", "", 1);
 	if(strcmp(modeString, "capsid") == 0){
 		mode = MODE_CAPSID;
-		printf("WARNING: 'mode capsid' is deprecated. Use '%s' parameter to turn the Rg computation on/off.\n", OUTPUT_COMPUTE_RG_STRING);
+		printf("WARNING: 'mode capsid' is deprecated. Use '%s' parameter to turn the Rg computation on/off.\n", parameters::computeRg.name().c_str());
 		this->computeRgFlag = false;
 	} else {
 		mode = 0;
@@ -58,7 +57,7 @@ OutputManager::OutputManager(){
 
 	// Preparing files
 	int traj;
-    std::string dat_filename = getMaskedParameterAs<std::string>(OUTPUT_FILENAME_STRING, DEFAULT_OUTPUT_FILENAME);
+    std::string dat_filename = parameters::outputname.get();
 	dat_filenames.resize(gsop.Ntr);
 	for(traj = 0; traj < gsop.Ntr; traj++){
         dat_filenames[traj] = string_replace(dat_filename, "<run>", traj+gsop.firstrun);

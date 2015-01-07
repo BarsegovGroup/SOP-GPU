@@ -244,7 +244,7 @@ IndentationTipUpdater::IndentationTipUpdater(IndentationPotential *indentation) 
  */
 IndentationAminoUpdater::IndentationAminoUpdater(){
 	this->name = "AdditionalAminos";
-	this->frequency = getIntegerParameter(OUTPUT_FREQUENCY_STRING, DEFAULT_OUTPUT_FREQUENCY, 1);
+	this->frequency = parameters::outputtiming.get();
 
 	/*
 	 * We do re-read these parameters in indentation potential, though it is used only for the first frame and only

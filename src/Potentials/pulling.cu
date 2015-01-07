@@ -5,7 +5,6 @@
  *      Author: zhmurov
  */
 #include "../gsop.cuh"
-#include "../IO/configreader.h"
 #include "../Util/mystl.h"
 #include "../Util/wrapper.h"
 #include "../Util/vector_helpers.h"
@@ -14,14 +13,14 @@
 #include "pulling_kernel.cu"
 
 void createPullingPotential(){
-	if(gsop.pullingOn == 1 || getYesNoParameter(PULLING_ON_STRING, 0, 1) == 1){
+	if(gsop.pullingOn == 1 || parameters::pulling.get()){
 		gsop.pullingOn = 1;
 
         PullingPotential *pot;
 		potentials[potentialsCount] = pot = new PullingPotential();
         potentialsCount++;
 
-		if(getFloatParameter(PULLING_DELTAX_STRING, 0, 1) != 0){
+		if(parameters::deltax.get() != 0){
 			updaters[updatersCount] = new PullingUpdater(pot);
 			updatersCount++;
 		}
@@ -30,7 +29,7 @@ void createPullingPotential(){
 
 PullingUpdater::PullingUpdater(PullingPotential *pulling){
 	this->name = "Pulling";
-    this->frequency = getIntegerParameter(PULLING_FREQ, gsop.nav, 1);
+    this->frequency = getIntegerParameter(PULLING_FREQ, gsop.nav, 1); // TODO: nav!!
     this->pulling = pulling;
 }
 
@@ -45,14 +44,15 @@ PullingPotential::PullingPotential(){
 	this->h_extForces = (float4*)calloc(gsop.aminoCount, sizeof(float4));
 	cudaMalloc((void**)&this->d_extForces, gsop.aminoCount*sizeof(float4));
 
-	this->deltax = getFloatParameter(PULLING_DELTAX_STRING, 0, 1);
-	this->Ks = getFloatParameter(PULLING_KS_STRING, DEFAULT_PULLING_KS, 1);
-	this->fconst = getFloatParameter(PULLING_FCONST_STRING, 0, 1);
+	this->deltax = parameters::deltax.get();
+	this->Ks = parameters::k_trans.get();
+	this->fconst = parameters::fconst.get();
 
 	if(this->deltax == 0 && this->fconst == 0){
 		DIE("ERROR: Either 'deltax' or 'fconst' parameter should be specified to initiate pulling\n");
 	}
 
+    // TODO: Use getIntegerArrayParamter here
 	this->fixedCount = getIntegerParameter(PULLING_FIXED_COUNT_STRING, 0, 0);
 	this->fixed = (int*)malloc(this->fixedCount*sizeof(int));
 	this->pulledCount = getIntegerParameter(PULLING_PULLED_COUNT_STRING, 0, 0);
@@ -70,22 +70,21 @@ PullingPotential::PullingPotential(){
 		printf("Pulling resid %d.\n", this->pulled[i]);
 	}
 
-	char pullDirection[30];
-	getMaskedParameter(pullDirection, PULLING_DIRECTION_STRING, DEFAULT_PULLING_DIRECTION, 1);
+    std::string pullDirection = parameters::pullDirection.get();
 	float3 pullVector;
-	if(strcmp(pullDirection, PULLING_DIRECTION_VECTOR_STRING) == 0){
-		this->fixedEnd = getIntegerParameter(PULLING_FIXED_END_STRING, 1, 1);
-		this->pulledEnd = getIntegerParameter(PULLING_PULLED_END_STRING, 2, 1);
-		getVectorParameter(PULLING_VECTOR_STRING, &pullVector.x, &pullVector.y, &pullVector.z, 0, 0, 0, 0);
+	if(pullDirection == "vector"){
+		this->fixedEnd = parameters::fixedEnd.get();
+		this->pulledEnd = parameters::pulledEnd.get();
+        pullVector = parameters::pullVector.get();
 		for(traj = 0; traj < gsop.Ntr; traj++){
 			this->pullVector[traj] = pullVector;
 			this->cantCoord0[traj] = make_float3(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd]);
 			this->cantCoord[traj]  = make_float3(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd]);
 		}
 		printf("Pulling in direction of vector (%f, %f, %f).\n", pullVector.x, pullVector.y, pullVector.z);
-	} else if(strcmp(pullDirection, PULLING_DIRECTION_ENDTOEND_STRING) == 0){
-		this->fixedEnd = getIntegerParameter(PULLING_FIXED_END_STRING, 0, 0);
-		this->pulledEnd = getIntegerParameter(PULLING_PULLED_END_STRING, 0, 0);
+	} else if(pullDirection == "endToEnd"){
+		this->fixedEnd = parameters::fixedEnd.get();
+		this->pulledEnd = parameters::pulledEnd.get();
 		for(traj = 0; traj < gsop.Ntr; traj++){
 			this->pullVector[traj] = make_float3(
                     gsop.h_coord[traj*sop.aminoCount + this->pulledEnd]
@@ -136,8 +135,7 @@ PullingPotential::PullingPotential(){
 
 	if(this->deltax != 0.0f){
 		pullFilenames.resize(gsop.Ntr);
-        std::string pullFilename;
-        pullFilename = getMaskedParameterAs<std::string>(PULLING_FILENAME, DEFAULT_PULLING_FILENAME);
+        std::string pullFilename = parameters::pullOutput.get();
 		for(traj = 0; traj < gsop.Ntr; traj++){
 			pullFilenames[traj] = string_replace(pullFilename, "<run>", traj+gsop.firstrun);
 			FILE* pullFile = safe_fopen(pullFilenames[traj].c_str(), "w");

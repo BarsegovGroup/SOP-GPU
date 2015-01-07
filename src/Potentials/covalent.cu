@@ -7,7 +7,6 @@
 
 #include "../gsop.cuh"
 #include "covalent.h"
-#include "../IO/configreader.h"
 #include "../Util/wrapper.h"
 
 #include "covalent_kernel.cu"
@@ -29,11 +28,11 @@ CovalentPotential::CovalentPotential(){
 	printf("Building a map of covalent bounds...\n");
 
 	// Reading parameters from configuration file
-	this->kspring_cov = getFloatParameter(COVALENT_KS_STRING, DEFAULT_COVALENT_KS, 1);
-	this->R_limit = getFloatParameter(COVALENT_R_LIMIT_STRING, DEFAULT_COVALENT_R_LIMIT, 1);
+	this->kspring_cov = parameters::kspring_cov.get();
+	this->R_limit = parameters::R_limit.get();
 	this->R_limit_sq = this->R_limit*this->R_limit;
-	this->max_covalent = getIntegerParameter(MAX_COVALENT_STRING, DEFAULT_MAX_COVALENT, 1);
-	this->blockSize = getIntegerParameter(COVALENT_BLOCK_SIZE_STRING, gsop.blockSize, 1);
+	this->max_covalent = parameters::max_covalent.get();
+	this->blockSize = gsop.blockSize;
 	this->blockNum = gsop.aminoCount/this->blockSize + 1;
 
 	// Allocating memory
