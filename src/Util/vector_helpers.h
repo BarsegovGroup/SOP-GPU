@@ -11,7 +11,7 @@ CUDA_FUNC inline float3 make_float3(const float4 &v) {
 	return make_float3(v.x, v.y, v.z);
 }
 
-CUDA_FUNC inline float4 make_float4(const float3 &v, float w) {
+CUDA_FUNC inline float4 make_float4(const float3 &v, float w = 0.0f) {
 	return make_float4(v.x, v.y, v.z, w);
 }
 

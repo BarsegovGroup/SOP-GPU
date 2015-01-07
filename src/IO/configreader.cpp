@@ -22,6 +22,7 @@ char** paramNames;
 char** paramValues;
 
 void parseParametersFile(const char* filename, int argc, char *argv[]){
+    // TODO: rewrite to use std::map and std::string
 	FILE* file = safe_fopen(filename, "r");
 	if(file != NULL){
 		printf("Parsing '%s' parameters file...\n", filename);
@@ -241,10 +242,9 @@ int getVectorParameter(const char* paramName, float* x, float* y, float* z, floa
         return 0;
 }
 
-float4 getFloat3Parameter(const char* paramName) {
-    float4 t;
+float3 getFloat3Parameter(const char* paramName) {
+    float3 t;
     getVectorParameter(paramName, &t.x, &t.y, &t.z);
-    t.w = 0.0f;
     return t;
 }
 
