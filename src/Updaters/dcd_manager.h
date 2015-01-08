@@ -8,12 +8,12 @@
 #pragma once
 
 #include "../gsop.h"
+#include "../Util/parameters.h"
 
-#define DCD_FREQUENCY_STRING		"dcdfreq"
-#define DCD_FILENAME_STRING			"DCDfile"
-
-#define DEFAULT_DCD_FREQUENCY		10000
-#define DEFAULT_DCD_FILENAME		"<name>_<run>_<stage>.dcd"
+PARAMETER(dcdfreq, int, 10000, "steps", "...")
+PARAMETER(DCDfile, std::string, "<name>_<author><run>_<stage>.dcd", "path", "...")
+PARAMETER(restartfreq, int, 100000, "steps", "...")
+PARAMETER(restartname, std::string, "<name>_<author><run>_restart", "path", "...")
 
 class DcdOutputManager : public SOPUpdater{
 public:

@@ -10,11 +10,11 @@
 #include "../IO/pdbio.h"
 #include "../IO/configreader.h"
 
-char dcd_filename[100];
-char restartpdb_filename[100];
+std::vector<std::string> dcd_filenames;
+std::vector<std::string> restart_filenames;
+
 int restartfreq;
 
-char** dcd_filenames;
 DCD dcd;
 float* X;
 float* Y;
@@ -31,28 +31,22 @@ void createDCDOutputManager(){
 DcdOutputManager::DcdOutputManager(){
 	printf("Initializing dcd output manager...\n");
 	this->name = "DCD output";
-	this->frequency = getIntegerParameter(DCD_FREQUENCY_STRING, 10000, 1);;
-	restartfreq = getIntegerParameter("restartfreq", 100000, 1);
-
-	getMaskedParameter(dcd_filename, "DCDfile", "<name>_<author><run>_<stage>.dcd", 1);
-	//printf("Coordinates will be saved into '%s'\n", dcd_filename);
-	char restart_filename[100];
-	getMaskedParameter(restart_filename, "restartname", "<name>_<author><run>_restart", 1);
-	sprintf(restartpdb_filename, "%s.pdb", restart_filename);
+	this->frequency = parameters::dcdfreq.get();
+	restartfreq = parameters::restartfreq.get();
 
 	int traj;
-	dcd_filenames = (char**)calloc(gsop.Ntr, sizeof(char*));
+	dcd_filenames.resize(gsop.Ntr);
+	restart_filenames.resize(gsop.Ntr);
 	for(traj = 0; traj < gsop.Ntr; traj++){
-		dcd_filenames[traj] = (char*)calloc(100, sizeof(char));
-		char trajnum[10];
-		sprintf(trajnum, "%d", traj+gsop.firstrun);
-		replaceString(dcd_filenames[traj], dcd_filename, trajnum, "<run>");
+        dcd_filenames[traj] = parameters::DCDfile.replace("<run>", traj);
+        restart_filenames[traj] = parameters::restartname.replace("<run>", traj);
 		int particleCount = sop.aminoCount;
+
 		if(sop.additionalAminosCount > 0){
 			particleCount = particleCount + sop.additionalAminosCount;
 		}
 		//printf("Coordinates will be saved as '%s'.\n", dcd_filenames[traj]);
-		dcd.open_write(dcd_filenames[traj]);
+		dcd.open_write(dcd_filenames[traj].c_str());
         dcd.N = particleCount;
         dcd.NFILE = dcd.NPRIV = dcd.NSAVC = this->frequency;
         dcd.DELTA = 0.0; // The integrator is not initialized yet, so we consider timestep to be equal to zero
@@ -67,7 +61,7 @@ DcdOutputManager::DcdOutputManager(){
 	X = (float*) malloc(size);
 	Y = (float*) malloc(size);
 	Z = (float*) malloc(size);
-	printf("Coordinates will be saved in '%s'.\n", dcd_filename);
+	printf("Coordinates will be saved in '%s'.\n", parameters::DCDfile.get().c_str());
 	printf("Done initializing dcd output manager...\n");
 }
 
@@ -94,7 +88,7 @@ void DcdOutputManager::update(){
 					Z[i+sop.aminoCount] = sop.additionalAminos[i].z;
 				}
 			}
-			dcd.open_append(dcd_filenames[traj]);
+			dcd.open_append(dcd_filenames[traj].c_str());
 			dcd.write_frame(X, Y, Z);
 			dcd.close();
 		}
@@ -103,18 +97,14 @@ void DcdOutputManager::update(){
 
 	if(gsop.step % restartfreq == 0){
 		for(int traj = 0; traj < gsop.Ntr; traj++){
-			char trajnum[10];
-			char tempRestartFilename[100];
-			sprintf(trajnum, "%d", traj+gsop.firstrun);
-			replaceString(tempRestartFilename, restartpdb_filename, trajnum, "<run>");
 			for(i = 0; i < sop.aminoCount; i++){
 				sop.aminos[i].x = gsop.h_coord[sop.aminoCount*traj + i].x;
 				sop.aminos[i].y = gsop.h_coord[sop.aminoCount*traj + i].y;
 				sop.aminos[i].z = gsop.h_coord[sop.aminoCount*traj + i].z;
 			}
-			savePDB(tempRestartFilename, sop);
+			savePDB(restart_filenames[traj].c_str(), sop);
 		}
-		printf("Saving restart coordinates into '%s'.\n", restartpdb_filename);
+		printf("Saving restart coordinates into '%s'.\n", parameters::restartname.get().c_str());
 	}
 	checkCUDAError();
 }

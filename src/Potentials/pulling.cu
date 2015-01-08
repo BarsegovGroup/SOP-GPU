@@ -29,7 +29,7 @@ void createPullingPotential(){
 
 PullingUpdater::PullingUpdater(PullingPotential *pulling){
 	this->name = "Pulling";
-    this->frequency = getIntegerParameter(PULLING_FREQ, gsop.nav, 1); // TODO: nav!!
+    this->frequency = parameters::pullFreq.get();
     this->pulling = pulling;
 }
 

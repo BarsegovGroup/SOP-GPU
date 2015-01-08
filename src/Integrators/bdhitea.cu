@@ -34,13 +34,13 @@ TeaIntegrator::TeaIntegrator() : LangevinIntegrator() {
 	}
 
 	hc_tea.namino = sop.aminoCount;
-	hc_tea.a = getFloatParameter(BDHITEA_A_STRING, 1.8f, 1); // in Angstroms
-    this->exact = getYesNoParameter(BDHITEA_EXACT_STRING, 0, 1);
+	hc_tea.a = parameters::tea_a.get();
+    this->exact = parameters::tea_exact.get();
     if (!this->exact){
-    	this->capricious = getYesNoParameter(BDHITEA_CAPRICIOUS_STRING, 1, 1); // Be paranoid about tensor values?
-	    this->epsilon_freq = getIntegerParameter(BDHITEA_EPSILONFREQ_STRING, 0, 0); // How often recalculate epsilon?
-    	this->epsmax = getFloatParameter(BDHITEA_EPSMAX_STRING, 999.f, 1); // Epsilon will never exceed 1, so epsmax=999 will never trigger halt by itself; used in capricious mode
-    	this->unlisted = getYesNoParameter(BDHITEA_UNLISTED_STRING, 1, 0); // use all-to-all or pairlists?
+    	this->capricious = parameters::tea_capricious.get();
+	    this->epsilon_freq = parameters::tea_epsilon_freq.get();
+    	this->epsmax = parameters::tea_epsmax.get();
+    	this->unlisted = parameters::tea_unlisted.get();
     }
 
 	cudaMalloc(&hc_tea.rforce, gsop.aminoCount * sizeof(float4));

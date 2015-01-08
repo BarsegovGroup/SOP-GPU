@@ -248,6 +248,12 @@ float3 getFloat3Parameter(const char* paramName) {
     return t;
 }
 
+float3 getFloat3Parameter(const char* paramName, float3 defaultValue) {
+    float3 t;
+    getVectorParameter(paramName, &t.x, &t.y, &t.z, defaultValue.x, defaultValue.y, defaultValue.z);
+    return t;
+}
+
 int getMaskedParameter(char* result, const char* paramName, const char* defaultValue, int allowDefault){
 	char parameterMask[VALUE_LENGTH];
 	int error = getParameter(parameterMask, paramName, defaultValue, allowDefault);

@@ -7,12 +7,11 @@
 
 #pragma once
 
-#define PAIRLIST_CUTOFF_STRING			"pairlist_cutoff"
-#define PAIRLIST_BLOCK_SIZE_STRING		"block_size_pairlist"
-#define MAX_POSSIBLEPAIRS_STRING		"max_possiblePairs"
+#include "../Util/parameters.h"
 
-#define DEFAULT_PAIRLIST_CUTOFF			20.0f
-#define DEFAULT_MAX_POSSIBLEPAIRS		4096
+PARAMETER(pairlist_cutoff, float, 20.0f, "?", "...")
+PARAMETER(pairs_freq, int, 1000, "steps", "...")
+PARAMETER(max_possiblePairs, int, 4096, "?", "...")
 
 class PairList : public SOPUpdater{
 public:

@@ -3,19 +3,39 @@
 #include "../IO/configreader.h"
 #include "../Util/mystl.h"
 
+// Parameter with default value
 #define PARAMETER(name, ctype, defval, units, description) \
     namespace parameters { \
         static ParameterOptional<ctype> name(#name, defval); \
     }
     
-
+// Parameter with no default value
 #define PARAMETER_MANDATORY(name, ctype, units, description) \
     namespace parameters { \
         static ParameterMandatory<ctype> name(#name); \
     };
 
+// Lazy eveluated parameter: the expression for default value is evaluated when calling ".get()"
+#define PARAMETER_LAZY(name, ctype, defexpr, units, description) \
+    namespace parameters { \
+        class _ParameterLazy_##name : public Parameter<ctype> { \
+            public: \
+            virtual ctype get() const { \
+                return ParameterOptional<ctype>(#name, ((defexpr))).get(); \
+            } \
+        }; \
+        static _ParameterLazy_##name name; \
+    };
+
+
 template <typename T>
-class ParameterMandatory {
+class Parameter {
+public:
+    virtual T get() const = 0;
+};
+
+template <typename T>
+class ParameterMandatory : public Parameter<T> {
 public:
     ParameterMandatory(const char *name) : _name(name) { }
     // Get parameter value
@@ -32,10 +52,12 @@ protected:
 template <typename T>
 class ParameterOptional : public ParameterMandatory<T> {
 public:
-    ParameterOptional(const char *name, T defval) : ParameterMandatory<T>(name), _defval(defval) { }
+    ParameterOptional(const char *name, T defval) : ParameterMandatory<T>(name), _defval(defval), _defpar(NULL) { }
+    ParameterOptional(const char *name, const Parameter<T>& defpar) : ParameterMandatory<T>(name), _defpar(&defpar) { }
     // Get parameter value
-    virtual T get() const { return getMaskedParameterAs<T>(this->_name.c_str(), this->_defval); }
+    virtual T get() const { return getMaskedParameterAs<T>(this->_name.c_str(), (this->_defpar ? this->_defpar->get() : this->_defval)); }
 protected:
     T _defval;
+    const Parameter<T>* _defpar;
 };
 

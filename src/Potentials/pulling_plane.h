@@ -7,24 +7,23 @@
 
 #pragma once
 
-#define PULLINGPLANE_ON_STRING			"pullingPlane"
+#include "../Util/parameters.h"
 
-#define PULLINGPLANE_DELTAX_STRING		"pullingPlaneDeltax"
-#define PULLINGPLANE_KS_STRING			"pullingPlaneKs"
+PARAMETER(pullingPlane, bool, false, "true/false", "...")
+
+PARAMETER(pullingPlaneDeltax, float, 0.0f, "?", "...")
+PARAMETER(pullingPlaneKs, float, 0.05f, "?", "...")
 
 #define PULLINGPLANE_FIXED_COUNT_STRING	"plane_fixed_beads"
 #define PULLINGPLANE_FIXED_STRING		"plane_fixed"
 #define PULLINGPLANE_PULLED_COUNT_STRING	"plane_pulled_beads"
 #define PULLINGPLANE_PULLED_STRING		"plane_pulled"
 
-#define PULLINGPLANE_PULLVECTOR_STRING		"pullingPlaneDir"
-#define PULLINGPLANE_ZEROVECTOR_STRING		"pullingPlanePos"
+PARAMETER_MANDATORY(pullingPlaneDir, float3, "?", "...")
+PARAMETER_MANDATORY(pullingPlanePos, float3, "?", "...")
 
-#define PULLINGPLANE_FILENAME			"pullingPlaneOutput"
-#define PULLINGPLANE_FREQ				"pullingPlaneFreq"
-
-#define DEFAULT_PULLINGPLANE_KS			0.05f
-#define DEFAULT_PULLINGPLANE_FILENAME	"pullplane.<name>_<author><run>_<stage>.dat"
+PARAMETER(pullingPlaneOutput, std::string, "pullplane.<name>_<author><run>_<stage>.dat", "path", "...")
+PARAMETER(pullingPlaneFreq, int, parameters::nav, "steps", "...")
 
 class PullingPlanePotential : public SOPPotential {
 public:

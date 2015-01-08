@@ -7,18 +7,18 @@
 
 #pragma once
 #include "../gsop.h"
+#include "../Util/parameters.h"
 
-#define LANGEVIN_TIMESTEP_STRING	"timestep"
-#define LANGEVIN_ZETA_STRING		"zeta"
+PARAMETER_MANDATORY(timestep, float, "?; truly ?", "...")
+PARAMETER(zeta, float, 50.0f, "?", "...")
+PARAMETER(temperature, float, 0.6, "?", "...")
 
-#define DEFAULT_LANGEVIN_ZETA		50.0
+PARAMETER(heating, bool, false, "true/false", "...")
+PARAMETER_MANDATORY(tempFreq, int, "steps", "...")
+PARAMETER_MANDATORY(initialT, float, "?", "...")
+PARAMETER_MANDATORY(deltaT, float, "?", "...")
 
-#define DEFAULT_TEMPERATURE 0.6
-
-#define TC_TEMPERATURE_STRING	"temperature"
-#define TC_HEATING_STRING		"heating"
-#define TC_INITIAL_T_STRING 	"initialT"
-#define TC_DELTA_T_STRING		"deltaT"
+PARAMETER_LAZY(seed, int, time(NULL), "", "...") 
 
 class LangevinIntegrator : public SOPIntegrator {
 public:

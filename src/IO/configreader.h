@@ -41,6 +41,7 @@ float getFloatParameter(const char* paramName);
 int getYesNoParameter(const char* paramName);
 int getVectorParameter(const char* paramName, float* x, float* y, float* z);
 float3 getFloat3Parameter(const char* paramName);
+float3 getFloat3Parameter(const char* paramName, float3 defaultValue);
 int getMaskedParameter(char* result, const char* paramName);
 
 int getMaskedParameterWithReplacement(char* result, const char* paramName,
@@ -131,6 +132,10 @@ inline bool getMaskedParameterAs<bool>(const char* paramName, bool defVal) {
     return getYesNoParameter(paramName, defVal);
 }
 
+template<>
+inline float3 getMaskedParameterAs<float3>(const char *paramName, float3 defVal) {
+    return getFloat3Parameter(paramName, defVal);
+}
 
 template <typename T, typename T1, typename T2>
 inline T getMaskedParameterWithReplacementAs(const char* paramName, T1 defaultValue,

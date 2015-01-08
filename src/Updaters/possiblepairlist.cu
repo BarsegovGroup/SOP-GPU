@@ -21,11 +21,11 @@ void createPossiblepairlistUpdater(){
  */
 PossiblepairList::PossiblepairList(){
 	this->name = "Possiblepairlist";
-	this->frequency = getIntegerParameter("possiblepairs_freq", 100000, 1);
+	this->frequency = parameters::possiblepairs_freq.get();
 	printf("Initializing possible pairs list generator...\n");
-	this->blockSize = getIntegerParameter(POSSIBLEPAIRS_BLOCK_SIZE_STRING, gsop.blockSize, 1);
+	this->blockSize = gsop.blockSize;
 	this->blockNum = gsop.aminoCount/this->blockSize + 1;
-	this->pairsThreshold = getFloatParameter(POSSIBLEPAIRS_CUTOFF_STRING, DEFAULT_POSSIBLEPAIRS_CUTOFF, 1);
+	this->pairsThreshold = parameters::pairs_threshold.get();
 
     this->updateParametersOnGPU();
 

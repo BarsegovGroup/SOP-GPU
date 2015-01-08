@@ -9,13 +9,13 @@
 #include "../IO/configreader.h"
 #include "pulling_plane.h"
 
-char pullingPlaneFilename[500];
 FILE* pullingPlaneFile;
+std::string pullingPlaneFilename;
 
 #include "pulling_plane_kernel.cu"
 
 void createPullingPlanePotential(){
-	if(getYesNoParameter(PULLINGPLANE_ON_STRING, 0, 1) == 1){
+	if(parameters::pullingPlane.get()){
 		gsop.pullingPlaneOn = 1;
 
         PullingPlanePotential *pot;
@@ -29,7 +29,7 @@ void createPullingPlanePotential(){
 
 PullingPlaneUpdater::PullingPlaneUpdater(PullingPlanePotential *pullingPlane){
 	this->name = "Pulling Plane";
-    this->frequency = getIntegerParameter(PULLINGPLANE_FREQ, gsop.nav, 1);
+    this->frequency = parameters::pullingPlaneFreq.get();
     this->pullingPlane = pullingPlane;
 }
 
@@ -43,12 +43,11 @@ PullingPlanePotential::PullingPlanePotential(){
 	this->h_extForces = (float4*)calloc(gsop.aminoCount, sizeof(float4));
 	cudaMalloc((void**)&this->d_extForces, gsop.aminoCount*sizeof(float4));
 
-	this->deltax = getFloatParameter(PULLINGPLANE_DELTAX_STRING, 0, 1);
-	this->Ks = getFloatParameter(PULLINGPLANE_KS_STRING, DEFAULT_PULLINGPLANE_KS, 1);
+	this->deltax = parameters::pullingPlaneDeltax.get();
+	this->Ks = parameters::pullingPlaneKs.get();
 
 	if(this->deltax == 0){
-		printf("ERROR: '%s' parameter should be specified to initiate this->\n", PULLINGPLANE_DELTAX_STRING);
-		exit(-1);
+		DIE("'%s' parameter should be specified to initiate this->\n", parameters::pullingPlaneDeltax.name().c_str());
 	}
 
 	this->fixedCount = getIntegerParameter(PULLINGPLANE_FIXED_COUNT_STRING, 0, 0);
@@ -74,13 +73,11 @@ PullingPlanePotential::PullingPlanePotential(){
 		printf("Pulling resid %d.\n", this->pulled[i]);
 	}
 
-    getVectorParameter(PULLINGPLANE_PULLVECTOR_STRING, &this->pullVector.x, &this->pullVector.y, &this->pullVector.z, 0, 0, 0, 0);
-    double t = sqrt(this->pullVector.x*this->pullVector.x + this->pullVector.y*this->pullVector.y + this->pullVector.z*this->pullVector.z);
-    this->pullVector.x /= t;
-    this->pullVector.y /= t;
-    this->pullVector.z /= t;
-    getVectorParameter(PULLINGPLANE_ZEROVECTOR_STRING, &this->planeCoord0.x, &this->planeCoord0.y, &this->planeCoord0.z, 0, 0, 0, 0);
-    this->d = - (this->planeCoord.x*this->pullVector.x + this->planeCoord.y*this->pullVector.y + this->planeCoord.z*this->pullVector.z);
+    this->pullVector = parameters::pullingPlaneDir.get();
+    double t = abs(this->pullVector);
+    this->pullVector /= t;
+    this->planeCoord0 = parameters::pullingPlanePos.get();
+    this->d = - dot(this->planeCoord, this->pullVector);
     this->cant_d = this->d;
 
 	for(i = 0; i < sop.aminoCount; i++){
@@ -110,14 +107,10 @@ PullingPlanePotential::PullingPlanePotential(){
 	cudaMemcpyToSymbol(c_pullingPlane, &hc_pullingPlane, sizeof(PullingPlaneConstant), 0, cudaMemcpyHostToDevice);
 	checkCUDAError();
 
-    char tmpstr[512];
-	getMaskedParameter(tmpstr, PULLINGPLANE_FILENAME, "", 0);
-	char trajnum[10];
-	sprintf(trajnum, "%d", gsop.firstrun);
-	replaceString(pullingPlaneFilename, tmpstr, trajnum, "<run>");
-	pullingPlaneFile = safe_fopen(pullingPlaneFilename, "w");
+    std::string pullingPlaneFilename = parameters::pullingPlaneOutput.replace("<run>", gsop.firstrun);
+	pullingPlaneFile = safe_fopen(pullingPlaneFilename.c_str(), "w");
 	fclose(pullingPlaneFile);
-	printf("PullingPlane data will be saved in '%s'.\n", pullingPlaneFilename);
+	printf("PullingPlane data will be saved in '%s'.\n", pullingPlaneFilename.c_str());
 	
     if(deviceProp.major == 2){ // TODO: >= 2
 		cudaFuncSetCacheConfig(pullingPlane_kernel, cudaFuncCachePreferL1);
@@ -169,7 +162,7 @@ void PullingPlaneUpdater::update(){
 			printf("Plane coordinates for run #%d: %f, %f, %f\n",
 					gsop.firstrun, pullingPlane->planeCoord.x, pullingPlane->planeCoord.y, pullingPlane->planeCoord.z);
 		}
-        pullingPlaneFile = safe_fopen(pullingPlaneFilename, "a");
+        pullingPlaneFile = safe_fopen(pullingPlaneFilename.c_str(), "a");
         float3 extForce = make_float3(0.f, 0.f, 0.f);
         for (j = 0; j < gsop.aminoCount; j++){
             extForce.x += pullingPlane->h_extForces[j].x;

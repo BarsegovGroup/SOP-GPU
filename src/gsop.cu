@@ -12,6 +12,7 @@
 #include "IO/dcdio.h"
 #include "IO/pdbio.h"
 #include "Util/wrapper.h"
+#include "Util/parameters.h"
 
 #include "Potentials/covalent.cu"
 #include "Potentials/native.cu"
@@ -56,7 +57,7 @@ void initGPU(){
 		gsop.width++;
 	}
 	printf("Will align structures to width of %d.\n", gsop.width);
-	gsop.blockSize = getIntegerParameter("block_size", DEFAULT_BLOCK_SIZE, 1);
+	gsop.blockSize = parameters::block_size.get();
 
 	initCoordinates(); // Allocate memory for coordinates
 	initForces(); // Allocate memory for forces
@@ -67,13 +68,12 @@ void initFF(){
 
 	potentialsCount = 0;
 	updatersCount = 0;
-	
-    char stageString[100];
-    getMaskedParameter(stageString, "stage", "", 0);
-	gsop.minimizationOn = (strcmp(stageString, "minim" ) == 0);
-	gsop.heatingOn      = (strcmp(stageString, "heat"  ) == 0);
-	gsop.pullingOn      = (strcmp(stageString, "pull"  ) == 0);
-	gsop.indentationOn  = (strcmp(stageString, "indent") == 0);
+
+    std::string stageString = parameters::stage.get();
+	gsop.minimizationOn = (stageString == "minim" );
+	gsop.heatingOn      = (stageString == "heat"  );
+	gsop.pullingOn      = (stageString == "pull"  );
+	gsop.indentationOn  = (stageString == "indent");
 
 	// Allocating memory for the model
 	potentials = (SOPPotential**)calloc(max_potentials, sizeof(SOPPotential*));
@@ -95,7 +95,7 @@ void initFF(){
 	createDCDOutputManager(); // Save coordinates (dcd + pdb restart)
 
 	// Create integrator
-	if (getYesNoParameter(BDHITEA_ON_STRING,0,1)){
+	if (parameters::tea_on.get()){
 		createTeaIntegrator();
 		integratorTea = 1;
 	}else{
@@ -157,14 +157,13 @@ void runGPU(){
 
 	int traj;
 	for(traj = 0; traj < gsop.Ntr; traj++){
-		char trajCoordFilename[100];
-	    getMaskedParameterWithReplacementT(trajCoordFilename, "finalcoord", "<name>_<author><run>_<stage>_final.pdb", traj+gsop.firstrun, "<run>");
+        std::string trajCoordFilename = parameters::finalcoord.replace("<run>", traj+gsop.firstrun);
 		for(i = 0; i < sop.aminoCount; i++){
 			sop.aminos[i].x = gsop.h_coord[sop.aminoCount*traj + i].x;
 			sop.aminos[i].y = gsop.h_coord[sop.aminoCount*traj + i].y;
 			sop.aminos[i].z = gsop.h_coord[sop.aminoCount*traj + i].z;
 		}
-		savePDB(trajCoordFilename, sop);
+		savePDB(trajCoordFilename.c_str(), sop);
 	}
 
 }
