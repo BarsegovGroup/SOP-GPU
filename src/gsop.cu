@@ -7,7 +7,6 @@
 
 #include "gsop.cuh"
 
-#include "IO/configreader.h"
 #include "IO/topio.h"
 #include "IO/dcdio.h"
 #include "IO/pdbio.h"

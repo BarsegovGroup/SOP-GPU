@@ -14,10 +14,8 @@ PARAMETER(pullingPlane, bool, false, "true/false", "...")
 PARAMETER(pullingPlaneDeltax, float, 0.0f, "?", "...")
 PARAMETER(pullingPlaneKs, float, 0.05f, "?", "...")
 
-#define PULLINGPLANE_FIXED_COUNT_STRING	"plane_fixed_beads"
-#define PULLINGPLANE_FIXED_STRING		"plane_fixed"
-#define PULLINGPLANE_PULLED_COUNT_STRING	"plane_pulled_beads"
-#define PULLINGPLANE_PULLED_STRING		"plane_pulled"
+PARAMETER_MANDATORY(plane_fixed, std::vector<int>, "", "...")
+PARAMETER_MANDATORY(plane_pulled, std::vector<int>, "", "...")
 
 PARAMETER_MANDATORY(pullingPlaneDir, float3, "?", "...")
 PARAMETER_MANDATORY(pullingPlanePos, float3, "?", "...")
@@ -35,10 +33,8 @@ public:
 	float deltax;
     float mass;
 
-	int fixedCount;
-	int pulledCount;
-	int* fixed;
-	int* pulled;
+    std::vector<int> fixed;
+    std::vector<int> pulled;
 
 	float3 extForce; // Force acting on plane from particles
     float3 cantForce; // Force acting on cantilever from plane

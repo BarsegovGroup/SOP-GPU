@@ -20,7 +20,7 @@ LangevinIntegrator::LangevinIntegrator(){
 	this->zeta = parameters::zeta.get();
 	this->hOverZeta = this->h/this->zeta;
 	this->tempNorm = this->zeta/(6.0*this->h);
-    int seed = parameters::seed.get() + gsop.firstrun + getIntegerParameter("run", -1, 1); // TODO: do we need `run` here?
+    int seed = parameters::seed.get() + gsop.firstrun;
 	initRand(seed, gsop.aminoCount);
 
 	int heating = parameters::heating.get();

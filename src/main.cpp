@@ -6,7 +6,6 @@
 
 #include "gsop.h"
 
-#include "IO/configreader.h"
 #include "Util/wrapper.h"
 #include "Util/parameters.h"
 
@@ -35,7 +34,7 @@ int main(int argc, char *argv[]){
 	}
 
 	// Read main parameters of the simulation (number of steps, etc.)
-	initParameters(argv[1]);
+    initParameters(argv[1]);
 
     std::string top_filename = parameters::topology.get();
 	sop.load(top_filename.c_str());
@@ -66,7 +65,7 @@ int main(int argc, char *argv[]){
 
 void initParameters(const char* configFile){
 
-	parseParametersFile(configFile);
+    parameters::_initialize(configFile);
 
 	printf("Initializing simulations for '%s'\n", parameters::name.get().c_str());
 

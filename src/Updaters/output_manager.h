@@ -24,8 +24,6 @@ PARAMETER(outputcolwidth, int, 16, "symbols", "...")
 PARAMETER(printruns, int, 10, "", "...")
 PARAMETER(computeRg, bool, true, "true/false", "...")
 
-const int MODE_CAPSID = 1; // TODO: remove this!
-
 struct OutputData{
 	float tea_eps;
 };
