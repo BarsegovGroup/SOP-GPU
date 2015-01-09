@@ -13,6 +13,8 @@
 #include <vector_types.h> // For float4
 #include "../Util/mystl.h"
 
+namespace configreader {
+
 void parseParametersFile(const char* filename, int argc = 0, char *argv[] = NULL);
 
 int getParameter(char* paramValue, const char* paramName, const char* defaulValue, int allowDefault);
@@ -152,4 +154,6 @@ inline bool hasParameter(const char* paramName) {
         return false;
     return true;
 }
+
+} // namespace configreader
 

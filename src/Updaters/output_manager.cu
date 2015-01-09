@@ -15,8 +15,6 @@
 #include "output_manager.h"
 #include "output_manager_kernel.cu"
 
-int mode;
-
 void createOutputManager(){
 	updaters[updatersCount] = new OutputManager();
 	updatersCount++;
@@ -45,26 +43,19 @@ OutputManager::OutputManager(){
 	this->R_limit_bond = parameters::R_limit_bond.get();
 
 	// Deprecated 'mode capsid' (if defined, the gyration radius is not computed due to the performance issues).
-	char modeString[100];
-	getParameter(modeString, "mode", "", 1);
-	if(strcmp(modeString, "capsid") == 0){
-		mode = MODE_CAPSID;
-		printf("WARNING: 'mode capsid' is deprecated. Use '%s' parameter to turn the Rg computation on/off.\n", parameters::computeRg.name().c_str());
-		this->computeRgFlag = false;
-	} else {
-		mode = 0;
+    if (parameters::_is_defined("mode")) {
+		DIE("'mode' parameter is deprecated. Use '%s' parameter to turn the Rg computation on/off.\n", parameters::computeRg.name().c_str());
 	}
 
 	// Preparing files
 	int traj;
-    std::string dat_filename = parameters::outputname.get();
 	dat_filenames.resize(gsop.Ntr);
 	for(traj = 0; traj < gsop.Ntr; traj++){
-        dat_filenames[traj] = string_replace(dat_filename, "<run>", traj+gsop.firstrun);
+        dat_filenames[traj] = parameters::outputname.replace("<run>", traj+gsop.firstrun);
 		dat_file = safe_fopen(dat_filenames[traj].c_str(), "w");
 		fclose(dat_file);
 	}
-	printf("Output will be saved in '%s'.\n", dat_filename.c_str());
+	printf("Output will be saved in '%s'.\n", parameters::outputname.get().c_str());
 
 	// Allocatng memory for gyration radii
     this->h_rgs = (float*)calloc(gsop.aminoCount, sizeof(float));

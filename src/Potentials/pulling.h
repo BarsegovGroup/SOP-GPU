@@ -16,10 +16,8 @@ PARAMETER(pulling, bool, false, "true/false", "...")
 PARAMETER(deltax, float, 0.0, "?", "...")
 PARAMETER(k_trans, float, 0.05f, "?", "...")
 PARAMETER(fconst, float, 0.0, "?", "...")
-#define PULLING_FIXED_COUNT_STRING	"fixed_beads"
-#define PULLING_FIXED_STRING		"fixed"
-#define PULLING_PULLED_COUNT_STRING	"pulled_beads"
-#define PULLING_PULLED_STRING		"pulled"
+PARAMETER_MANDATORY(fixed, std::vector<int>, "", "...")
+PARAMETER_MANDATORY(pulled, std::vector<int>, "", "...")
 PARAMETER(pullDirection, std::string, "endToEnd", "endToEnd/vector", "...")
 PARAMETER_MANDATORY(pullVector, float3, "?", "...")
 PARAMETER_MANDATORY(fixedEnd, int, "bead ID", "...")
@@ -41,10 +39,8 @@ private:
 	float fconst;
 	int fixedEnd;
 	int pulledEnd;
-	int fixedCount;
-	int pulledCount;
-	int* fixed;
-	int* pulled;
+    std::vector<int> fixed;
+    std::vector<int> pulled;
 	float3* pullVector;
 	float3* extForce;
 	float4* h_extForces;

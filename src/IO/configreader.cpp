@@ -17,6 +17,8 @@
 #define NAME_LENGTH 100
 #define VALUE_LENGTH 2048
 
+namespace configreader {
+
 int paramCount;
 char** paramNames;
 char** paramValues;
@@ -365,3 +367,6 @@ void replaceString(char* resultString, const char* initialString, const char* re
 		strcpy(resultString, initialString);
 	}
 }
+
+} // namespace configreader
+

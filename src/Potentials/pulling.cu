@@ -52,23 +52,12 @@ PullingPotential::PullingPotential(){
 		DIE("ERROR: Either 'deltax' or 'fconst' parameter should be specified to initiate pulling\n");
 	}
 
-    // TODO: Use getIntegerArrayParamter here
-	this->fixedCount = getIntegerParameter(PULLING_FIXED_COUNT_STRING, 0, 0);
-	this->fixed = (int*)malloc(this->fixedCount*sizeof(int));
-	this->pulledCount = getIntegerParameter(PULLING_PULLED_COUNT_STRING, 0, 0);
-	this->pulled = (int*)malloc(this->pulledCount*sizeof(int));
-	printf("%d resid(s) fixed, %d pulled.\n", this->fixedCount, this->pulledCount);
-	char paramName[10];
-	for(i = 0; i < this->fixedCount; i++){
-		sprintf(paramName, "%s%d", PULLING_FIXED_STRING, i+1);
-		this->fixed[i] = getIntegerParameter(paramName, 0, 0);
-		printf("Resid %d is fixed.\n", this->fixed[i]);
-	}
-	for(i = 0; i < this->pulledCount; i++){
-		sprintf(paramName, "%s%d", PULLING_PULLED_STRING, i+1);
-		this->pulled[i] = getIntegerParameter(paramName, 0, 0);
-		printf("Pulling resid %d.\n", this->pulled[i]);
-	}
+    if (parameters::_is_defined("fixed_beads") || parameters::_is_defined("pulled_beads")) {
+        DIE("'fixed_beads' and 'pulled_beads' parameters are deprecated. Use 'fixed' and 'pulled' instead");
+    }
+	this->fixed = parameters::fixed.get();
+	this->pulled = parameters::pulled.get();
+	printf("%ld resid(s) fixed, %ld pulled.\n", this->fixed.size(), this->pulled.size());
 
     std::string pullDirection = parameters::pullDirection.get();
 	float3 pullVector;
@@ -108,7 +97,7 @@ PullingPotential::PullingPotential(){
 		for(i = 0; i < sop.aminoCount; i++){
 			this->h_extForces[traj*sop.aminoCount + i] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		}
-		for(j = 0; j < this->pulledCount; j++){
+		for(j = 0; j < this->pulled.size(); j++){
 			i = this->pulled[j];
 			if(traj == 0){
 				printf("Pulling bead #%d (%s %d chain %c).\n", i, sop.aminos[i].resName, sop.aminos[i].resid, sop.aminos[i].chain);
@@ -116,7 +105,7 @@ PullingPotential::PullingPotential(){
 			this->h_extForces[traj*sop.aminoCount + i] = make_float4(
 					this->pullVector[traj] * this->fconst, 2.0f);
 		}
-		for(j = 0; j < this->fixedCount; j++){
+		for(j = 0; j < this->fixed.size(); j++){
 			i = this->fixed[j];
 			if(traj == 0){
 				printf("Fixing bead #%d (%s %d chain %c).\n", i, sop.aminos[i].resName, sop.aminos[i].resid, sop.aminos[i].chain);
@@ -161,7 +150,7 @@ void PullingPotential::updateForces(float xt){
 		this->extForce[traj] = this->computeForce(gsop.h_coord[sop.aminoCount*traj + this->pulledEnd], traj);
 		// Increasing the force'
 		this->cantCoord[traj] = this->cantCoord0[traj] + xt * this->pullVector[traj];
-		for(j = 0; j < this->pulledCount; j++){
+		for(j = 0; j < this->pulled.size(); j++){
 			this->h_extForces[traj*sop.aminoCount + this->pulled[j]] =
 					make_float4(this->extForce[traj], 2.0f);
 		}

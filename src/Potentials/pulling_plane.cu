@@ -6,7 +6,6 @@
  */
 #include "../gsop.cuh"
 #include "../Integrators/langevin.h"
-#include "../IO/configreader.h"
 #include "pulling_plane.h"
 
 FILE* pullingPlaneFile;
@@ -50,28 +49,12 @@ PullingPlanePotential::PullingPlanePotential(){
 		DIE("'%s' parameter should be specified to initiate this->\n", parameters::pullingPlaneDeltax.name().c_str());
 	}
 
-	this->fixedCount = getIntegerParameter(PULLINGPLANE_FIXED_COUNT_STRING, 0, 0);
-	this->fixed = (int*)malloc(this->fixedCount*sizeof(int));
-	this->pulledCount = getIntegerParameter(PULLINGPLANE_PULLED_COUNT_STRING, 0, 0);
-	this->pulled = (int*)malloc(this->pulledCount*sizeof(int));
-	printf("%d resid(s) fixed, %d pulled.\n", this->fixedCount, this->pulledCount);
-	char paramName[50];
-	for(i = 0; i < this->fixedCount; i++){
-		sprintf(paramName, "%s%d", PULLINGPLANE_FIXED_STRING, i+1);
-		this->fixed[i] = getIntegerParameter(paramName, 0, 0);
-		if(this->fixed[i] < 0 || this->fixed[i] >= gsop.aminoCount){
-			DIE("ERROR: Fixed bead %s %d not exists. Protein has only %d amino-acids. Bead numbers should start with zero.\n", paramName, this->fixed[i], gsop.aminoCount);
-		}
-		printf("Resid %d is fixed.\n", this->fixed[i]);
-	}
-	for(i = 0; i < this->pulledCount; i++){
-		sprintf(paramName, "%s%d", PULLINGPLANE_PULLED_STRING, i+1);
-		this->pulled[i] = getIntegerParameter(paramName, 0, 0);
-		if(this->pulled[i] < 0 || this->pulled[i] >= gsop.aminoCount){
-			DIE("ERROR: Pulled bead %s %d not exists. Protein has only %d amino-acids. Bead numbers should start with zero.\n", paramName, this->pulled[i], gsop.aminoCount);
-		}
-		printf("Pulling resid %d.\n", this->pulled[i]);
-	}
+    if (parameters::_is_defined("plane_fixed_beads") || parameters::_is_defined("plane_pulled_beads")) {
+        DIE("'plane_fixed_beads' and 'plane_pulled_beads' parameters are deprecated. Use 'plane_fixed' and 'plane_pulled' instead");
+    }
+	this->fixed = parameters::plane_fixed.get();
+	this->pulled = parameters::plane_pulled.get();
+	printf("%ld resid(s) fixed, %ld pulled.\n", this->fixed.size(), this->pulled.size());
 
     this->pullVector = parameters::pullingPlaneDir.get();
     double t = abs(this->pullVector);
@@ -83,12 +66,12 @@ PullingPlanePotential::PullingPlanePotential(){
 	for(i = 0; i < sop.aminoCount; i++){
 		this->h_extForces[i] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 	}
-	for(j = 0; j < this->pulledCount; j++){
+	for(j = 0; j < this->pulled.size(); j++){
 		i = this->pulled[j];
 		printf("Pulling bead #%d (%s %d chain %c).\n", i, sop.aminos[i].resName, sop.aminos[i].resid, sop.aminos[i].chain);
 		this->h_extForces[i] = make_float4(0.0, 0.0, 0.0, 2.0);
 	}
-	for(j = 0; j < this->fixedCount; j++){
+	for(j = 0; j < this->fixed.size(); j++){
 		i = this->fixed[j];
 		printf("Fixing bead #%d (%s %d chain %c).\n", i, sop.aminos[i].resName, sop.aminos[i].resid, sop.aminos[i].chain);
 		this->h_extForces[i] = make_float4(0.0f, 0.0f, 0.0f, 1.0f);

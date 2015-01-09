@@ -8,7 +8,6 @@
 #include "dcd_manager.h"
 #include "../IO/dcdio.h"
 #include "../IO/pdbio.h"
-#include "../IO/configreader.h"
 
 std::vector<std::string> dcd_filenames;
 std::vector<std::string> restart_filenames;
