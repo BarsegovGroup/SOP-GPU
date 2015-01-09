@@ -27,8 +27,8 @@ void createIndentationPotential(){
 		int discreteSurf;
 		showTipMica = parameters::indentationShowTipSurf.get();
 		discreteSurf = parameters::indentationDiscreteSurf.get();
-		if(!discreteSurf){
-			printf("Discrete mica representation requires saving mica beads into dcd. Forcing \"showTipSurf\".\n");
+		if(discreteSurf && !showTipMica){
+			printf("Discrete mica representation requires saving mica beads into dcd. Forcing '%s'.\n", parameters::indentationShowTipSurf.name().c_str());
 			showTipMica = 1;
 		}
 
@@ -248,6 +248,9 @@ IndentationAminoUpdater::IndentationAminoUpdater(){
 	float3 tipCoord;
 	chipCoord = parameters::indentationChip.get();
     tipCoord = parameters::indentationTip.get();
+    hc_indentation.micaR0 = parameters::indentationSurfaceR0.get();
+    hc_indentation.micaN = parameters::indentationSurfaceN.get();
+    hc_indentation.direction = parameters::indentationDirection.get();
 
 	// Generating additional amino-acids to represent cantilever and surface
 	hc_indentation.surfaceSize = parameters::indentationSurfaceSize.get();
