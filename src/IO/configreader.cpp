@@ -25,6 +25,7 @@ char** paramValues;
 
 void parseParametersFile(const char* filename, int argc, char *argv[]){
     // TODO: rewrite to use std::map and std::string
+    // TODO: fix segfault on parameter with no value
 	FILE* file = safe_fopen(filename, "r");
 	if(file != NULL){
 		printf("Parsing '%s' parameters file...\n", filename);
@@ -153,6 +154,9 @@ std::vector<int> getIntegerArrayParameter(const char* paramName){
     char a[VALUE_LENGTH];
     getParameter(a, paramName);
     std::vector<int> ret;
+    // Magical values for empty array
+    if (!strcasecmp(a, "empty") || !strcasecmp(a, "none"))
+        return ret;
     std::istringstream iss(a);
 
     // Split string
