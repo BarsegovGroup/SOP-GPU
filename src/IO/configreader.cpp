@@ -17,11 +17,15 @@
 #define NAME_LENGTH 100
 #define VALUE_LENGTH 2048
 
+namespace configreader {
+
 int paramCount;
 char** paramNames;
 char** paramValues;
 
 void parseParametersFile(const char* filename, int argc, char *argv[]){
+    // TODO: rewrite to use std::map and std::string
+    // TODO: fix segfault on parameter with no value
 	FILE* file = safe_fopen(filename, "r");
 	if(file != NULL){
 		printf("Parsing '%s' parameters file...\n", filename);
@@ -150,6 +154,9 @@ std::vector<int> getIntegerArrayParameter(const char* paramName){
     char a[VALUE_LENGTH];
     getParameter(a, paramName);
     std::vector<int> ret;
+    // Magical values for empty array
+    if (!strcasecmp(a, "empty") || !strcasecmp(a, "none"))
+        return ret;
     std::istringstream iss(a);
 
     // Split string
@@ -241,10 +248,15 @@ int getVectorParameter(const char* paramName, float* x, float* y, float* z, floa
         return 0;
 }
 
-float4 getFloat3Parameter(const char* paramName) {
-    float4 t;
+float3 getFloat3Parameter(const char* paramName) {
+    float3 t;
     getVectorParameter(paramName, &t.x, &t.y, &t.z);
-    t.w = 0.0f;
+    return t;
+}
+
+float3 getFloat3Parameter(const char* paramName, float3 defaultValue) {
+    float3 t;
+    getVectorParameter(paramName, &t.x, &t.y, &t.z, defaultValue.x, defaultValue.y, defaultValue.z);
     return t;
 }
 
@@ -359,3 +371,6 @@ void replaceString(char* resultString, const char* initialString, const char* re
 		strcpy(resultString, initialString);
 	}
 }
+
+} // namespace configreader
+

@@ -16,23 +16,23 @@ void createLangevinIntegrator(){
 
 LangevinIntegrator::LangevinIntegrator(){
 	this->name = "Langevin";
-	this->h = getFloatParameter(LANGEVIN_TIMESTEP_STRING, 0, 0);
-	this->zeta = getFloatParameter(LANGEVIN_ZETA_STRING, DEFAULT_LANGEVIN_ZETA, 1);
+	this->h = parameters::timestep.get();
+	this->zeta = parameters::zeta.get();
 	this->hOverZeta = this->h/this->zeta;
 	this->tempNorm = this->zeta/(6.0*this->h);
-    int seed = getIntegerParameter("seed", time(NULL), 1) + gsop.firstrun + getIntegerParameter("run", -1, 1); // TODO: do we need `run` here?
+    int seed = parameters::seed.get() + gsop.firstrun;
 	initRand(seed, gsop.aminoCount);
 
-	int heating = getYesNoParameter(TC_HEATING_STRING, 0, 1);
-	if(heating == 1 || gsop.heatingOn == 1){
+	int heating = parameters::heating.get();
+	if(heating == 1 || gsop.heatingOn == 1){ // TODO: Remove these double-checks from everywhere!
 		gsop.heatingOn = 1;
 		printf("Initializing heating protocol...\n");
 		updaters[updatersCount] = new TemperatureUpdater(this);
 		updatersCount++;
-		this->setTemperature(getFloatParameter(TC_INITIAL_T_STRING, 0, 0));
+		this->setTemperature(parameters::initialT.get());
 	} else {
 		printf("Simulations will be held at constant temperature.\n");
-		this->setTemperature(getFloatParameter(TC_TEMPERATURE_STRING, DEFAULT_TEMPERATURE, 1));
+		this->setTemperature(parameters::temperature.get());
 	}
 
 	if(deviceProp.major == 2){ // TODO: >= 2
@@ -65,10 +65,10 @@ LangevinIntegrator::~LangevinIntegrator(){
 
 TemperatureUpdater::TemperatureUpdater(LangevinIntegrator* langevin){
     this->name = "TemperatureUpdater";
-	this->frequency = getIntegerParameter("tempFreq", 0, 0);
+	this->frequency = parameters::tempFreq.get();
     this->langevin = langevin;
-	this->initialT = getFloatParameter(TC_INITIAL_T_STRING, 0, 0);
-	this->deltaT = getFloatParameter(TC_DELTA_T_STRING, 0, 0);
+	this->initialT = parameters::initialT.get();
+	this->deltaT = parameters::deltaT.get();
 }
 
 void TemperatureUpdater::update(){

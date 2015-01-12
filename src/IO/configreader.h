@@ -13,6 +13,8 @@
 #include <vector_types.h> // For float4
 #include "../Util/mystl.h"
 
+namespace configreader {
+
 void parseParametersFile(const char* filename, int argc = 0, char *argv[] = NULL);
 
 int getParameter(char* paramValue, const char* paramName, const char* defaulValue, int allowDefault);
@@ -40,7 +42,8 @@ long long int getLongIntegerParameter(const char* paramName);
 float getFloatParameter(const char* paramName);
 int getYesNoParameter(const char* paramName);
 int getVectorParameter(const char* paramName, float* x, float* y, float* z);
-float4 getFloat3Parameter(const char* paramName);
+float3 getFloat3Parameter(const char* paramName);
+float3 getFloat3Parameter(const char* paramName, float3 defaultValue);
 int getMaskedParameter(char* result, const char* paramName);
 
 int getMaskedParameterWithReplacement(char* result, const char* paramName,
@@ -93,6 +96,20 @@ inline T getMaskedParameterAs(const char* paramName) {
     return str2any<T>(paramValue);
 }
 
+template<>
+inline bool getMaskedParameterAs<bool>(const char* paramName) {
+    return getYesNoParameter(paramName);
+}
+
+template<>
+inline std::vector<int> getMaskedParameterAs< std::vector<int> >(const char *paramName) {
+    return getIntegerArrayParameter(paramName);
+}
+
+template<>
+inline float3 getMaskedParameterAs<float3>(const char *paramName) {
+    return getFloat3Parameter(paramName);
+}
 
 template <typename T>
 inline T getParameterAs(const char* paramName, T defVal) {
@@ -112,6 +129,15 @@ inline T getMaskedParameterAs(const char* paramName, T defVal) {
     return str2any<T>(paramValue);
 }
 
+template<>
+inline bool getMaskedParameterAs<bool>(const char* paramName, bool defVal) {
+    return getYesNoParameter(paramName, defVal);
+}
+
+template<>
+inline float3 getMaskedParameterAs<float3>(const char *paramName, float3 defVal) {
+    return getFloat3Parameter(paramName, defVal);
+}
 
 template <typename T, typename T1, typename T2>
 inline T getMaskedParameterWithReplacementAs(const char* paramName, T1 defaultValue,
@@ -128,4 +154,6 @@ inline bool hasParameter(const char* paramName) {
         return false;
     return true;
 }
+
+} // namespace configreader
 

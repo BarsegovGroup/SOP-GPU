@@ -7,16 +7,12 @@
 
 #pragma once
 
-#define PAIRS_CUTOFF_STRING			"pairs_cutoff"
-#define PAIRS_EL_STRING				"el"
-#define PAIRS_A_STRING				"a"
-#define MAX_PAIRS_STRING			"max_pairs"
-#define PAIRS_BLOCK_SIZE_STRING		"block_size_pairs"
+#include "../Util/parameters.h"
 
-#define DEFAULT_PAIRS_CUTOFF			20.0f
-#define DEFAULT_PAIRS_EL				1.0f
-#define DEFAULT_PAIRS_A					3.8f
-#define DEFAULT_MAX_PAIRS				512
+PARAMETER(pairs_cutoff, float, 20.0f, "?", "...")
+PARAMETER(el, float, 1.0f, "?", "...")
+PARAMETER(a, float, 3.8f, "?", "...")
+PARAMETER(max_pairs, int, 512, "?", "...")
 
 class PairsPotential : public SOPPotential {
 public:

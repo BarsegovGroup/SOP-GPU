@@ -22,13 +22,9 @@ NativePotential::NativePotential(){
 	printf("Building map of native contacts...\n");
 
 	// Reading parameters
-	this->R_limit_bond = getFloatParameter(NATIVE_R_LIMIT_BOND_STRING, DEFAULT_NATIVE_R_LIMIT_BOND, 1);
-	this->desolvation = getYesNoParameter(NATIVE_DESOLVATION_STRING, DEFAULT_NATIVE_DESOLVATION, 1);
-	if(this->desolvation){
-		this->rWater = getFloatParameter(NATIVE_R_WATER_STRING, DEFAULT_NATIVE_R_WATER, 1);;
-	}
-	this->max_native = getIntegerParameter(MAX_NATIVE_STRING, DEFAULT_MAX_NATIVE, 1);
-	this->blockSize = getIntegerParameter(NATIVE_BLOCK_SIZE_STRING, gsop.blockSize, 1);
+	this->R_limit_bond = parameters::R_limit_bond.get();
+	this->max_native = parameters::max_native.get();
+	this->blockSize = gsop.blockSize;
 	this->blockNum = gsop.aminoCount/this->blockSize + 1;
 
 	// Allocating memory

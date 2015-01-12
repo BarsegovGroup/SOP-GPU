@@ -24,6 +24,7 @@ SOPGPU_SOURCES	:= \
 	IO/configreader.cpp \
 	Util/wrapper.cpp \
 	Util/mystl.cpp \
+	Util/parameters.cpp \
 	Updaters/dcd_manager.cpp \
 	gsop.cu
 

@@ -14,15 +14,26 @@
 #include <cuda.h>
 #include "IO/topio.h"
 #include "Util/wrapper.h"
+#include "Util/parameters.h"
 
-#define max_potentials 10
+#define max_potentials 10 //TODO : use vector
 #define max_updaters 10
 #define max_timers 20
 
 #define VERSION "trunk"
 
 //#define NOTEXTURE
-const int DEFAULT_BLOCK_SIZE = 256;
+
+PARAMETER_MANDATORY(topology, std::string, "path", "...")
+PARAMETER_MANDATORY(coordinates, std::string, "path", "...")
+PARAMETER(reffilename, std::string, "<name>.ref.pdb", "path", "...")
+PARAMETER(name, std::string, "unnamed", "", "...")
+PARAMETER(run, int, -1, "?", "...")
+PARAMETER_MANDATORY(runnum, int, "?", "...")
+PARAMETER_MANDATORY(firstrun, int, "?", "...")
+PARAMETER_MANDATORY(numsteps, long, "?", "...")
+PARAMETER(device, int, 0, "", "...")
+PARAMETER(nav, int, 1000, "steps", "...")
 
 
 //#define capsid

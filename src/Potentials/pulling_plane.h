@@ -7,24 +7,21 @@
 
 #pragma once
 
-#define PULLINGPLANE_ON_STRING			"pullingPlane"
+#include "../Util/parameters.h"
 
-#define PULLINGPLANE_DELTAX_STRING		"pullingPlaneDeltax"
-#define PULLINGPLANE_KS_STRING			"pullingPlaneKs"
+PARAMETER(pullingPlane, bool, false, "true/false", "...")
 
-#define PULLINGPLANE_FIXED_COUNT_STRING	"plane_fixed_beads"
-#define PULLINGPLANE_FIXED_STRING		"plane_fixed"
-#define PULLINGPLANE_PULLED_COUNT_STRING	"plane_pulled_beads"
-#define PULLINGPLANE_PULLED_STRING		"plane_pulled"
+PARAMETER(pullingPlaneDeltax, float, 0.0f, "?", "...")
+PARAMETER(pullingPlaneKs, float, 0.05f, "?", "...")
 
-#define PULLINGPLANE_PULLVECTOR_STRING		"pullingPlaneDir"
-#define PULLINGPLANE_ZEROVECTOR_STRING		"pullingPlanePos"
+PARAMETER_MANDATORY(plane_fixed, std::vector<int>, "", "...")
+PARAMETER_MANDATORY(plane_pulled, std::vector<int>, "", "...")
 
-#define PULLINGPLANE_FILENAME			"pullingPlaneOutput"
-#define PULLINGPLANE_FREQ				"pullingPlaneFreq"
+PARAMETER_MANDATORY(pullingPlaneDir, float3, "?", "...")
+PARAMETER_MANDATORY(pullingPlanePos, float3, "?", "...")
 
-#define DEFAULT_PULLINGPLANE_KS			0.05f
-#define DEFAULT_PULLINGPLANE_FILENAME	"pullplane.<name>_<author><run>_<stage>.dat"
+PARAMETER(pullingPlaneOutput, std::string, "pullplane.<name>_<author><run>_<stage>.dat", "path", "...")
+PARAMETER(pullingPlaneFreq, int, parameters::nav, "steps", "...")
 
 class PullingPlanePotential : public SOPPotential {
 public:
@@ -36,10 +33,8 @@ public:
 	float deltax;
     float mass;
 
-	int fixedCount;
-	int pulledCount;
-	int* fixed;
-	int* pulled;
+    std::vector<int> fixed;
+    std::vector<int> pulled;
 
 	float3 extForce; // Force acting on plane from particles
     float3 cantForce; // Force acting on cantilever from plane

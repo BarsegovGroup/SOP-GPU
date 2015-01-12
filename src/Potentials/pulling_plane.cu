@@ -6,16 +6,15 @@
  */
 #include "../gsop.cuh"
 #include "../Integrators/langevin.h"
-#include "../IO/configreader.h"
 #include "pulling_plane.h"
 
-char pullingPlaneFilename[500];
 FILE* pullingPlaneFile;
+std::string pullingPlaneFilename;
 
 #include "pulling_plane_kernel.cu"
 
 void createPullingPlanePotential(){
-	if(getYesNoParameter(PULLINGPLANE_ON_STRING, 0, 1) == 1){
+	if(parameters::pullingPlane.get()){
 		gsop.pullingPlaneOn = 1;
 
         PullingPlanePotential *pot;
@@ -29,7 +28,7 @@ void createPullingPlanePotential(){
 
 PullingPlaneUpdater::PullingPlaneUpdater(PullingPlanePotential *pullingPlane){
 	this->name = "Pulling Plane";
-    this->frequency = getIntegerParameter(PULLINGPLANE_FREQ, gsop.nav, 1);
+    this->frequency = parameters::pullingPlaneFreq.get();
     this->pullingPlane = pullingPlane;
 }
 
@@ -43,55 +42,36 @@ PullingPlanePotential::PullingPlanePotential(){
 	this->h_extForces = (float4*)calloc(gsop.aminoCount, sizeof(float4));
 	cudaMalloc((void**)&this->d_extForces, gsop.aminoCount*sizeof(float4));
 
-	this->deltax = getFloatParameter(PULLINGPLANE_DELTAX_STRING, 0, 1);
-	this->Ks = getFloatParameter(PULLINGPLANE_KS_STRING, DEFAULT_PULLINGPLANE_KS, 1);
+	this->deltax = parameters::pullingPlaneDeltax.get();
+	this->Ks = parameters::pullingPlaneKs.get();
 
 	if(this->deltax == 0){
-		printf("ERROR: '%s' parameter should be specified to initiate this->\n", PULLINGPLANE_DELTAX_STRING);
-		exit(-1);
+		DIE("'%s' parameter should be specified to initiate this->\n", parameters::pullingPlaneDeltax.name().c_str());
 	}
 
-	this->fixedCount = getIntegerParameter(PULLINGPLANE_FIXED_COUNT_STRING, 0, 0);
-	this->fixed = (int*)malloc(this->fixedCount*sizeof(int));
-	this->pulledCount = getIntegerParameter(PULLINGPLANE_PULLED_COUNT_STRING, 0, 0);
-	this->pulled = (int*)malloc(this->pulledCount*sizeof(int));
-	printf("%d resid(s) fixed, %d pulled.\n", this->fixedCount, this->pulledCount);
-	char paramName[50];
-	for(i = 0; i < this->fixedCount; i++){
-		sprintf(paramName, "%s%d", PULLINGPLANE_FIXED_STRING, i+1);
-		this->fixed[i] = getIntegerParameter(paramName, 0, 0);
-		if(this->fixed[i] < 0 || this->fixed[i] >= gsop.aminoCount){
-			DIE("ERROR: Fixed bead %s %d not exists. Protein has only %d amino-acids. Bead numbers should start with zero.\n", paramName, this->fixed[i], gsop.aminoCount);
-		}
-		printf("Resid %d is fixed.\n", this->fixed[i]);
-	}
-	for(i = 0; i < this->pulledCount; i++){
-		sprintf(paramName, "%s%d", PULLINGPLANE_PULLED_STRING, i+1);
-		this->pulled[i] = getIntegerParameter(paramName, 0, 0);
-		if(this->pulled[i] < 0 || this->pulled[i] >= gsop.aminoCount){
-			DIE("ERROR: Pulled bead %s %d not exists. Protein has only %d amino-acids. Bead numbers should start with zero.\n", paramName, this->pulled[i], gsop.aminoCount);
-		}
-		printf("Pulling resid %d.\n", this->pulled[i]);
-	}
+    if (parameters::_is_defined("plane_fixed_beads") || parameters::_is_defined("plane_pulled_beads")) {
+        DIE("'plane_fixed_beads' and 'plane_pulled_beads' parameters are deprecated. Use 'plane_fixed' and 'plane_pulled' instead");
+    }
+	this->fixed = parameters::plane_fixed.get();
+	this->pulled = parameters::plane_pulled.get();
+	printf("%ld resid(s) fixed, %ld pulled.\n", this->fixed.size(), this->pulled.size());
 
-    getVectorParameter(PULLINGPLANE_PULLVECTOR_STRING, &this->pullVector.x, &this->pullVector.y, &this->pullVector.z, 0, 0, 0, 0);
-    double t = sqrt(this->pullVector.x*this->pullVector.x + this->pullVector.y*this->pullVector.y + this->pullVector.z*this->pullVector.z);
-    this->pullVector.x /= t;
-    this->pullVector.y /= t;
-    this->pullVector.z /= t;
-    getVectorParameter(PULLINGPLANE_ZEROVECTOR_STRING, &this->planeCoord0.x, &this->planeCoord0.y, &this->planeCoord0.z, 0, 0, 0, 0);
-    this->d = - (this->planeCoord.x*this->pullVector.x + this->planeCoord.y*this->pullVector.y + this->planeCoord.z*this->pullVector.z);
+    this->pullVector = parameters::pullingPlaneDir.get();
+    double t = abs(this->pullVector);
+    this->pullVector /= t;
+    this->planeCoord0 = parameters::pullingPlanePos.get();
+    this->d = - dot(this->planeCoord, this->pullVector);
     this->cant_d = this->d;
 
 	for(i = 0; i < sop.aminoCount; i++){
 		this->h_extForces[i] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 	}
-	for(j = 0; j < this->pulledCount; j++){
+	for(j = 0; j < this->pulled.size(); j++){
 		i = this->pulled[j];
 		printf("Pulling bead #%d (%s %d chain %c).\n", i, sop.aminos[i].resName, sop.aminos[i].resid, sop.aminos[i].chain);
 		this->h_extForces[i] = make_float4(0.0, 0.0, 0.0, 2.0);
 	}
-	for(j = 0; j < this->fixedCount; j++){
+	for(j = 0; j < this->fixed.size(); j++){
 		i = this->fixed[j];
 		printf("Fixing bead #%d (%s %d chain %c).\n", i, sop.aminos[i].resName, sop.aminos[i].resid, sop.aminos[i].chain);
 		this->h_extForces[i] = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -110,14 +90,10 @@ PullingPlanePotential::PullingPlanePotential(){
 	cudaMemcpyToSymbol(c_pullingPlane, &hc_pullingPlane, sizeof(PullingPlaneConstant), 0, cudaMemcpyHostToDevice);
 	checkCUDAError();
 
-    char tmpstr[512];
-	getMaskedParameter(tmpstr, PULLINGPLANE_FILENAME, "", 0);
-	char trajnum[10];
-	sprintf(trajnum, "%d", gsop.firstrun);
-	replaceString(pullingPlaneFilename, tmpstr, trajnum, "<run>");
-	pullingPlaneFile = safe_fopen(pullingPlaneFilename, "w");
+    std::string pullingPlaneFilename = parameters::pullingPlaneOutput.replace("<run>", gsop.firstrun);
+	pullingPlaneFile = safe_fopen(pullingPlaneFilename.c_str(), "w");
 	fclose(pullingPlaneFile);
-	printf("PullingPlane data will be saved in '%s'.\n", pullingPlaneFilename);
+	printf("PullingPlane data will be saved in '%s'.\n", pullingPlaneFilename.c_str());
 	
     if(deviceProp.major == 2){ // TODO: >= 2
 		cudaFuncSetCacheConfig(pullingPlane_kernel, cudaFuncCachePreferL1);
@@ -169,7 +145,7 @@ void PullingPlaneUpdater::update(){
 			printf("Plane coordinates for run #%d: %f, %f, %f\n",
 					gsop.firstrun, pullingPlane->planeCoord.x, pullingPlane->planeCoord.y, pullingPlane->planeCoord.z);
 		}
-        pullingPlaneFile = safe_fopen(pullingPlaneFilename, "a");
+        pullingPlaneFile = safe_fopen(pullingPlaneFilename.c_str(), "a");
         float3 extForce = make_float3(0.f, 0.f, 0.f);
         for (j = 0; j < gsop.aminoCount; j++){
             extForce.x += pullingPlane->h_extForces[j].x;

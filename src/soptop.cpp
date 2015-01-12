@@ -17,6 +17,8 @@
 
 #define VERSION "trunk"
 
+using namespace configreader; // << Temporary kludge to keep soptop working without getting deep into it
+
 void createModel();
 
 int main(int argc, char *argv[]){

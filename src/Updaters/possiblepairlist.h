@@ -3,14 +3,16 @@
  *
  *  Created on: Apr 8, 2010
  *      Author: zhmurov
+ *
+ *      TODO: replace headers everywhere to reference SOP-GPU
  */
 
 #pragma once
 
-#define POSSIBLEPAIRS_CUTOFF_STRING			"pairs_threshold"
-#define POSSIBLEPAIRS_BLOCK_SIZE_STRING		"block_size_possiblepairs"
+#include "../Util/parameters.h"
 
-#define DEFAULT_POSSIBLEPAIRS_CUTOFF			200.0f
+PARAMETER(pairs_threshold, float, 200.0f, "?", "...")
+PARAMETER(possiblepairs_freq, int, 100000, "?", "...")
 
 class PossiblepairList : public SOPUpdater{
 public:

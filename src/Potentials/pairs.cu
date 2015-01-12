@@ -18,14 +18,14 @@ void createPairsPotential(){
 PairsPotential::PairsPotential(){
     this->name = "Long Range";
 	printf("Initializing pairlist...");
-	this->blockSize = getIntegerParameter(PAIRS_BLOCK_SIZE_STRING, gsop.blockSize, 1);
+	this->blockSize = gsop.blockSize;
 	this->blockNum = gsop.aminoCount/this->blockSize + 1;
-	this->a = getFloatParameter(PAIRS_A_STRING, DEFAULT_PAIRS_A, 1);
+	this->a = parameters::a.get();
 	this->a2 = this->a*this->a;
-	this->el = getFloatParameter(PAIRS_EL_STRING, DEFAULT_PAIRS_EL, 1);
+	this->el = parameters::el.get();
 	this->minus6elovera2 = -6.0f*this->el/this->a2;
-	this->max_pairs = getIntegerParameter(MAX_PAIRS_STRING, DEFAULT_MAX_PAIRS, 1);
-	this->pairsCutoff = getFloatParameter(PAIRS_CUTOFF_STRING, DEFAULT_PAIRS_CUTOFF, 1);
+	this->max_pairs = parameters::max_pairs.get();
+	this->pairsCutoff = parameters::pairs_cutoff.get();
 	this->pairsCutoff2 = this->pairsCutoff*this->pairsCutoff;
 
 	// Allocating memory

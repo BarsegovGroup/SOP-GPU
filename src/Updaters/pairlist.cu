@@ -22,12 +22,12 @@ void createPairlistUpdater(){
  */
 PairList::PairList(){
 	this->name = "Pairlist";
-	this->frequency = getIntegerParameter("pairs_freq", 1000, 1);
+	this->frequency = parameters::pairs_freq.get();
 	printf("Searching for all possible pairs for repulsive LJ...\n");
-	this->blockSize = getIntegerParameter(PAIRLIST_BLOCK_SIZE_STRING, gsop.blockSize, 1);
+	this->blockSize = gsop.blockSize;
 	this->blockNum = gsop.aminoCount/this->blockSize + 1;
-	this->max_possiblePairs = getIntegerParameter(MAX_POSSIBLEPAIRS_STRING, DEFAULT_MAX_POSSIBLEPAIRS, 1);
-	this->pairlistCutoff = getFloatParameter(PAIRLIST_CUTOFF_STRING, DEFAULT_PAIRLIST_CUTOFF, 1);
+	this->max_possiblePairs = parameters::max_possiblePairs.get();
+	this->pairlistCutoff = parameters::pairlist_cutoff.get();
 	// Allocating memory
 	this->h_possiblePairs = (int*)calloc(gsop.aminoCount*this->max_possiblePairs, sizeof(int));
 	this->h_possiblePairsCount = (int*)calloc(gsop.aminoCount, sizeof(int));

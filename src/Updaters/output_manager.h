@@ -12,23 +12,17 @@
 #include "../Potentials/native.h"
 #include "../Potentials/covalent.h"
 #include "../Integrators/bdhitea.h"
+#include "../Util/parameters.h"
 
 #include <vector>
 #include <string>
 
-#define OUTPUT_FREQUENCY_STRING			"outputtiming"
-#define OUTPUT_FILENAME_STRING			"outputname"
-#define OUTPUT_DATA_WIDTH_STRING		"outputcolwidth"
-#define OUTPUT_PRINT_RUNS_STRING		"printruns"
-#define OUTPUT_COMPUTE_RG_STRING		"coputeRg"
 
-#define DEFAULT_OUTPUT_FREQUENCY		10000
-#define DEFAULT_OUTPUT_FILENAME			"energy.<name>_<run>_<stage>.dat"
-#define DEFAULT_OUTPUT_DATA_WIDTH		16
-#define DEFAULT_OUTPUT_PRINT_RUNS		10
-#define DEFAULT_OUTPUT_COMPUTE_RG		1
-
-const int MODE_CAPSID = 1;
+PARAMETER(outputtiming, int, 10000, "steps", "...")
+PARAMETER(outputname, std::string, "energy.<name>_<run>_<stage>.dat", "path", "...")
+PARAMETER(outputcolwidth, int, 16, "symbols", "...")
+PARAMETER(printruns, int, 10, "", "...")
+PARAMETER(computeRg, bool, true, "true/false", "...")
 
 struct OutputData{
 	float tea_eps;
