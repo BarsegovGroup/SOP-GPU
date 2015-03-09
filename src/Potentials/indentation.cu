@@ -246,20 +246,11 @@ IndentationAminoUpdater::IndentationAminoUpdater(){
 	 */
 	float3 chipCoord;
 	float3 tipCoord;
-<<<<<<< HEAD
-	getVectorParameter(INDENTATION_CHIP_POSITION_STRING, &chipCoord.x, &chipCoord.y, &chipCoord.z, 0.0, 0.0, 0.0, 0);
-	getVectorParameter(INDENTATION_TIP_POSITION_STRING, &tipCoord.x, &tipCoord.y, &tipCoord.z,
-				chipCoord.x, chipCoord.y, chipCoord.z, 1);
-	getVectorParameter(INDENTATION_SURFACE_R0_STRING, &hc_indentation.micaR0.x, &hc_indentation.micaR0.y, &hc_indentation.micaR0.z, 0.0, 0.0, 0.0, 0);
-	getVectorParameter(INDENTATION_SURFACE_N_STRING, &hc_indentation.micaN.x, &hc_indentation.micaN.y, &hc_indentation.micaN.z, 0.0, 0.0, 0.0, 0);
-	getVectorParameter(INDENTATION_DIRECTION_STRING, &hc_indentation.direction.x, &hc_indentation.direction.y, &hc_indentation.direction.z, 0.0, 0.0, 0.0, 0);
-=======
 	chipCoord = parameters::indentationChip.get();
     tipCoord = parameters::indentationTip.get();
     hc_indentation.micaR0 = parameters::indentationSurfaceR0.get();
     hc_indentation.micaN = parameters::indentationSurfaceN.get();
     hc_indentation.direction = parameters::indentationDirection.get();
->>>>>>> newer_params
 
 	// Generating additional amino-acids to represent cantilever and surface
 	hc_indentation.surfaceSize = parameters::indentationSurfaceSize.get();
