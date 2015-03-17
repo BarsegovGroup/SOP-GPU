@@ -227,7 +227,7 @@ IndentationTipUpdater::IndentationTipUpdater(IndentationPotential *indentation) 
 	fav.w = 0.0f;
 	kDeltaXAv = 0.0f;
 	// Output parameters
-	this->outputFile = fopen(parameters::indentationOutput.get().c_str(), "w");
+	this->outputFile = safe_fopen(parameters::indentationOutput.get().c_str(), "w");
 	this->retractionStep = parameters::indentationRetractionStep.get();
 }
 
