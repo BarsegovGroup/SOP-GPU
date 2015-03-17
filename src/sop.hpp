@@ -150,6 +150,7 @@ int checkNative(int i, int j){
 								&& strcmp(pdbdata.atoms[i1].name, "C") != 0 && strcmp(pdbdata.atoms[i2].name, "C") != 0
 								&& strcmp(pdbdata.atoms[i1].name, "O") != 0 && strcmp(pdbdata.atoms[i2].name, "O") != 0 ){
 							if(getDistanceAtoms(i1, i2) < SC_limit_bond){
+								//printf("%s-%s\n", pdbdata.atoms[i1].name, pdbdata.atoms[i2].name);
 								return 1;
 							}
 						}
