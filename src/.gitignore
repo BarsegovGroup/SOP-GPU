@@ -6,6 +6,7 @@
 # Build artefacts
 obj
 sop-top
+sop-top2
 sop-gpu
 
 #

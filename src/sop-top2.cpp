@@ -5,12 +5,12 @@
  *      Author: kias
  */
 
-#include "aatocg.h"
-#include "pdbio.h"
-#include "topio.h"
-#include "psfio.h"
-#include "../IO/configreader.h"
-#include "../Util/parameters.h"
+#include "TopologyCreator/aatocg.h"
+#include "TopologyCreator/pdbio.h"
+#include "TopologyCreator/topio.h"
+#include "TopologyCreator/psfio.h"
+#include "IO/configreader.h"
+#include "Util/parameters.h"
 
 #define BUF_SIZE 1024
 

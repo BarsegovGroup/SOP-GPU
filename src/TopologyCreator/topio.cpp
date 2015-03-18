@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define UNWRAP
 #ifdef UNWRAP
 # define safe_fopen fopen
 # define safe_fgets fgets
