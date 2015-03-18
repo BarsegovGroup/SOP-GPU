@@ -67,8 +67,8 @@ PullingPotential::PullingPotential(){
         pullVector = parameters::pullVector.get();
 		for(traj = 0; traj < gsop.Ntr; traj++){
 			this->pullVector[traj] = pullVector;
-			this->cantCoord0[traj] = make_float3(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd]);
-			this->cantCoord[traj]  = make_float3(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd]);
+			this->cantCoord0[traj] = make_float3(gsop.h_coord[traj*sop.aminos.size() + this->pulledEnd]);
+			this->cantCoord[traj]  = make_float3(gsop.h_coord[traj*sop.aminos.size() + this->pulledEnd]);
 		}
 		printf("Pulling in direction of vector (%f, %f, %f).\n", pullVector.x, pullVector.y, pullVector.z);
 	} else if(pullDirection == "endToEnd"){
@@ -76,11 +76,11 @@ PullingPotential::PullingPotential(){
 		this->pulledEnd = parameters::pulledEnd.get();
 		for(traj = 0; traj < gsop.Ntr; traj++){
 			this->pullVector[traj] = make_float3(
-                    gsop.h_coord[traj*sop.aminoCount + this->pulledEnd]
-					- gsop.h_coord[traj*sop.aminoCount + this->fixedEnd]);
+                    gsop.h_coord[traj*sop.aminos.size() + this->pulledEnd]
+					- gsop.h_coord[traj*sop.aminos.size() + this->fixedEnd]);
 			normalize(this->pullVector[traj]);
-			this->cantCoord0[traj] = make_float3(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd]);
-			this->cantCoord[traj]  = make_float3(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd]);
+			this->cantCoord0[traj] = make_float3(gsop.h_coord[traj*sop.aminos.size() + this->pulledEnd]);
+			this->cantCoord[traj]  = make_float3(gsop.h_coord[traj*sop.aminos.size() + this->pulledEnd]);
 		}
 		printf("Pulling in end-to-end direction: %c%d(%s) - %c%d(%s).\n",
 				sop.aminos[this->fixedEnd].chain, sop.aminos[this->fixedEnd].resid, sop.aminos[this->fixedEnd].resName,
@@ -94,15 +94,15 @@ PullingPotential::PullingPotential(){
 	}
 
 	for(traj = 0; traj < gsop.Ntr; traj++){
-		for(i = 0; i < sop.aminoCount; i++){
-			this->h_extForces[traj*sop.aminoCount + i] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+		for(i = 0; i < sop.aminos.size(); i++){
+			this->h_extForces[traj*sop.aminos.size() + i] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		}
 		for(j = 0; j < this->pulled.size(); j++){
 			i = this->pulled[j];
 			if(traj == 0){
 				printf("Pulling bead #%d (%s %d chain %c).\n", i, sop.aminos[i].resName, sop.aminos[i].resid, sop.aminos[i].chain);
 			}
-			this->h_extForces[traj*sop.aminoCount + i] = make_float4(
+			this->h_extForces[traj*sop.aminos.size() + i] = make_float4(
 					this->pullVector[traj] * this->fconst, 2.0f);
 		}
 		for(j = 0; j < this->fixed.size(); j++){
@@ -110,11 +110,11 @@ PullingPotential::PullingPotential(){
 			if(traj == 0){
 				printf("Fixing bead #%d (%s %d chain %c).\n", i, sop.aminos[i].resName, sop.aminos[i].resid, sop.aminos[i].chain);
 			}
-			this->h_extForces[traj*sop.aminoCount + i] = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
+			this->h_extForces[traj*sop.aminos.size() + i] = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
 		}
 	}
 
-	for(i = 0; i < sop.aminoCount; i++){
+	for(i = 0; i < sop.aminos.size(); i++){
 		sop.aminos[i].beta = this->h_extForces[i].w;
 	}
 	cudaMemcpy(this->d_extForces, this->h_extForces, gsop.aminoCount*sizeof(float4), cudaMemcpyHostToDevice);
@@ -147,11 +147,11 @@ void PullingPotential::updateForces(float xt){
 	copyCoordDeviceToHost();
 	int traj, j;
 	for(traj = 0; traj < gsop.Ntr; traj++){
-		this->extForce[traj] = this->computeForce(gsop.h_coord[sop.aminoCount*traj + this->pulledEnd], traj);
+		this->extForce[traj] = this->computeForce(gsop.h_coord[sop.aminos.size()*traj + this->pulledEnd], traj);
 		// Increasing the force'
 		this->cantCoord[traj] = this->cantCoord0[traj] + xt * this->pullVector[traj];
 		for(j = 0; j < this->pulled.size(); j++){
-			this->h_extForces[traj*sop.aminoCount + this->pulled[j]] =
+			this->h_extForces[traj*sop.aminos.size() + this->pulled[j]] =
 					make_float4(this->extForce[traj], 2.0f);
 		}
 	}
@@ -169,7 +169,7 @@ void PullingPotential::savePullingData(){
 	for(traj = 0; traj < gsop.Ntr; traj++){
 		FILE* pullFile = safe_fopen(pullFilenames[traj].c_str(), "a");
 
-        float3 endToEnd_vector = make_float3(gsop.h_coord[traj*sop.aminoCount + this->pulledEnd] - gsop.h_coord[traj*sop.aminoCount + this->fixedEnd]);
+        float3 endToEnd_vector = make_float3(gsop.h_coord[traj*sop.aminos.size() + this->pulledEnd] - gsop.h_coord[traj*sop.aminos.size() + this->fixedEnd]);
 		float endToEnd_x = dot( endToEnd_vector , this->pullVector[traj] );
 		float endToEnd = abs( endToEnd_vector );
         float f = dot(this->extForce[traj] , this->pullVector[traj]);

@@ -85,7 +85,7 @@ int checkCovalent(int i, int j){
 	}
 	// For SS-bonds
 	int k;
-	for(k = 0; k < pdbdata.ssCount; k++){
+	for(k = 0; k < pdbdata.ssbonds.size(); k++){
 		if((pdbdata.atoms[i1].resid == pdbdata.ssbonds[k].resid1) && (pdbdata.atoms[i1].chain == pdbdata.ssbonds[k].chain1) &&
 				(pdbdata.atoms[i2].resid == pdbdata.ssbonds[k].resid2) && (pdbdata.atoms[i2].chain == pdbdata.ssbonds[k].chain2)){
 			if(getDistanceAtoms(i1, i2) < SS_cutoff){

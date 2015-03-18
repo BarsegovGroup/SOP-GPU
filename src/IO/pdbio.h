@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdio.h>
+#include <vector>
 #include "topio.h"
 
 struct SOP;
@@ -24,8 +24,9 @@ struct PDBAtom {
     double occupancy;
     double beta;
 
-    void print() const;
-    void fprint(FILE* file) const;
+    PDBAtom(const char* line) { this->parse(line); }
+    PDBAtom() { }
+    void fprint(FILE* file, int custom_atomid = -1, bool atomid_in_hex = false) const;
     void parse(const char* line);
     void fromTOP(FILE* topFile);
 };
@@ -33,7 +34,10 @@ struct PDBAtom {
 struct PDBSSBond {
 	int resid1, resid2;
 	char chain1, chain2;
-    
+   
+    PDBSSBond(const char *line) { this->parse(line); } 
+    PDBSSBond() { } 
+    void fprint(FILE* file, int bondid) const;
     void parse(const char* line);
 };
 
@@ -43,10 +47,8 @@ struct PDBConnect {
 };
 
 struct PDB {
-	int atomCount;
-	PDBAtom* atoms;
-	int ssCount;
-	PDBSSBond* ssbonds;
+    std::vector<PDBAtom> atoms;
+    std::vector<PDBSSBond> ssbonds;
 	PDBConnect connections;
 
     void read(const char *filename);

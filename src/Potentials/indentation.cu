@@ -57,7 +57,7 @@ void createIndentationPotential(){
 			updaters[updatersCount] = aminoUpdater;
 			updatersCount++;
 		} else {
-			sop.additionalAminosCount = 0;
+			sop.additionalAminos.resize(0);
 		}
 
 		potentials[potentialsCount] = pot;
@@ -255,11 +255,10 @@ IndentationAminoUpdater::IndentationAminoUpdater(){
 	// Generating additional amino-acids to represent cantilever and surface
 	hc_indentation.surfaceSize = parameters::indentationSurfaceSize.get();
 	hc_indentation.surfaceStep = parameters::indentationSurfaceStep.get();
-	sop.additionalAminosCount = 2 + hc_indentation.surfaceSize*hc_indentation.surfaceSize;
-	sop.additionalAminos = (PDBAtom*)calloc(sop.additionalAminosCount, sizeof(PDBAtom));
+	sop.additionalAminos.resize( 2 + hc_indentation.surfaceSize*hc_indentation.surfaceSize );
 
 	// Cantilever base amino acid
-	sop.additionalAminos[0].id = sop.aminoCount;
+	sop.additionalAminos[0].id = sop.aminos.size();
 	strcpy(sop.additionalAminos[0].resName, "TIP");
 	sop.additionalAminos[0].chain = 'T';
 	sop.additionalAminos[0].x = chipCoord.x;
@@ -267,7 +266,7 @@ IndentationAminoUpdater::IndentationAminoUpdater(){
 	sop.additionalAminos[0].z = chipCoord.z;
 	sop.additionalAminos[0].resid = 1;
 	// Cantilever tip amino acid
-	sop.additionalAminos[1].id = sop.aminoCount + 1;
+	sop.additionalAminos[1].id = sop.aminos.size() + 1;
 	strcpy(sop.additionalAminos[1].resName, "TIP");
 	sop.additionalAminos[1].chain = 'T';
 	sop.additionalAminos[1].x = tipCoord.x;
@@ -344,7 +343,7 @@ IndentationAminoUpdater::IndentationAminoUpdater(){
 			r.y = r0.y + i1*displ*r1.y + i2*displ*r2.y;
 			r.z = r0.z + i1*displ*r1.z + i2*displ*r2.z;
 			sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].id =
-					sop.aminoCount + 2 + i*hc_indentation.surfaceSize+j;
+					sop.aminos.size() + 2 + i*hc_indentation.surfaceSize+j;
 			strcpy(sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].resName, "MIC");
 			sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].chain = 'M';
 			sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].x = r.x;

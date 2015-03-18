@@ -120,27 +120,27 @@ void createModel(){
 	pdbdata.read(pdb_filename);
 	printf("Creating SOP-model...\n");
 
-	sop.aminoCount = 0;
+	int sop_aminoCount = 0;
 	//Counting number of Calphas
-	for(i = 0; i < pdbdata.atomCount; i++){
+	for(i = 0; i < pdbdata.atoms.size(); i++){
 		if(strcmp(pdbdata.atoms[i].name, "CA") == 0){
-			sop.aminoCount ++;
+			sop_aminoCount ++;
 		}
 	}
-	printf("Found %d residues.\n", sop.aminoCount);
+	printf("Found %d residues.\n", sop_aminoCount);
 
-	pdbRef = (int*)malloc(sop.aminoCount*sizeof(int));
-	firstAtomInResid = (int*)malloc(sop.aminoCount*sizeof(int));
-	lastAtomInResid = (int*)malloc(sop.aminoCount*sizeof(int));
-	aminoRef = (int*)malloc(pdbdata.atomCount*sizeof(int));
-	sop.aminos = (PDBAtom*)malloc(sop.aminoCount*sizeof(PDBAtom));
-	/*nativeContacts = (char**)malloc(sop.aminoCount*sop.aminoCount*sizeof(char));
-	for(i = 0; i < sop.aminoCount; i++){
-		nativeContacts[i] = (char*)malloc(sop.aminoCount*sizeof(char));
+	pdbRef = (int*)malloc(sop.aminos.size()*sizeof(int));
+	firstAtomInResid = (int*)malloc(sop.aminos.size()*sizeof(int));
+	lastAtomInResid = (int*)malloc(sop.aminos.size()*sizeof(int));
+	aminoRef = (int*)malloc(pdbdata.atoms.size()*sizeof(int));
+	sop.aminos.resize(sop_aminoCount);
+	/*nativeContacts = (char**)malloc(sop.aminos.size()*sop.aminos.size()*sizeof(char));
+	for(i = 0; i < sop.aminos.size(); i++){
+		nativeContacts[i] = (char*)malloc(sop.aminos.size()*sizeof(char));
 	}*/
 
 	int index = 0;
-	for(i = 0; i < pdbdata.atomCount; i++){
+	for(i = 0; i < pdbdata.atoms.size(); i++){
 		if(strcmp(pdbdata.atoms[i].name, "CA") == 0){
 			pdbRef[index] = i;
 			sop.aminos[index] = pdbdata.atoms[i];
@@ -152,7 +152,7 @@ void createModel(){
 	index = -1;
 	int lastAminoResid = -1;// pdbdata.atoms[0].resid;
 	char lastAminoChain = 0;//pdbdata.atoms[0].chain;
-	for(i = 0; i < pdbdata.atomCount; i++){
+	for(i = 0; i < pdbdata.atoms.size(); i++){
 		if(lastAminoResid != pdbdata.atoms[i].resid || lastAminoChain != pdbdata.atoms[i].chain){
 			lastAminoResid = pdbdata.atoms[i].resid;
 			lastAminoChain = pdbdata.atoms[i].chain;
@@ -166,8 +166,8 @@ void createModel(){
 
 	index = 0;
 	firstAtomInResid[0] = 0;
-	lastAtomInResid[sop.aminoCount - 1] = pdbdata.atomCount - 1;
-	for(i = 0; i < sop.aminoCount - 1; i++){
+	lastAtomInResid[sop.aminos.size() - 1] = pdbdata.atoms.size() - 1;
+	for(i = 0; i < sop.aminos.size() - 1; i++){
 		while(aminoRef[index] == aminoRef[index+1]){
 			index ++;
 		}
@@ -176,13 +176,13 @@ void createModel(){
 		firstAtomInResid[i+1] = index+1;
 	}
 
-	/*for(i = 0; i < sop.aminoCount; i++){
+	/*for(i = 0; i < sop.aminos.size(); i++){
 		printf("Residue %d : %d - %d\n", i, firstAtomInResid[i], lastAtomInResid[i]);
 	}*/
 
 
-/*	for(i = 0; i < sop.aminoCount; i++){
-		for(j = 0; j < sop.aminoCount; j++){
+/*	for(i = 0; i < sop.aminos.size(); i++){
+		for(j = 0; j < sop.aminos.size(); j++){
 			nativeContacts[i][j] = 0;
 		}
 	}*/
@@ -236,76 +236,73 @@ void createModel(){
 	printf("CA native contacts: %d. \nSC native contacts: %d. \nTotal:%d(%d)\n", ca_count, sc_count, ca_count + sc_count, (ca_count + sc_count)/2);*/
 
 
-	sop.bondCount = 0;
-	sop.nativeCount = 0;
-	sop.pairCount = 0;
-	//long int computed = 0;
-	for(i = 0; i < sop.aminoCount; i++){
-		for(j = i + 1; j < sop.aminoCount; j++){
+	int sop_bondCount = 0;
+	int sop_nativeCount = 0;
+	int sop_pairCount = 0;
+	for(i = 0; i < sop.aminos.size(); i++){
+		for(j = i + 1; j < sop.aminos.size(); j++){
 			if(checkCovalent(i, j)){
-				sop.bondCount ++;
+				sop_bondCount ++;
 			}
 			if(checkNative(i, j)){
-				sop.nativeCount ++;
+				sop_nativeCount ++;
 			}
 			if(checkPossiblePairs(i, j)){
-				sop.pairCount ++;
+				sop_pairCount ++;
 			}
-			//computed++;
 		}
 		printf("Amino: %d. Bonds: %d. Native contacts: %d. Pairs: %d. (%4.2f%% completed)\r",
 				i,
-				sop.bondCount,
-				sop.nativeCount,
-				sop.pairCount,
-				((float)i+1)*100.0f/((float)(sop.aminoCount)));
+				sop_bondCount,
+				sop_nativeCount,
+				sop_pairCount,
+				((float)i+1)*100.0f/((float)(sop.aminos.size())));
 	}
 	printf("\n");
 
-	printf("Total per monomer:\n%d amino acids\n%d covalent bonds\n%d native contacts\n%d pairs\n=======\n",
-			sop.aminoCount, sop.bondCount, sop.nativeCount, sop.pairCount);
+	printf("Total per monomer:\n%ld amino acids\n%d covalent bonds\n%d native contacts\n%d pairs\n=======\n",
+			sop.aminos.size(), sop_bondCount, sop_nativeCount, sop_pairCount);
 
 
-	sop.aminos = (PDBAtom*)calloc(sop.aminoCount, sizeof(PDBAtom));
-	sop.bonds = (CovalentBond*)calloc(sop.bondCount, sizeof(CovalentBond));
-	sop.natives = (NativeContact*)calloc(sop.nativeCount, sizeof(NativeContact));
-	sop.pairs = (PossiblePair*)calloc(sop.pairCount, sizeof(PossiblePair));
+	sop.bonds.resize(sop_bondCount);
+	sop.natives.resize(sop_nativeCount);
+	sop.pairs.resize(sop_pairCount);
 
 
 
 	index = 0;
-	for(i = 0; i < pdbdata.atomCount; i++){
+	for(i = 0; i < pdbdata.atoms.size(); i++){
 		if(strcmp(pdbdata.atoms[i].name, "CA") == 0){
 			memcpy(&sop.aminos[index], &pdbdata.atoms[i], sizeof(PDBAtom));
 			index ++;
 		}
 	}
-	sop.bondCount = 0;
-	sop.nativeCount = 0;
-	sop.pairCount = 0;
+	sop_bondCount = 0;
+	sop_nativeCount = 0;
+	sop_pairCount = 0;
 
-	for(i = 0; i < sop.aminoCount; i++){
-		for(j = i + 1; j < sop.aminoCount; j++){
+	for(i = 0; i < sop.aminos.size(); i++){
+		for(j = i + 1; j < sop.aminos.size(); j++){
 			if(checkCovalent(i, j)){
-				sop.bonds[sop.bondCount].i = i;
-				sop.bonds[sop.bondCount].j = j;
-				sop.bonds[sop.bondCount].r0 = getR0(i, j);
-				sop.bondCount ++;
+				sop.bonds[sop_bondCount].i = i;
+				sop.bonds[sop_bondCount].j = j;
+				sop.bonds[sop_bondCount].r0 = getR0(i, j);
+				sop_bondCount ++;
 			}
 			if(checkNative(i, j)){
-				sop.natives[sop.nativeCount].i = i;
-				sop.natives[sop.nativeCount].j = j;
-				sop.natives[sop.nativeCount].r0 = getR0(i, j);
-				sop.natives[sop.nativeCount].eh = getEh(i, j);
-				sop.nativeCount ++;
+				sop.natives[sop_nativeCount].i = i;
+				sop.natives[sop_nativeCount].j = j;
+				sop.natives[sop_nativeCount].r0 = getR0(i, j);
+				sop.natives[sop_nativeCount].eh = getEh(i, j);
+				sop_nativeCount ++;
 			}
 			if(checkPossiblePairs(i, j)){
-				sop.pairs[sop.pairCount].i = i;
-				sop.pairs[sop.pairCount].j = j;
-				sop.pairCount ++;
+				sop.pairs[sop_pairCount].i = i;
+				sop.pairs[sop_pairCount].j = j;
+				sop_pairCount ++;
 			}
 		}
-		printf("Creating model ... %5.2f%% completed\r", ((float)i+1)*100.0f/((float)(sop.aminoCount)));
+		printf("Creating model ... %5.2f%% completed\r", ((float)i+1)*100.0f/((float)(sop.aminos.size())));
 	}
 	printf("\n");
 
@@ -314,21 +311,23 @@ void createModel(){
 
 		printf("Building a tandem of %d\n", monomerCount);
 
-		tandem.aminoCount = monomerCount*sop.aminoCount + (monomerCount + 1)*linkerLength;
-		tandem.bondCount = monomerCount*sop.bondCount + (monomerCount + 1)*(linkerLength + 1) - 2;
-		tandem.nativeCount = monomerCount*sop.nativeCount;
-		tandem.pairCount = (tandem.aminoCount * tandem.aminoCount - tandem.aminoCount) / 2 - tandem.nativeCount;
+		int tandem_aminoCount = monomerCount*sop.aminos.size() + (monomerCount + 1)*linkerLength;
+		int tandem_bondCount = monomerCount*sop.bonds.size() + (monomerCount + 1)*(linkerLength + 1) - 2;
+		int tandem_nativeCount = monomerCount*sop.natives.size();
+		int tandem_pairCount = (tandem_aminoCount * tandem_aminoCount - tandem_aminoCount) / 2 - tandem_nativeCount;
+
 		if(covalentLJ == 0){
-			tandem.pairCount -= tandem.bondCount;
+			tandem_pairCount -= tandem_bondCount;
 		}
 
-		printf("Total per %d-mer:\n%d amino acids\n%d covalent bonds\n%d native contacts\n%d pairs\n=======\n",
-				monomerCount, tandem.aminoCount, tandem.bondCount, tandem.nativeCount, tandem.pairCount);
 
-		tandem.aminos = (PDBAtom*)calloc(tandem.aminoCount, sizeof(PDBAtom));
-		tandem.bonds = (CovalentBond*)calloc(tandem.bondCount, sizeof(CovalentBond));
-		tandem.natives = (NativeContact*)calloc(tandem.nativeCount, sizeof(NativeContact));
-		tandem.pairs = (PossiblePair*)calloc(tandem.pairCount, sizeof(PossiblePair));
+		tandem.aminos.resize(tandem_aminoCount);
+		tandem.bonds.resize(tandem_bondCount);
+		tandem.natives.resize(tandem_nativeCount);
+		tandem.pairs.resize(tandem_pairCount);
+
+		printf("Total per %d-mer:\n%ld amino acids\n%ld covalent bonds\n%ld native contacts\n%ld pairs\n=======\n",
+				monomerCount, tandem.aminos.size(), tandem.bonds.size(), tandem.natives.size(), tandem.pairs.size());
 
 		index = 0;
 		PDBAtom linkerAA;
@@ -359,11 +358,11 @@ void createModel(){
 
 		// Copy monomer amino acids
 		for(i = 0; i < monomerCount; i++){
-			for(j = 0; j < sop.aminoCount; j++){
-				tandem.aminos[i*(sop.aminoCount + linkerLength) + j + linkerLength] = sop.aminos[j];
-				tandem.aminos[i*(sop.aminoCount + linkerLength) + j + linkerLength].x += i*(rx + rxn*a*(linkerLength + 1));
-				tandem.aminos[i*(sop.aminoCount + linkerLength) + j + linkerLength].y += i*(ry + ryn*a*(linkerLength + 1));
-				tandem.aminos[i*(sop.aminoCount + linkerLength) + j + linkerLength].z += i*(rz + rzn*a*(linkerLength + 1));
+			for(j = 0; j < sop.aminos.size(); j++){
+				tandem.aminos[i*(sop.aminos.size() + linkerLength) + j + linkerLength] = sop.aminos[j];
+				tandem.aminos[i*(sop.aminos.size() + linkerLength) + j + linkerLength].x += i*(rx + rxn*a*(linkerLength + 1));
+				tandem.aminos[i*(sop.aminos.size() + linkerLength) + j + linkerLength].y += i*(ry + ryn*a*(linkerLength + 1));
+				tandem.aminos[i*(sop.aminos.size() + linkerLength) + j + linkerLength].z += i*(rz + rzn*a*(linkerLength + 1));
 			}
 		}
 
@@ -379,16 +378,16 @@ void createModel(){
 				linkerAA.x = sop.aminos[lastResid].x + (rx + (linkerLength + 1)*a*rxn)*i + (k+1)*a*rxn;
 				linkerAA.y = sop.aminos[lastResid].y + (ry + (linkerLength + 1)*a*ryn)*i + (k+1)*a*ryn;
 				linkerAA.z = sop.aminos[lastResid].z + (rz + (linkerLength + 1)*a*rzn)*i + (k+1)*a*rzn;
-				tandem.aminos[(i+1)*(sop.aminoCount) + (i+1)*linkerLength + k] = linkerAA;
+				tandem.aminos[(i+1)*(sop.aminos.size()) + (i+1)*linkerLength + k] = linkerAA;
 			}
 		}
 
 		// Copy monomer covalent bonds
 		for(i = 0; i < monomerCount; i++){
-			for(j = 0; j < sop.bondCount; j++){
-				tandem.bonds[i*(sop.bondCount + linkerLength + 1) + linkerLength + j].i = sop.bonds[j].i + i*(sop.aminoCount + linkerLength) + linkerLength;
-				tandem.bonds[i*(sop.bondCount + linkerLength + 1) + linkerLength + j].j = sop.bonds[j].j + i*(sop.aminoCount + linkerLength) + linkerLength;
-				tandem.bonds[i*(sop.bondCount + linkerLength + 1) + linkerLength + j].r0 = sop.bonds[j].r0;
+			for(j = 0; j < sop.bonds.size(); j++){
+				tandem.bonds[i*(sop.bonds.size() + linkerLength + 1) + linkerLength + j].i = sop.bonds[j].i + i*(sop.aminos.size() + linkerLength) + linkerLength;
+				tandem.bonds[i*(sop.bonds.size() + linkerLength + 1) + linkerLength + j].j = sop.bonds[j].j + i*(sop.aminos.size() + linkerLength) + linkerLength;
+				tandem.bonds[i*(sop.bonds.size() + linkerLength + 1) + linkerLength + j].r0 = sop.bonds[j].r0;
 			}
 		}
 		// Adding covalent bonds for linker
@@ -407,36 +406,36 @@ void createModel(){
 			}
 			for(k = 0; k < kmax; k++){
 				CovalentBond bond;
-				bond.i = (i + 1)*(sop.aminoCount + linkerLength) + k - 1;
-				bond.j = (i + 1)*(sop.aminoCount + linkerLength) + k;
+				bond.i = (i + 1)*(sop.aminos.size() + linkerLength) + k - 1;
+				bond.j = (i + 1)*(sop.aminos.size() + linkerLength) + k;
 				bond.r0 = a;
-				tandem.bonds[(i + 1)*(sop.bondCount + linkerLength) + i + k] = bond;
-				//printf("%d: %d-%d\n", (i + 1)*(sop.bondCount + linkerLength) + i + k, (i + 1)*(sop.aminoCount + linkerLength) + k -1, (i + 1)*(sop.aminoCount + linkerLength) + k);
+				tandem.bonds[(i + 1)*(sop.bonds.size() + linkerLength) + i + k] = bond;
+				//printf("%d: %d-%d\n", (i + 1)*(sop.bonds.size() + linkerLength) + i + k, (i + 1)*(sop.aminos.size() + linkerLength) + k -1, (i + 1)*(sop.aminos.size() + linkerLength) + k);
 			}
-			tandem.bonds[(i + 1)*(sop.bondCount + linkerLength) + i].i = i*(sop.aminoCount + linkerLength) + linkerLength + lastResid;
+			tandem.bonds[(i + 1)*(sop.bonds.size() + linkerLength) + i].i = i*(sop.aminos.size() + linkerLength) + linkerLength + lastResid;
 			if(i != monomerCount - 1){
-				tandem.bonds[(i + 1)*(sop.bondCount + linkerLength) + i + linkerLength].j = (i + 1)*(sop.aminoCount + linkerLength) + linkerLength + firstResid;
+				tandem.bonds[(i + 1)*(sop.bonds.size() + linkerLength) + i + linkerLength].j = (i + 1)*(sop.aminos.size() + linkerLength) + linkerLength + firstResid;
 			}
 		}
 
 		// Copy monomer native contacts. There is no contacts between monomers and in the linker.
 		for(i = 0; i < monomerCount; i++){
-			for(j = 0; j < sop.nativeCount; j++){
-				tandem.natives[i*sop.nativeCount + j].i = sop.natives[j].i + i*(sop.aminoCount + linkerLength) + linkerLength;
-				tandem.natives[i*sop.nativeCount + j].j = sop.natives[j].j + i*(sop.aminoCount + linkerLength) + linkerLength;
-				tandem.natives[i*sop.nativeCount + j].r0 = sop.natives[j].r0;
-				tandem.natives[i*sop.nativeCount + j].eh = sop.natives[j].eh;
+			for(j = 0; j < sop.natives.size(); j++){
+				tandem.natives[i*sop.natives.size() + j].i = sop.natives[j].i + i*(sop.aminos.size() + linkerLength) + linkerLength;
+				tandem.natives[i*sop.natives.size() + j].j = sop.natives[j].j + i*(sop.aminos.size() + linkerLength) + linkerLength;
+				tandem.natives[i*sop.natives.size() + j].r0 = sop.natives[j].r0;
+				tandem.natives[i*sop.natives.size() + j].eh = sop.natives[j].eh;
 			}
 		}
 
 		// Buiding repulsion potential list. All pairs that are not in a native contact and don't form a covalent bond will be added to this list.
 		int index = 0;
 		int found = 0;
-		for(i = 0; i < tandem.aminoCount; i++){
-			for(j = i + 1; j < tandem.aminoCount; j++){
+		for(i = 0; i < tandem.aminos.size(); i++){
+			for(j = i + 1; j < tandem.aminos.size(); j++){
 				if(covalentLJ == 0){
 					k = 0;
-					while(found == 0 && k < tandem.bondCount){
+					while(found == 0 && k < tandem.bonds.size()){
 						if((tandem.bonds[k].i == i && tandem.bonds[k].j == j) ||
 								tandem.bonds[k].j == i && tandem.bonds[k].i == j){
 							found = 1;
@@ -445,7 +444,7 @@ void createModel(){
 					}
 				}
 				k = 0;
-				while(found == 0 && k < tandem.nativeCount){
+				while(found == 0 && k < tandem.natives.size()){
 					if((tandem.natives[k].i == i && tandem.natives[k].j == j) ||
 						tandem.natives[k].j == i && tandem.natives[k].i == j){
 						found = 1;

@@ -59,7 +59,7 @@ void NativePotential::buildMap(){
 	// Building map
     totalNative = 0;
 	int i, j, k;
-	for(k = 0; k < sop.nativeCount; k++){
+	for(k = 0; k < sop.natives.size(); k++){
 		i = sop.natives[k].i;
 		j = sop.natives[k].j;
 		this->h_native[this->h_nativeCount[i]*gsop.aminoCount + i] = j;
@@ -80,14 +80,14 @@ void NativePotential::buildMap(){
 
 	// Multiply map over trajectories for many-runs-per-GPU
 	for(j = 1; j < gsop.Ntr; j++){
-		for(i = 0; i < sop.aminoCount; i++){
+		for(i = 0; i < sop.aminos.size(); i++){
 			for(k = 0; k < this->max_native; k++){
-				this->h_native[j*sop.aminoCount + i + k*gsop.aminoCount] =
-							this->h_native[i + k*gsop.aminoCount] + j*sop.aminoCount;
-				this->h_nativeParameters[j*sop.aminoCount + i + k*gsop.aminoCount] =
+				this->h_native[j*sop.aminos.size() + i + k*gsop.aminoCount] =
+							this->h_native[i + k*gsop.aminoCount] + j*sop.aminos.size();
+				this->h_nativeParameters[j*sop.aminos.size() + i + k*gsop.aminoCount] =
 							this->h_nativeParameters[i + k*gsop.aminoCount];
 			}
-			this->h_nativeCount[j*sop.aminoCount + i] = this->h_nativeCount[i];
+			this->h_nativeCount[j*sop.aminos.size() + i] = this->h_nativeCount[i];
 		}
 	}
 

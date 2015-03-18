@@ -33,7 +33,7 @@ TeaIntegrator::TeaIntegrator() : LangevinIntegrator() {
 		DIE("Using minimization with BDHI integrator is not supported and will never be.");
 	}
 
-	hc_tea.namino = sop.aminoCount;
+	hc_tea.namino = sop.aminos.size();
 	hc_tea.a = parameters::tea_a.get();
     this->exact = parameters::tea_exact.get();
     if (!this->exact){
@@ -132,7 +132,7 @@ TeaUpdater::TeaUpdater(TeaIntegrator *tea_integrator){
 
 void TeaUpdater::update(){
 	const int update_epsilon = (gsop.step % this->frequency) == 0;
-	const int N = sop.aminoCount;
+	const int N = sop.aminos.size();
 	if (update_epsilon){
 		// Calculate relative coupling
 		if (tea->unlisted)

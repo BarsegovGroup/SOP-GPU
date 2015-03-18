@@ -50,7 +50,7 @@ void initGPU(){
 	printf("Using device %d: \"%s\"\n", gsop.deviceId, deviceProp.name);
 	printf("CUDA Capability revision number: %d.%d\n", deviceProp.major, deviceProp.minor);
 	printf("CUDA PCIe ID: %x:%x:%x\n", deviceProp.pciDomainID, deviceProp.pciBusID, deviceProp.pciDeviceID);
-	gsop.aminoCount = gsop.Ntr*sop.aminoCount;
+	gsop.aminoCount = gsop.Ntr*sop.aminos.size();
 	gsop.width = gsop.aminoCount; // It's only used for mica lists in indentation; do we really need it?
 	while(gsop.width % 8 != 0){
 		gsop.width++;
@@ -157,10 +157,10 @@ void runGPU(){
 	int traj;
 	for(traj = 0; traj < gsop.Ntr; traj++){
         std::string trajCoordFilename = parameters::finalcoord.replace("<run>", traj+gsop.firstrun);
-		for(i = 0; i < sop.aminoCount; i++){
-			sop.aminos[i].x = gsop.h_coord[sop.aminoCount*traj + i].x;
-			sop.aminos[i].y = gsop.h_coord[sop.aminoCount*traj + i].y;
-			sop.aminos[i].z = gsop.h_coord[sop.aminoCount*traj + i].z;
+		for(i = 0; i < sop.aminos.size(); i++){
+			sop.aminos[i].x = gsop.h_coord[sop.aminos.size()*traj + i].x;
+			sop.aminos[i].y = gsop.h_coord[sop.aminos.size()*traj + i].y;
+			sop.aminos[i].z = gsop.h_coord[sop.aminos.size()*traj + i].z;
 		}
 		savePDB(trajCoordFilename.c_str(), sop);
 	}
@@ -189,15 +189,15 @@ void copyCoordDeviceToHost(){
 
 void copyCoordinatesTrajectory(int traj){
 	int i;
-	for(i = 0; i < sop.aminoCount; i++){
-		gsop.h_coord[traj*sop.aminoCount + i].x = sop.aminos[i].x;
-		gsop.h_coord[traj*sop.aminoCount + i].y = sop.aminos[i].y;
-		gsop.h_coord[traj*sop.aminoCount + i].z = sop.aminos[i].z;
-		gsop.h_coord[traj*sop.aminoCount + i].w = 0;
+	for(i = 0; i < sop.aminos.size(); i++){
+		gsop.h_coord[traj*sop.aminos.size() + i].x = sop.aminos[i].x;
+		gsop.h_coord[traj*sop.aminos.size() + i].y = sop.aminos[i].y;
+		gsop.h_coord[traj*sop.aminos.size() + i].z = sop.aminos[i].z;
+		gsop.h_coord[traj*sop.aminos.size() + i].w = 0;
 	}
 #ifdef DEBUG
 	printf("Coordinates for run #%d:\n", traj+gsop.firstrun);
-	for(i = 0; i < sop.aminoCount; i++){
+	for(i = 0; i < sop.aminos.size(); i++){
 		printf("%d:\t%f\t%f\t%f\n", i, sop.aminos[i].x, sop.aminos[i].y, sop.aminos[i].z);
 	}
 #endif
@@ -261,8 +261,8 @@ void SOPPotential::sumEnergies(const float *h_energies, float *energies) {
 	int traj, i;
 	for(traj = 0; traj < gsop.Ntr; traj++){
 		double energy = 0.0;
-		for(i = 0; i < sop.aminoCount; i++){
-			int index = traj*sop.aminoCount + i;
+		for(i = 0; i < sop.aminos.size(); i++){
+			int index = traj*sop.aminos.size() + i;
 			energy += h_energies[index];
 			if(isinf(h_energies[index])){
 				printf("WARNING: Bead #%d in trajectory #%d has infinite %s energy\n", i, traj, this->name.c_str());

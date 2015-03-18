@@ -183,9 +183,11 @@ void DCD::write_frame(float *X, float *Y, float *Z) const {
 	fwrite(&iout, 4, 1, this->file);
 	fwrite(X, 4*N, 1, this->file);
 	fwrite(&iout, 4, 1, this->file);
+
 	fwrite(&iout, 4, 1, this->file);
 	fwrite(Y, 4*N, 1, this->file);
 	fwrite(&iout, 4, 1, this->file);
+
 	fwrite(&iout, 4, 1, this->file);
 	fwrite(Z, 4*N, 1, this->file);
 	fwrite(&iout, 4, 1, this->file);
@@ -242,20 +244,17 @@ void DCD::read_header(){
 int DCD::read_frame(float *X, float *Y, float *Z){
 	int iin;
 	safe_fread(&iin, 4, 1, this->file);
-	//printf("%d\n", iin);
 	safe_fread(X, 4*N, 1, this->file);
 	safe_fread(&iin, 4, 1, this->file);
-	//printf("%d\n", iin);
+
 	safe_fread(&iin, 4, 1, this->file);
-	//printf("%d\n", iin);
 	safe_fread(Y, 4*N, 1, this->file);
 	safe_fread(&iin, 4, 1, this->file);
-	//printf("%d\n", iin);
+
 	safe_fread(&iin, 4, 1, this->file);
-	//printf("%d\n", iin);
 	safe_fread(Z, 4*N, 1, this->file);
 	safe_fread(&iin, 4, 1, this->file);
-	//printf("%d\n", iin);
+
 	if(feof(this->file) == 0){
 		return 0;
 	} else {
@@ -278,13 +277,9 @@ void pad(char *s, int len){
 	int curlen;
 	int i;
 	curlen = strlen(s);
-	if (curlen > len){
-		s[len] = '\0';
-		return;
-	}
 	for (i = curlen; i < len; i++){
 		s[i] = ' ';
 	}
-	s[i] = '\0';
+	s[len] = '\0';
 }
 

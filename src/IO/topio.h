@@ -7,27 +7,10 @@
 
 #pragma once
 
+#include <vector>
 #include "pdbio.h"
 
 struct PDBAtom;
-
-struct CovalentBond{
-	int i;
-	int j;
-	float r0;
-};
-
-struct NativeContact{
-	int i;
-	int j;
-	float r0;
-	float eh;
-};
-
-struct PossiblePair{
-	int i;
-	int j;
-};
 
 struct TOPPair{
 	int i;
@@ -39,21 +22,41 @@ struct TOPPair{
 	float c3;
 
     void save(FILE* topFile) const;
+    void parse(char* buffer);
     void read(FILE* topFile);
 };
 
-struct SOP {
-	int aminoCount;
-	int bondCount;
-	int nativeCount;
-	int pairCount;
-	PDBAtom* aminos;
-	CovalentBond* bonds;
-	NativeContact* natives;
-	PossiblePair* pairs;
+struct CovalentBond{
+    CovalentBond(const TOPPair& pair) : i(pair.i), j(pair.j), r0(pair.c0) {  }
+    CovalentBond() {  }
+	int i;
+	int j;
+	float r0;
+};
 
-	int additionalAminosCount;
-	PDBAtom* additionalAminos;
+struct NativeContact{
+    NativeContact(const TOPPair& pair) : i(pair.i), j(pair.j), r0(pair.c0), eh(pair.c1) { }
+    NativeContact() { }
+	int i;
+	int j;
+	float r0;
+	float eh;
+};
+
+struct PossiblePair{
+    PossiblePair(const TOPPair& pair) : i(pair.i), j(pair.j) { }
+    PossiblePair() { }
+	int i;
+	int j;
+};
+
+struct SOP {
+    std::vector<PDBAtom> aminos;
+    std::vector<CovalentBond> bonds;
+    std::vector<NativeContact> natives;
+    std::vector<PossiblePair> pairs;
+
+    std::vector<PDBAtom> additionalAminos;
 
     void load(const char* filename);
     void save(const char* filename) const;
