@@ -133,9 +133,10 @@ void CovalentPotential::compute(){
 /*
  * Number of energy outputs (Covalent potential returns only FENE energy)
  */
-int CovalentPotential::getEnergiesCount(){
+int CovalentPotential::getEnergiesCount() const{
 	return 1;
 }
+
 /*
  * Compute energy for .dat output
  */
@@ -148,7 +149,6 @@ float* CovalentPotential::computeEnergy(int id){
 		return this->energies;
 	} else {
 		DIE("Only one energy term is computed by covalent potential");
-		return NULL;
 	}
 }
 
@@ -161,7 +161,6 @@ float CovalentPotential::getEnergy(int traj, int id){
 		return this->energies[traj];
 	} else {
 		DIE("Either trajectory or energy index is out of bounds");
-		return 0.0f;
 	}
 }
 

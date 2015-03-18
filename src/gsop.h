@@ -77,17 +77,14 @@ public:
 
 	virtual void compute() = 0;
 
-	virtual int getEnergiesCount(){
+	virtual int getEnergiesCount() const {
 		return 0;
 	}
-
 	virtual float* computeEnergy(int id){ // TODO: make const
 		DIE("No energy computation is implemented for this potential");
-		return NULL;
 	}
 	virtual float getEnergy(int traj, int id){
 		DIE("No energy computation is implemented for this potential");
-		return 0.0f;
 	}
 protected:
 	void sumEnergies(const float *h_energies, float *energies);

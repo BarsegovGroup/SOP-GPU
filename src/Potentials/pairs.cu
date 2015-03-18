@@ -66,7 +66,7 @@ void PairsPotential::compute(){
 	checkCUDAError();
 }
 
-int PairsPotential::getEnergiesCount(){
+int PairsPotential::getEnergiesCount() const {
 	return 1;
 }
 
@@ -79,7 +79,6 @@ float* PairsPotential::computeEnergy(int id){
 		return this->energies;
 	} else {
 		DIE("Pairs potential returns only one energy term");
-		return NULL;
 	}
 }
 
@@ -88,7 +87,6 @@ float PairsPotential::getEnergy(int traj, int id){
 		return this->energies[traj];
 	} else {
 		DIE("Either trajectory or energy index is out of bounds");
-		return 0.0f;
 	}
 }
 

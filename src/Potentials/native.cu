@@ -120,7 +120,7 @@ void NativePotential::compute(){
 	checkCUDAError();
 }
 
-int NativePotential::getEnergiesCount(){
+int NativePotential::getEnergiesCount() const {
 	return 1;
 }
 
@@ -133,7 +133,6 @@ float* NativePotential::computeEnergy(int id){
 		return this->energies;
 	} else {
 		DIE("Native potential can compute only one energy term.\n");
-		return NULL;
 	}
 }
 
@@ -142,7 +141,6 @@ float NativePotential::getEnergy(int traj, int id){
 		return this->energies[traj];
 	} else {
 		DIE("Either trajectory or energy index is out of bounds");
-		return 0.0f;
 	}
 }
 

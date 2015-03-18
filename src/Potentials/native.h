@@ -28,7 +28,7 @@ public:
     NativePotential();
     virtual ~NativePotential() { }
     virtual void compute();
-	virtual int getEnergiesCount();
+	virtual int getEnergiesCount() const;
 	virtual float* computeEnergy(int id);
 	virtual float getEnergy(int traj, int id);
 

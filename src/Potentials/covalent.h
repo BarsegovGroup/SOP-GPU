@@ -33,14 +33,15 @@ public:
     CovalentPotential();
     virtual ~CovalentPotential() { }
     void updateParametersOnGPU();
-    void buildMap();
     virtual void compute();
-	virtual int getEnergiesCount();
+	virtual int getEnergiesCount() const;
 	virtual float* computeEnergy(int id);
 	virtual float getEnergy(int traj, int id);
 
 	float R_limit; // FENE parameter // Used by Updaters/output_manager.cpp
 private:
+    void buildMap();
+
 	int max_covalent; // Max number of covalent bonds per particle
 	float kspring_cov; // Covalent spring constant (FENE)
 	float R_limit_sq; // Same, squared
