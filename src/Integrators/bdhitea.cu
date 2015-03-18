@@ -3,7 +3,7 @@
  *
  *  Created on: Mar 01, 2013
  *	  Author: alekseenko
- * 
+ *
  * The description of algorithm is available in Geyer & Winter, 2009 [doi:10.1063/1.3089668]
  * All the equations referenced here are from the very same paper
  */

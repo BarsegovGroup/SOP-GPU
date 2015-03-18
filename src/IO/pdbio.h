@@ -34,9 +34,9 @@ struct PDBAtom {
 struct PDBSSBond {
 	int resid1, resid2;
 	char chain1, chain2;
-   
-    PDBSSBond(const char *line) { this->parse(line); } 
-    PDBSSBond() { } 
+
+    PDBSSBond(const char *line) { this->parse(line); }
+    PDBSSBond() { }
     void fprint(FILE* file, int bondid) const;
     void parse(const char* line);
 };

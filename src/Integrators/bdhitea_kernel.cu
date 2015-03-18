@@ -3,7 +3,7 @@
  *
  *  Created on: Mar 4, 2013
  *	  Author: alekseenko
- * 
+ *
  * All equations referenced here are from Geyer & Winter, 2009 [doi:10.1063/1.3089668]
  */
 
@@ -87,7 +87,7 @@ __device__ inline float6 integrateTea_RPY(const float4& dr){
 }
 
 __global__ void integrateCholesky_D(float* D, int stride){
-	// First step of Cholesky-based integration: 
+	// First step of Cholesky-based integration:
     //   compute D matrices and calculate D*F
     // assert (stride >= c_tea.namino * 3)
 	const int d_i = blockIdx.x*blockDim.x + threadIdx.x;
@@ -119,7 +119,7 @@ __global__ void integrateCholesky_D(float* D, int stride){
                 D[didx+0] = 0.;
                 D[didx+1] = 0.;
                 D[didx+2] = 1.;
-                didx += stride; // Next row              
+                didx += stride; // Next row
             }else{
                 dr.x /= dr.w;
                 dr.y /= dr.w;
@@ -154,9 +154,9 @@ __global__ void integrateCholesky_D(float* D, int stride){
 __global__ void integrateCholesky_decompose(float* D, int stride){
     // Second step of Cholesky-based integration
     //   compute Cholesky decompositions of several matrices
-    // One block for one submatrix, 3*c_tea.namino threads in each block, 
+    // One block for one submatrix, 3*c_tea.namino threads in each block,
     //  up to CHOLSIZE threads per block (due to shared mem)
-    // This version is not ueber-optimal, but seems to perform on par with CuBCholS, 
+    // This version is not ueber-optimal, but seems to perform on par with CuBCholS,
     //  and its authors were proud enough to make a poster talk about it
 
     // assert(stride >= 3*c_tea.namino); assert(stride <= CHOLSIZE)
@@ -295,8 +295,8 @@ __device__ inline float4 integrateTea_force(const float4& coord1, const int idx2
 	printf("b[%d, %d]=%f\n", 3*idx1+2, 3*idx2+1, D._ZY*ci.z);
 	printf("b[%d, %d]=%f\n", 3*idx1+2, 3*idx2+2, D._ZZ*ci.z);
 #endif
-	return make_float4( D._XX*f.x + D._XY*f.y + D._XZ*f.z, 
-						D._YX*f.x + D._YY*f.y + D._YZ*f.z, 
+	return make_float4( D._XX*f.x + D._XY*f.y + D._XZ*f.z,
+						D._YX*f.x + D._YY*f.y + D._YZ*f.z,
 						D._ZX*f.x + D._ZY*f.y + D._ZZ*f.z, 0.f);
 }
 

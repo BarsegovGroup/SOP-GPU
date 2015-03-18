@@ -75,7 +75,7 @@ inline int addParameterT(const char* paramName, T paramValue) {
 
 template <typename T>
 inline int setParameterT(const char* paramName, T paramValue, int force) {
-    return setParameter(paramName, any2str(paramValue).c_str(), force); 
+    return setParameter(paramName, any2str(paramValue).c_str(), force);
 }
 
 //    0

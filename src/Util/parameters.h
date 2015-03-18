@@ -11,7 +11,7 @@
     namespace parameters { \
         static ParameterOptional<ctype> name(#name, defval); \
     }
-    
+
 // Parameter with no default value
 #define PARAMETER_MANDATORY(name, ctype, units, description) \
     namespace parameters { \

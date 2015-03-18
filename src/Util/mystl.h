@@ -24,14 +24,14 @@ V get_map_wd(const std::map <K,V> &m, const K &key, const V &defval ) {
 }
 
 // Convert anything to string
-template <typename T> 
+template <typename T>
 inline std::string any2str(const T& in) {
     std::stringstream s;
     s << in;
     return s.str();
 }
 
-template <typename T> 
+template <typename T>
 inline T str2any(const char* in) {
     std::stringstream s(in);
     T out = T();
@@ -50,7 +50,7 @@ inline T str2any(const std::string& in) {
     return out;
 }
 
-template <> 
+template <>
 inline std::string str2any<std::string>(const char *in) {
     std::string ret(in);
     ret.erase( 0                                , ret.find_first_not_of( " \t" ) );

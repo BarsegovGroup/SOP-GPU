@@ -7,7 +7,7 @@ CFLAGS				:= -O3 -g $(INCLUDES)
 LDFLAGS				:= $(LIBS) -lrt -lm -lcudart
 
 # compilers
-NVCC				:= $(CUDA_INSTALL_PATH)/bin/nvcc -arch $(CUDA_ARCH) --ptxas-options=-v -use_fast_math 
+NVCC				:= $(CUDA_INSTALL_PATH)/bin/nvcc -arch $(CUDA_ARCH) --ptxas-options=-v -use_fast_math
 CXX					:= g++
 LINKER				:= g++ -fPIC
 
@@ -41,7 +41,7 @@ SOPGPU_OBJS			:= $(call objects, $(SOPGPU_SOURCES))
 SOPTOP_OBJS			:= $(call objects, $(SOPTOP_SOURCES))
 -include $(SOPGPU_OBJS:.o=.d)
 -include $(SOPTOP_OBJS:.o=.d)
- 
+
 sop-gpu: $(SOPGPU_OBJS)
 	$(LINKER) -o $@ $(SOPGPU_OBJS) $(LDFLAGS)
 
@@ -49,7 +49,7 @@ sop-top: $(SOPTOP_OBJS)
 	$(LINKER) -o $@ $(SOPTOP_OBJS) $(LDFLAGS)
 
 clean:
-	rm -f sop-gpu sop-top 
+	rm -f sop-gpu sop-top
 	rm -rf "$(OBJDIR)"
 	
 .PHONY: makedirs clean all

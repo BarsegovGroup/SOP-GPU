@@ -29,7 +29,7 @@ struct DCD{
 
     void goto_frame(int frame);
     void goto_header();
-    
+
     void allocate();
     void deallocate();
 
