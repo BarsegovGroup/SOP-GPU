@@ -195,6 +195,8 @@ PDBAtom parseAtom(char* line){
 
 	pch = strtok(NULL, " ");
 	atom.beta = atof(pch);
+    
+    atom.altLoc = ' ';
 
     return atom;
 }
