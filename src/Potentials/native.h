@@ -10,11 +10,6 @@
 
 PARAMETER(R_limit_bond, float, 8.0f, "A", "...")
 PARAMETER(max_native, int, 128, "", "...")
-#define NATIVE_R_LIMIT_BOND_STRING		"R_limit_bond"
-#define MAX_NATIVE_STRING				"max_native"
-
-#define DEFAULT_NATIVE_R_LIMIT_BOND			8.0f
-#define DEFAULT_MAX_NATIVE					128
 
 struct __align__(8) GNativeParameters{
 	float r02;

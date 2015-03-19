@@ -16,11 +16,8 @@
 #include "Util/wrapper.h"
 #include "Util/parameters.h"
 
-#define max_potentials 10 //TODO : use vector
-#define max_updaters 10
-#define max_timers 20
-
-#define VERSION "trunk"
+#define MAX_POTENTIALS 10 //TODO : use vector
+#define MAX_UPDATERS 10
 
 //#define NOTEXTURE
 

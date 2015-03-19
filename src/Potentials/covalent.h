@@ -5,8 +5,7 @@
  *      Author: zhmurov
  */
 
-#ifndef COVALENT_CUH_
-#define COVALENT_CUH_
+#pragma once
 
 #include "../Util/parameters.h"
 
@@ -60,4 +59,3 @@ private:
 	int blockNum; // Number of CUDA blocks
 };
 
-#endif /* COVALENT_CUH_ */

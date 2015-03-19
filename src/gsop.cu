@@ -75,8 +75,8 @@ void initFF(){
 	gsop.indentationOn  = (stageString == "indent");
 
 	// Allocating memory for the model
-	potentials = (SOPPotential**)calloc(max_potentials, sizeof(SOPPotential*));
-	updaters = (SOPUpdater**)calloc(max_updaters, sizeof(SOPUpdater*));
+	potentials = (SOPPotential**)calloc(MAX_POTENTIALS, sizeof(SOPPotential*));
+	updaters = (SOPUpdater**)calloc(MAX_UPDATERS, sizeof(SOPUpdater*));
 
 	// Creating model
 	createCovalentPotential(); // FENE

@@ -11,6 +11,7 @@
 
 SOP sop;
 
+#define VERSION "trunk"
 
 void initParameters(const char* configFile);
 
