@@ -20,7 +20,7 @@ PARAMETER_MANDATORY(plane_pulled, std::vector<int>, "", "...")
 PARAMETER_MANDATORY(pullingPlaneDir, float3, "?", "...")
 PARAMETER_MANDATORY(pullingPlanePos, float3, "?", "...")
 
-PARAMETER(pullingPlaneOutput, std::string, "pullplane.<name>_<author><run>_<stage>.dat", "path", "...")
+PARAMETER(pullingPlaneOutput, std::string, "pullplane.<name>_<run>.dat", "path", "...")
 PARAMETER(pullingPlaneFreq, int, parameters::nav, "steps", "...")
 
 class PullingPlanePotential : public SOPPotential {

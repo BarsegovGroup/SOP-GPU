@@ -17,11 +17,10 @@
  */
 
 void createIndentationPotential(){
-	if(gsop.indentationOn == 1 || parameters::indentation.get()){
+	if(parameters::indentation.get()){
 		if(gsop.Ntr > 1){
 			DIE("Many-runs-per-GPU mode is not supported by indentation potential.\n");
 		}
-		gsop.indentationOn = 1;
 
 		int showTipMica;
 		int discreteSurf;

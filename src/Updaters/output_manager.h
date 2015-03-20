@@ -19,7 +19,7 @@
 
 
 PARAMETER(outputtiming, int, 10000, "steps", "...")
-PARAMETER(outputname, std::string, "energy.<name>_<run>_<stage>.dat", "path", "...")
+PARAMETER(outputname, std::string, "energy.<name>_<run>.dat", "path", "...")
 PARAMETER(outputcolwidth, int, 16, "symbols", "...")
 PARAMETER(printruns, int, 10, "", "...")
 PARAMETER(computeRg, bool, true, "true/false", "...")

@@ -22,7 +22,7 @@ PARAMETER(pullDirection, std::string, "endToEnd", "endToEnd/vector", "...")
 PARAMETER_MANDATORY(pullVector, float3, "?", "...")
 PARAMETER_MANDATORY(fixedEnd, int, "bead ID", "...")
 PARAMETER_MANDATORY(pulledEnd, int, "bead ID", "...")
-PARAMETER(pullOutput, std::string, "pull.<name>_<author><run>_<stage>.dat", "path", "...")
+PARAMETER(pullOutput, std::string, "pull.<name>_<run>.dat", "path", "...")
 PARAMETER(pullFreq, int, parameters::nav, "steps", "...")
 
 class PullingPotential : public SOPPotential{

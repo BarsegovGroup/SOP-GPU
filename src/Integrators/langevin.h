@@ -13,6 +13,8 @@ PARAMETER_MANDATORY(timestep, float, "?; truly ?", "...")
 PARAMETER(zeta, float, 50.0f, "?", "...")
 PARAMETER(temperature, float, 0.6, "?", "...")
 
+PARAMETER(minimization, bool, false, "true/false", "...")
+
 PARAMETER(heating, bool, false, "true/false", "...")
 PARAMETER_MANDATORY(tempFreq, int, "steps", "...")
 PARAMETER_MANDATORY(initialT, float, "?", "...")

@@ -11,8 +11,7 @@
 #include "Util/parameters.h"
 
 PARAMETER(block_size, int, 256, "", "...")
-PARAMETER(finalcoord, std::string, "<name>_<author><run>_<stage>_final.pdb", "path", "...")
-PARAMETER_MANDATORY(stage, std::string, "?", "...") // TODO: do we really need this parameter??
+PARAMETER(finalcoord, std::string, "<name>_<run>_final.pdb", "path", "...")
 
 __device__ __constant__ GSOP c_gsop;
 

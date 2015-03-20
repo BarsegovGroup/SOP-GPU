@@ -23,9 +23,11 @@ LangevinIntegrator::LangevinIntegrator(){
     int seed = parameters::seed.get() + gsop.firstrun;
 	initRand(seed, gsop.aminoCount);
 
-	int heating = parameters::heating.get();
-	if(heating == 1 || gsop.heatingOn == 1){ // TODO: Remove these double-checks from everywhere!
-		gsop.heatingOn = 1;
+	if(parameters::minimization.get()){
+        gsop.minimizationOn = 1;
+    }
+
+	if(parameters::heating.get()){
 		printf("Initializing heating protocol...\n");
 		updaters[updatersCount] = new TemperatureUpdater(this);
 		updatersCount++;

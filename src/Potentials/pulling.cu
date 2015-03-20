@@ -13,7 +13,7 @@
 #include "pulling_kernel.cu"
 
 void createPullingPotential(){
-	if(gsop.pullingOn == 1 || parameters::pulling.get()){
+	if(parameters::pulling.get()){
 		gsop.pullingOn = 1;
 
         PullingPotential *pot;

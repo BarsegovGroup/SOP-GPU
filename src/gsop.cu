@@ -65,14 +65,12 @@ void initGPU(){
 
 void initFF(){
 
+    if (parameters::_is_defined("stage")){
+        DIE("Parameter `stage` is no longer supported. Please enable all necessary protocols through individual parameters.");
+    }
+
 	potentialsCount = 0;
 	updatersCount = 0;
-
-    std::string stageString = parameters::stage.get();
-	gsop.minimizationOn = (stageString == "minim" );
-	gsop.heatingOn      = (stageString == "heat"  );
-	gsop.pullingOn      = (stageString == "pull"  );
-	gsop.indentationOn  = (stageString == "indent");
 
 	// Allocating memory for the model
 	potentials = (SOPPotential**)calloc(MAX_POTENTIALS, sizeof(SOPPotential*));
@@ -112,9 +110,6 @@ void initFF(){
  */
 void runGPU(){
 	printf("Starting simulations.\n");
-	/*if(stage == pull_stage){
-		engageCantileverTip();
-	}*/
 
 	int i, j, p, u;
 

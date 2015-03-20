@@ -42,8 +42,6 @@ struct GSOP{
 	int pullingOn; // TODO: bitfield?
 	int pullingPlaneOn;
 	int minimizationOn;
-	int heatingOn;
-	int indentationOn;
 
 	/*
 	 * These do not belong here.

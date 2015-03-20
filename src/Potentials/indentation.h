@@ -33,7 +33,7 @@ PARAMETER(indentationSurfA, float, 0.0f, "?", "...")
 PARAMETER(indentationSurfB, float, 1.0f, "?", "...")
 
 PARAMETER(indentationTipZeta, float, 5000.0f, "?", "...")
-PARAMETER(indentationOutput, std::string, "indentation.<name>_<author><run>_<stage>.dat", "path", "...")
+PARAMETER(indentationOutput, std::string, "indentation.<name>_<run>.dat", "path", "...")
 PARAMETER(indentationRetractionStep, long, -1, "?", "...")
 PARAMETER(indentationOutputFreq, int, 1000, "steps", "...")
 
