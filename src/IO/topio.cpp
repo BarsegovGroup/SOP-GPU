@@ -34,7 +34,7 @@ TopologySection get_section(const char *line){
 }
 
 void SOP::load(const char* filename){
-	int i, line;
+	int line;
 	char buffer[BUF_SIZE];
 	printf("Reading topology.\n");
 	FILE* topFile = safe_fopen(filename, "r");
@@ -241,7 +241,6 @@ void TOPPair::parse(char *buffer){
 
 void TOPPair::read(FILE* topFile){
 	char buffer[BUF_SIZE];
-	char* pch;
 	safe_fgets(buffer, BUF_SIZE, topFile);
     this->parse(buffer);
 }

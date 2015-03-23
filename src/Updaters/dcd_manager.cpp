@@ -72,7 +72,6 @@ void DcdOutputManager::update(){
 	if(gsop.step % this->frequency == 0){
 		printf("Saving coordinates into dcd...");
 		copyCoordDeviceToHost();
-		int particleCount = sop.aminos.size();
 		for(traj = 0; traj < gsop.Ntr; traj++){
 			for(i = 0; i < sop.aminos.size(); i++){
 				X[i] = gsop.h_coord[sop.aminos.size()*traj + i].x;
@@ -80,7 +79,6 @@ void DcdOutputManager::update(){
 				Z[i] = gsop.h_coord[sop.aminos.size()*traj + i].z;
 			}
 			if(sop.additionalAminos.size() > 0){
-				particleCount = particleCount + sop.additionalAminos.size();
 				for(i = 0; i < sop.additionalAminos.size(); i++){
 					X[i+sop.aminos.size()] = sop.additionalAminos[i].x;
 					Y[i+sop.aminos.size()] = sop.additionalAminos[i].y;
