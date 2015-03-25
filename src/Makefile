@@ -1,5 +1,5 @@
 CUDA_INSTALL_PATH	:= /usr/local/cuda
-CUDA_ARCH 			:= sm_13
+CUDA_ARCH 			:= sm_20
 
 INCLUDES			+= -I$(CUDA_INSTALL_PATH)/include
 LIBS				+= -L$(CUDA_INSTALL_PATH)/lib64
