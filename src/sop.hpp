@@ -9,6 +9,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include "IO/pdbio.h"
 #include "IO/topio.h"
 
@@ -38,9 +39,9 @@ int checkPossiblePairs(int i, int j);
 float getR0(int i, int j);
 float getEh(int i, int j);
 
-char pdb_filename[FILENAME_LENGTH];
-char top_filename[FILENAME_LENGTH];
-char coord_filename[FILENAME_LENGTH];
+std::string pdb_filename;
+std::string top_filename;
+std::string coord_filename;
 
 float a;
 float eh;

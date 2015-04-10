@@ -5,6 +5,7 @@
 
 // This file provides nice wrapper around IO/configreader
 
+#define VERBOSE_CONFIG 1
 
 // Parameter with default value
 #define PARAMETER(name, ctype, defval, units, description) \
@@ -33,6 +34,14 @@
 namespace parameters {
 
 template <typename T>
+inline T log_parameter(const std::string& name, const T& val){
+#ifdef VERBOSE_CONFIG
+    printf("Using parameter '%s' = '%s'\n", name.c_str(), any2str<T>(val).c_str());
+#endif
+    return val;
+}
+
+template <typename T>
 class Parameter {
 public:
     virtual T get() const = 0;
@@ -43,7 +52,7 @@ class ParameterMandatory : public Parameter<T> {
 public:
     ParameterMandatory(const char *name) : _name(name) { }
     // Get parameter value
-    virtual T get() const { return configreader::getMaskedParameterAs<T>(this->_name.c_str()); }
+    virtual T get() const { return log_parameter(this->_name, configreader::getParameterAs<T>(this->_name.c_str())); }
     // Get parameter value with replacement
     template <typename T2>
     T replace(const char *str, const T2& value) const { return string_replace(any2str<T>(this->get()), std::string(str), any2str<T2>(value)); }
@@ -59,7 +68,7 @@ public:
     ParameterOptional(const char *name, T defval) : ParameterMandatory<T>(name), _defval(defval), _defpar(NULL) { }
     ParameterOptional(const char *name, const Parameter<T>& defpar) : ParameterMandatory<T>(name), _defpar(&defpar) { }
     // Get parameter value
-    virtual T get() const { return configreader::getMaskedParameterAs<T>(this->_name.c_str(), (this->_defpar ? this->_defpar->get() : this->_defval)); }
+    virtual T get() const { return log_parameter(this->_name, configreader::getParameterAs<T>(this->_name.c_str(), (this->_defpar ? this->_defpar->get() : this->_defval))); }
 protected:
     T _defval;
     const Parameter<T>* _defpar;

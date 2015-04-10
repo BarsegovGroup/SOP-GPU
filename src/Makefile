@@ -33,7 +33,8 @@ SOPTOP_SOURCES 	:= \
 	IO/configreader.cpp \
 	IO/topio.cpp \
 	IO/pdbio.cpp \
-	Util/wrapper.cpp
+	Util/mystl.cpp \
+	Util/wrapper.cpp \
 
 all: sop-top sop-gpu
 

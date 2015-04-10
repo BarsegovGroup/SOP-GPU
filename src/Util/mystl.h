@@ -8,6 +8,7 @@
 //
 
 #include <map>
+#include <vector>
 #include <string>
 #include <sstream>
 #include <stdexcept>
@@ -30,6 +31,19 @@ inline std::string any2str(const T& in) {
     s << in;
     return s.str();
 }
+
+template <>
+inline std::string any2str(const std::vector<int>& in) {
+    if(in.empty()){
+        return std::string("empty");
+    }
+    std::stringstream s;
+    for(typename std::vector<int>::const_iterator it = in.begin(), ite = in.end(); it != ite; ++it){
+        s << *it << " ";
+    }
+    return s.str();
+}
+
 
 template <typename T>
 inline T str2any(const char* in) {
@@ -67,7 +81,12 @@ std::string string_replace(const std::string& str, const std::string& oldStr, co
 }
 
 // ToLower function
-std::string lower(const std::string& str);
+std::string to_lower(const std::string& str);
+// Trim leading and ending spaces
+std::string trim(const std::string &str);
+
+// Case-insensitive string comparison
+bool striequals(const std::string& a, const std::string& b);
 
 // Function to calculate gretest common divisor
 // Not like it belongs here or anything...

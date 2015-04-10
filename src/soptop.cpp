@@ -5,8 +5,6 @@
  *      Author: zhmurov
  */
 
-#define FILENAME_LENGTH 100
-
 #include "sop.hpp"
 #include "IO/configreader.h"
 #include "IO/topio.h"
@@ -40,16 +38,15 @@ int main(int argc, char *argv[]){
 
 void createModel(){
 
-	char ehString[30];
-	getParameter(ehString, "eh", "1.5", 1);
-	if(strcmp(ehString, "O") == 0){
+    std::string ehString = getParameterAs<std::string>("eh", "1.5");
+	if(ehString == "O"){
 		printf("Taking eh's values from occupancy column.\n");
 		eh = -1.0;
-	} else if(strcmp(ehString, "B") == 0){
+	} else if(ehString == "B"){
 		printf("Taking eh's values from beta column.\n");
 		eh = -2.0;
 	} else {
-		eh = atof(ehString);
+		eh = atof(ehString.c_str());
 		if(eh == 0){
 			printf("WARNING: Value of eh in a configuration file is not valid. Should be:\n "
 					" - Positive integer, or\n"
@@ -58,66 +55,67 @@ void createModel(){
 					"eh is set to 0.\n");
 		}
 	}
-	createTandem = getYesNoParameter("createTandem", 0, 1);
+	createTandem = getParameterAs<bool>("createTandem", false);
 	if(createTandem){
-		linkerLength = getIntegerParameter("linkerLength", 0, 0);
-		monomerCount = getIntegerParameter("monomerCount", 0, 0);
-		char tandemDirectionString[100];
-		getMaskedParameter(tandemDirectionString, "tandemDirection", "endToEnd", 1);
-		if(strcmp(tandemDirectionString, "endToEnd") == 0){
+		linkerLength = getParameterAs<int>("linkerLength");
+		monomerCount = getParameterAs<int>("monomerCount");
+        std::string tandemDirectionString = getParameterAs<std::string>("tandemDirection", "endToEnd");
+		if(tandemDirectionString == "endToEnd"){
 			tandemDirection = 1;
 			printf("Direction of tandem linker is a monomer end-to-end direction.\n");
 		} else
-		if(strcmp(tandemDirectionString, "vector") == 0){
+		if(tandemDirectionString == "vector"){
 			tandemDirection = 2;
-			tandemVectorX = getFloatParameter("tandemVectorX", 0, 0);
-			tandemVectorY = getFloatParameter("tandemVectorY", 0, 0);
-			tandemVectorZ = getFloatParameter("tandemVectorZ", 0, 0);
+			tandemVectorX = getParameterAs<float>("tandemVectorX");
+			tandemVectorY = getParameterAs<float>("tandemVectorY");
+			tandemVectorZ = getParameterAs<float>("tandemVectorZ");
 			printf("Tandem linker direction is (%3.2f, %3.2f, %3.2f) vector.\n", tandemVectorX, tandemVectorY, tandemVectorZ);
 		} else {
 			tandemDirection = 1;
 			printf("WARNING: Direction of tandem linker is not specified or wrong. Assuming monomer end-to-end direction.\n");
 		}
-		firstResid = getIntegerParameter("fixedEnd", 0, 0);
-		lastResid = getIntegerParameter("pulledEnd", 0, 0);
+		firstResid = getParameterAs<int>("fixedEnd");
+		lastResid = getParameterAs<int>("pulledEnd");
 	}
-	getMaskedParameter(pdb_filename, "structure", "", 0);
-	getMaskedParameter(top_filename, "topology", "", 0);
-	getMaskedParameter(coord_filename, "coordinates", "", 0);
+	pdb_filename = getParameterAs<std::string>("structure");
+	top_filename = getParameterAs<std::string>("topology");
+	coord_filename = getParameterAs<std::string>("coordinates");
 
 
-	R_limit_bond = getFloatParameter("R_limit_bond", 8.0f, 1);
-	SC_limit_bond = getFloatParameter("SC_limit_bond", 0.0f, 1);
-	covalentLJ = getYesNoParameter("covalentRepulsion", 0, 1);
-	a = getFloatParameter("a", 3.8f, 1);
-	pairs_threshold = getFloatParameter("pairs_threshold", 1000.0f, 1);
-	covalent_cutoff = getFloatParameter("covalent_cutoff", 10.0f, 1);
-	SS_cutoff = getFloatParameter("SS_cutoff", 10.0f, 1);
+	R_limit_bond = getParameterAs<float>("R_limit_bond", 8.0f);
+	SC_limit_bond = getParameterAs<float>("SC_limit_bond", 0.0f);
+	covalentLJ = getParameterAs<bool>("covalentRepulsion", false);
+	a = getParameterAs<float>("a", 3.8f);
+	pairs_threshold = getParameterAs<float>("pairs_threshold", 1000.0f);
+	covalent_cutoff = getParameterAs<float>("covalent_cutoff", 10.0f);
+	SS_cutoff = getParameterAs<float>("SS_cutoff", 10.0f);
 
 	int i, j, k, i1, i2;
-	covLinkersCount = getIntegerParameter("covLinkersCount", 0, 1);
+	covLinkersCount = getParameterAs<int>("covLinkersCount", 0);
 	if(covLinkersCount > 0){
 		covLinkers = (CovalentLinker*)calloc(covLinkersCount, sizeof(CovalentLinker));
-		covLinkerCutoff = getFloatParameter("covLinkersCutoff", 5.0f, 1);
-		char covLinker[50];
+		covLinkerCutoff = getParameterAs<float>("covLinkersCutoff", 5.0f);
+		char *covLinker;
 		char covLinkerName[50];
 		char* pch;
 		for(i = 0; i < covLinkersCount; i++){
 			sprintf(covLinkerName, "covLinker%d", i+1);
-			getMaskedParameter(covLinker, covLinkerName, "", 0);
+            const std::string tmp_str = getParameterAs<std::string>(covLinkerName);
+            covLinker = strdup(tmp_str.c_str());
 			pch = strtok(covLinker, "-\t");
 			strncpy(covLinkers[i].residName1, pch, 3);
 			covLinkers[i].resid1 = atoi(&pch[3]);
 			pch = strtok(NULL, "\n\r\t ");
 			strncpy(covLinkers[i].residName2, pch, 3);
 			covLinkers[i].resid2 = atoi(&pch[3]);
+            free(covLinker);
 			printf("Covalent linker between residues %s%d and %s%d will be added.\n",
 					covLinkers[i].residName1, covLinkers[i].resid1,
 					covLinkers[i].residName2, covLinkers[i].resid2);
 		}
 	}
 
-	pdbdata.read(pdb_filename);
+	pdbdata.read(pdb_filename.c_str());
 	printf("Creating SOP-model...\n");
 
 	int sop_aminoCount = 0;
@@ -463,17 +461,17 @@ void createModel(){
 
 		sop = tandem;
 	}
-	sop.save(top_filename);
-	FILE* test = fopen(coord_filename, "r");
+	sop.save(top_filename.c_str());
+	FILE* test = fopen(coord_filename.c_str(), "r");
 	if(test!=NULL){
         fclose(test);
-		printf("Coordinates file '%s' exists. Overwrite (y/n)? ", coord_filename);
+		printf("Coordinates file '%s' exists. Overwrite (y/n)? ", coord_filename.c_str());
 		char input;
 		while (scanf("%c", &input) != 1);
 		if(input == 'y'){
-			savePDB(coord_filename, sop);
+			savePDB(coord_filename.c_str(), sop);
 		}
 	} else {
-		savePDB(coord_filename, sop);
+		savePDB(coord_filename.c_str(), sop);
 	}
 }
