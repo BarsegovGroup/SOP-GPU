@@ -132,7 +132,7 @@ void DCD::write_header() const {
 	iout = 2;
 	fwrite(&iout, 4, 1, this->file);
 	char title[81];
-	sprintf(title, "REMARKS CREATED BY dcdio.c");
+	sprintf(title, "REMARKS CREATED BY dcdio.cpp");
 	pad(title, 80);
 	fwrite(&title, 80, 1, this->file);
 	time_t rawtime;
