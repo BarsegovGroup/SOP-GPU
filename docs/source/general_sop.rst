@@ -163,7 +163,7 @@ For hydrodynamic interactions parameters see Section :ref:`par-hd`.
 Pulling simulations
 -------------------
 
-Pulling simulations were designed to mimick force-ramp and force-clamp AFM experiments. In this regime, cantilever base is represented by the virtual particle, connected by a harmonic spring to a specified ("pulled") amino acid, mimicking adsorbtion of residues on the cantilever tip. The system particles specified as "fixed" will be firmly constrained mimicking molecule absorption on the surface. The cantilever base moving with constant velocity (:math:`\nu_f`) extends the cantilever spring, translating into the molecule extension, with the time-dependent force (force-ramp) :math:`{\bf f}(t)=f(t){\bf n}` in the pulling direction :math:`{\bf n}`. The force magnitude, :math:`f(t)=r_f t`, applied to cantilever tip, i.e. to the pulled end of the molecule, increases linearly in time :math:`t` with the force-loading rate :math:`r_f=\kappa \nu_f` [11]_. 
+Pulling simulations were designed to mimic force-ramp and force-clamp AFM experiments. In this regime, cantilever base is represented by the virtual particle, connected by a harmonic spring to a specified ("pulled") amino acid, mimicking adsorption of residues on the cantilever tip. The system particles specified as "fixed" will be firmly constrained mimicking molecule absorption on the surface. The cantilever base moving with constant velocity (:math:`\nu_f`) extends the cantilever spring, translating into the molecule extension, with the time-dependent force (force-ramp) :math:`{\bf f}(t)=f(t){\bf n}` in the pulling direction :math:`{\bf n}`. The force magnitude, :math:`f(t)=r_f t`, applied to cantilever tip, i.e. to the pulled end of the molecule, increases linearly in time :math:`t` with the force-loading rate :math:`r_f=\kappa \nu_f` [11]_. 
 
 For pulling simulation parameters see Section :ref:`par-pull`. When pulling is enabled, program will save additional output file (usual format *.dat*) with pulling data. This file has following columns:
 
@@ -185,7 +185,7 @@ Plane-pulling simulations
 Force indentation simulations
 -----------------------------
 
-Nanoindentation regime adds to the system a cantilever and surface models. In this regime, the cantilever base is represented by the virtual particle, connected to the spherical bead of radius :math:`R_{tip}`, mimicking the cantilever tip (indenter), by a harmonic spring. The tip interacts with the particles via the Lennard-Jones potential
+Nanoindentation regime adds to the system a cantilever and surface models. In this regime, the cantilever base is represented by the virtual particle, connected to the spherical bead of radius :math:`R_{tip}`, mimicking the cantilever tip (indentor), by a harmonic spring. The tip interacts with the particles via the Lennard-Jones potential
 
 .. math::
    U_{tip} = \sum_{i=1}^{N}{\varepsilon_{tip} \left [A_{tip}\left( \frac{\sigma_{tip}}{|r_i - r_{tip}| - R_{tip}} \right)^{12} + B_{tip} \left( \frac{\sigma_{tip}}{|r_i - r_{tip}| - R_{tip}} \right)^6 \right ]}
@@ -197,9 +197,9 @@ thereby producing an indentation on the particle's outer surface. In Eq. :eq:`ut
    \xi_{tip} \frac{dr_{tip}}{dt} = - \frac{\partial U_{tip}(r_{tip})}{\partial r_{tip}} + \kappa((r_{tip}^0 - \nu_f t) - r_{tip})
    :label: ldtip
 
-where :math:`r_{tip}^0` is the initial position of spherical tip center (:math:`\nu_f`  is the cantilever base velocity; :math:`\kappa` is the cantilever spring constant), and :math:`\xi_{tip}` is the friction coefficient for a spherical particle of radius :math:`R_{tip}` in water. To generate the dynamics of the biological particle of interest tested mechanically, the Eqs. :eq:`usop` --- :eq:`ld` for the particle (see above) and Eqs. :eq:`utip` and :eq:`ldtip` for the indenter (spherical tip) should be solved numerically. 
+where :math:`r_{tip}^0` is the initial position of spherical tip center (:math:`\nu_f`  is the cantilever base velocity; :math:`\kappa` is the cantilever spring constant), and :math:`\xi_{tip}` is the friction coefficient for a spherical particle of radius :math:`R_{tip}` in water. To generate the dynamics of the biological particle of interest tested mechanically, the Eqs. :eq:`usop` --- :eq:`ld` for the particle (see above) and Eqs. :eq:`utip` and :eq:`ldtip` for the indentor (spherical tip) should be solved numerically. 
 
-The substrate surface is also modelled using Lennard-Jones potential with parameters of interactions :math:`\varepsilon_{surf}` and :math:`\sigma_{surf}` and factors :math:`A_{surf}` and :math:`B_{surf}` (see Eq. :eq:`utip`). The surface is represented by a number of particles and interaction potential is calculated between each particle in system and particles on the surface. 
+The substrate surface is also modeled using Lennard-Jones potential with parameters of interactions :math:`\varepsilon_{surf}` and :math:`\sigma_{surf}` and factors :math:`A_{surf}` and :math:`B_{surf}` (see Eq. :eq:`utip`). The surface is represented by a number of particles and interaction potential is calculated between each particle in system and particles on the surface. 
 
 The cantilever base moving with constant velocity (:math:`\nu_f`) exerts (through the tip) the time-dependent force (force-ramp) :math:`{\bf f}(t)=f(t){\bf n}` in the direction :math:`{\bf n}` perpendicular to the particle surface. The force magnitude, :math:`f(t)=r_f t`, exerted on the particle increases linearly in time :math:`t` with the force-loading rate :math:`r_f=\kappa \nu_f` [12]_ [13]_ .
 
@@ -297,7 +297,7 @@ Device parameters
  
  Default value: 0.
  
- Purpose: ID of NVidia card to run simulations on. Use "nvidia-smi" or "deviceQuerry" from NVidia SDK to check devices.
+ Purpose: ID of NVidia card to run simulations on. Use "nvidia-smi" or "deviceQuery" from NVidia SDK to check devices.
 
 
 - **block_size** *<integer>*
@@ -924,7 +924,7 @@ Force indentation parameters
  Purpose: Define whether the program should save coordinates of the cantilever tip and base as well as all the points representing substrate surface in *.dcd* file together with coordinates of the modeled system during indentation simulation. Useful for representation purposes. Tip will be represented as two particles (particle for the cantilever base and particle for the cantilever tip) with chain identificator "T" in *.pdb* file, surface particles will have chain identificator "M".
 
 
-- **indentationTipA** / **indentationTipB** *<dimentionless constants>*
+- **indentationTipA** / **indentationTipB** *<dimensionless constants>*
 
  Type: Float.
 
@@ -1351,7 +1351,7 @@ Output parameters
 
  Default value: "<name>_<author><run>_restart".
 
- Purpose: Extensionless name of the restart files. \textcolor{red}{does it save config file?}
+ Purpose: Extensionless name of the restart files. Only particle coordinates are saved.
 
 
 - **finalcoord** *<filename>*
