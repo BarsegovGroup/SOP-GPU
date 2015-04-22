@@ -1,6 +1,12 @@
 SOP-GPU
 =======
 
+Documentation
+-------------
+
+Latest documentation is available at [ReadTheDocs](http://sop-gpu.readthedocs.org/en/latest/) ([PDF](http://readthedocs.org/projects/sop-gpu/downloads/pdf/latest/)).
+
+
 Licensing
 ---------
 
