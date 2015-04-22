@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'SOP-GPU'
-copyright = u'2015, Artem Zhmurov, Andrey Alekseenko, Olga Kononova'
+copyright = u'2015, Artem Zhmurov, Andrey Alekseenko, Olga Kononova and Valeri Barsegov'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -186,7 +186,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'SOP-GPU.tex', u'SOP-GPU Documentation',
-   u'Artem Zhmurov, Andrey Alekseenko, Olga Kononova', 'manual'),
+   u'Artem Zhmurov, Andrey Alekseenko, Olga Kononova and Valeri Barsegov', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -216,7 +216,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'sop-gpu', u'SOP-GPU Documentation',
-     [u'Artem Zhmurov, Andrey Alekseenko, Olga Kononova'], 1)
+     [u'Artem Zhmurov, Andrey Alekseenko, Olga Kononova and Valeri Barsegov'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -230,7 +230,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'SOP-GPU', u'SOP-GPU Documentation',
-   u'Artem Zhmurov, Andrey Alekseenko, Olga Kononova', 'SOP-GPU', 'One line description of project.',
+   u'Artem Zhmurov, Andrey Alekseenko, Olga Kononova and Valeri Barsegov', 'SOP-GPU', 'Self-Organized Polymer model on GPU.',
    'Miscellaneous'),
 ]
 
