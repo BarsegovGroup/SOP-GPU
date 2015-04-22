@@ -1,0 +1,7 @@
+@import url("default.css");
+
+blockquote {
+    margin-top: 0em;
+    margin-bottom: 0em;
+    line-height: 100%;
+}
