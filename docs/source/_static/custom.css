@@ -14,3 +14,12 @@ ul.simple {
     margin-bottom: 0.2em;
 }
 
+div.body p.caption {
+    text-align: justify;
+    font-size: 80%;
+}
+
+.todo {
+    color: red;
+}
+

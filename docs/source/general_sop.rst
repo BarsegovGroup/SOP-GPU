@@ -1,3 +1,5 @@
+.. role:: todo
+
 .. _theor-sop:
 
 General notes on SOP model
@@ -22,7 +24,7 @@ where :math:`k=14` N/m is the spring constant, and the tolerance in the change o
    U_{NB}^{ATT} = \sum_{native}\varepsilon_h\left[ \left( \frac{r_{ij}^0}{r_{ij}} \right)^{12} - 2\left( \frac{r_{ij}^0}{r_{ij}} \right)^{6} \right]\Delta_{ij}
    :label: uatt
 
-In Eq. :eq:`uatt`, it's assumed that if the non-covalently linked particles :math:`i` and :math:`j` (:math:`|i-j|>2`) are within the cut-off distance :math:`R_C` in the native state, then :math:`\Delta_{ij}=1`; :math:`\Delta_{ij}=0` otherwise. The distance :math:`R_C=8.0` Å for :math:`C_\alpha-C_\alpha` bonds, \textcolor{red}{:math:`R_C=Artem` Å :math:`C_\alpha-C_\beta` bonds and :math:`R_C=Artem?` Å :math:`C_\beta-C_\beta` bonds}. The value of :math:`\varepsilon_h` quantifies the strength of the non-bonded interactions. The non-native (non-bonded) interactions are treated as repulsive:
+In Eq. :eq:`uatt`, it's assumed that if the non-covalently linked particles :math:`i` and :math:`j` (:math:`|i-j|>2`) are within the cut-off distance :math:`R_C` in the native state, then :math:`\Delta_{ij}=1`; :math:`\Delta_{ij}=0` otherwise. The distance :math:`R_C=8.0` Å for :math:`C_\alpha-C_\alpha` bonds, :math:`R_C=` :todo:`Artem` Å :math:`C_\alpha-C_\beta` bonds and :math:`R_C=` :todo:`Artem` Å :math:`C_\beta-C_\beta` bonds}. The value of :math:`\varepsilon_h` quantifies the strength of the non-bonded interactions. The non-native (non-bonded) interactions are treated as repulsive:
 
 .. math::
    U_{NB}^{REP} = \sum_{repulsive}^{N-2}\varepsilon_l \left(\frac{\sigma_l}{r_{ij}} \right)^6 + \sum_{repulsive}\varepsilon_l \left( \frac{\sigma_l}{r_{ij}} \right)^6(1-\Delta_{ij})
@@ -39,9 +41,8 @@ The dynamics of the system is obtained by solving numerically the Langevin equat
 In Eq. :eq:`ld`, :math:`U_i(r_i)` is the total potential energy, which accounts for all the biomolecular interactions between the particles in the molecule (:math:`U_{SOP}`; see Eq. :eq:`usop`). It also includes interactions of particles with the indenting object (:math:`U_{tip}`; see Eq. :eq:`utip`) and surface particles in indentation regime (see Section :ref:`theor-indent` below) and external force :math:`f\Delta X` in pulling regime. Also, in Eq. :eq:`ld` :math:`G_i(t)` is the Gaussian distributed zero-average random force, and :math:`\xi` is the friction coefficient [3]_ [4]_ .
 
 .. figure:: sop.png
-   :scale: 20 %
    :align: center
-   :figwidth: 70%
+   :figwidth: 50%
 
    **Figure 1:** Coarse-graining procedure for constructing a Self Organized Polymer (SOP) model of a polypeptide chain. Panel **A** exemplifies coarse-graining of the atomic structure of the :math:`\alpha\beta`-tubulin dimer -- the structural unit of the microtubule cylinder. The amino acid residues are replaced by single interaction centers (spherical beads) with the coordinates of the :math:`C_\alpha`-atoms (represented by the black circles). Four representative circles are shown to exemplify the coarse-graining process. Consequently, the protein backbone is replaced by a collection of the :math:`C_\alpha-C_\alpha` covalent bonds with the bond distance of :math:`3.8` Å.  Panel **B** depicts the results of coarse-graining of a small fragment of microtubule cylinder. Four identical copies of the tubulin dimer structure, coarse-grained as described in panel **A**, form a :math:`C_\alpha`-based model of the fragment.
 
@@ -623,7 +624,7 @@ Hydrodynamic interactions parameters
 
  Default value: off.
 
- Purpose: Use Cholesky-based method of the hydrodynamic tensor calculation, which is exact approach (see section \ref{sec:theor.hd}). If disabled, TEA approach is used.
+ Purpose: Use Cholesky-based method of the hydrodynamic tensor calculation, which is exact approach (see Section :ref:`theor-hd`). If disabled, TEA approach is used.
 
 
 - **hi_a** *<hydrodynamic radius value>*
@@ -1107,7 +1108,7 @@ Force indentation parameters
 
  Default value: no.
 
- Purpose: Define whether the substrate surface will be moving along \textcolor{red}{\texttt[???] Artem} direction, rather than cantilever.
+ Purpose: Define whether the substrate surface will be moving along :todo:`Artem` direction, rather than cantilever.
 
 
 - **indentationSurfConnectFile** *<filename>*
