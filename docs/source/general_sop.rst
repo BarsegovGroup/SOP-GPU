@@ -5,7 +5,7 @@
 General notes on SOP model
 ==========================
 
-In the topology-based Self-Organized Polymer (SOP) model, each amino acid residue is represented either by a single interaction center described by the corresponding :math:`C_\alpha`-atom, or two interaction centers described by the corresponding :math:`C_\alpha` and :math:`C_\beta` atoms. The first case makes the protein backbone to be represented by a collection of the :math:`C_\alpha-C_\alpha` covalent bonds only. In the second case, backbone atoms are replaced by :math:`C_\alpha` atom and side-chain atoms are replaced by one :math:`C_\beta`-atom, connected covalently to the :math:`C_\alpha` atom of the same amino acid. All the covalent bonds have distance of :math:`a=3.8` Å (peptide bond length) for both cases. Displayed in Figure 1 is an idealized schematic for the coarse-graining procedure using the one interaction center representation of the chain. The potential energy function of a protein conformation :math:`U_{SOP}`, specified in terms of the coordinates of the :math:`C_\alpha` and :math:`C_\beta`-atoms :math:`\{r_i\} = r_1, r_2,\dots, r_N`, where :math:`N` is the total number of particles in coarse-grained model, is given by [1]_ [2]_
+In the topology-based Self-Organized Polymer (SOP) model, each amino acid residue is represented either by a single interaction center described by the corresponding :math:`C_\alpha`-atom, or two interaction centers described by the corresponding :math:`C_\alpha` and :math:`C_\beta` atoms. The first case makes the protein backbone to be represented by a collection of the :math:`C_\alpha-C_\alpha` covalent bonds only. In the second case, backbone atoms are replaced by :math:`C_\alpha` atom and side-chain atoms are replaced by one :math:`C_\beta`-atom, connected covalently to the :math:`C_\alpha` atom of the same amino acid. All the covalent bonds have distance of :math:`a=3.8` Å (peptide bond length) for both cases. Displayed in Figure 1 is an idealized schematic for the coarse-graining procedure using the one interaction center representation of the chain. The potential energy function of a protein conformation :math:`U_{SOP}`, specified in terms of the coordinates of the :math:`C_\alpha` and :math:`C_\beta`-atoms :math:`\{r_i\} = r_1, r_2,\dots, r_N`, where :math:`N` is the total number of particles in coarse-grained model, is given by [Hyeon2006]_ [Mickler2007]_
 
 
 .. math:: 
@@ -38,7 +38,7 @@ The dynamics of the system is obtained by solving numerically the Langevin equat
    \xi \frac{dr_i}{dt} = - \frac{\partial U_i(r_i)}{\partial r_i} + g_i(t)
    :label: ld
 
-In Eq. :eq:`ld`, :math:`U_i(r_i)` is the total potential energy, which accounts for all the biomolecular interactions between the particles in the molecule (:math:`U_{SOP}`; see Eq. :eq:`usop`). It also includes interactions of particles with the indenting object (:math:`U_{tip}`; see Eq. :eq:`utip`) and surface particles in indentation regime (see Section :ref:`theor-indent` below) and external force :math:`f\Delta X` in pulling regime. Also, in Eq. :eq:`ld` :math:`G_i(t)` is the Gaussian distributed zero-average random force, and :math:`\xi` is the friction coefficient [3]_ [4]_ .
+In Eq. :eq:`ld`, :math:`U_i(r_i)` is the total potential energy, which accounts for all the biomolecular interactions between the particles in the molecule (:math:`U_{SOP}`; see Eq. :eq:`usop`). It also includes interactions of particles with the indenting object (:math:`U_{tip}`; see Eq. :eq:`utip`) and surface particles in indentation regime (see Section :ref:`theor-indent` below) and external force :math:`f\Delta X` in pulling regime. Also, in Eq. :eq:`ld` :math:`G_i(t)` is the Gaussian distributed zero-average random force, and :math:`\xi` is the friction coefficient [Zhmurov2010]_ [Kononova2013a]_ .
 
 .. figure:: sop.png
    :align: center
@@ -92,7 +92,7 @@ Hydrodynamic interactions
 
 In Langevin Dynamics simulations in the overdamped limit, equations of motion for particles of the system are propagated forward in time (see Eq. :eq:`ld` and Eq. :eq:`drnum` below) with the amplitude of random force :math:`\rho=\sqrt{2k_BT\zeta/h}=k_BT \sqrt{2/D_{\alpha\alpha}h}`, where :math:`\alpha` runs over all degrees of freedom. In this approach, which ignores the hydrodynamic coupling of degrees of freedom, all particles are described by the same diffusion coefficient :math:`D=D_{\alpha\alpha}=k_BT/\zeta`. 
 
-To account for solvent-mediated many-body effects, one can use an approach proposed originally by Ermak and McCammon [5]_ . In this approach, the equation of motion :eq:`drnum` is transformed (in absence of external flow) into the following equation:
+To account for solvent-mediated many-body effects, one can use an approach proposed originally by Ermak and McCammon [Ermak1978]_ . In this approach, the equation of motion :eq:`drnum` is transformed (in absence of external flow) into the following equation:
 
 .. math::
    \Delta r_\alpha = \sum_{\beta=1}^{3N} {\frac{D_{\alpha\beta}}{kT} F_\beta h} + \sqrt{2h} \sum_{\beta=1}^{3N} {B_{\alpha\beta} g_\beta}
@@ -100,7 +100,7 @@ To account for solvent-mediated many-body effects, one can use an approach propo
 
 The first term on the right-hand side is a hydrodynamic tensor :math:`\mathbf{D}` --- a real :math:`3N\times3N` matrix, in which an entry :math:`D_{\alpha\beta}` is a contribution to the diffusion of :math:`\alpha`-th degree of freedom from the :math:`\beta`-th degree of freedom. Alternatively, tensor :math:`\mathbf{D}` can be represented by an :math:`N\times N` matrix of :math:`3\times 3` submatrices :math:`\mathbf{D}_{ij}`, each corresponding to a pair of particles :math:`i` and :math:`j`. Also, for the correct distribution of random forces, in the second term in equation :eq:`ermak-dr` a real :math:`3N\times3N` matrix :math:`\mathbf{B}` must satisfy the condition :math:`\mathbf{B}^\intercal \mathbf{B}=\mathbf{D}`, where the superscript :math:`{}^\intercal` represents the transpose of a matrix. It is easy to show that when in equation :eq:`ermak-dr` :math:`\mathbf{D}` is a diagonal matrix with the identical matrix elements :math:`D_{\alpha\alpha}=kT/\zeta`, we recover equation :eq:`ermak-dr`. 
 
-In SOP-GPU program, we use the Rotne-Prager-Yamakawa (RPY) form of the hydrodynamic tensor :math:`\mathbf{D}` [6]_ [7]_, which is a positive-definite quantity. The submatrices :math:`\mathbf{D}_{ij}` of RPY tensor are given by the following expressions: 
+In SOP-GPU program, we use the Rotne-Prager-Yamakawa (RPY) form of the hydrodynamic tensor :math:`\mathbf{D}` [Rotne1969]_ [Yamakawa1970]_, which is a positive-definite quantity. The submatrices :math:`\mathbf{D}_{ij}` of RPY tensor are given by the following expressions: 
 
 .. math::
    \mathbf{D}_{ij} = \frac{kT}{\zeta}
@@ -119,7 +119,7 @@ In SOP-GPU program, we use the Rotne-Prager-Yamakawa (RPY) form of the hydrodyna
 
 In equation :eq:`rpy`, :math:`\mathbf{I}` is the identity matrix of rank 3, :math:`a_{HD}` is the hydrodynamic radius of the particle (we assume that :math:`a_{HD}` is same for all particles, the denotation ":math:`\times`" is used to define the tensor product. 
 
-In SOP-GPU program, we utilized an exact approach of computing :math:`\mathbf{B}` using Cholesky decomposition of :math:`\mathbf{D}`, as well as fast Truncated Expansion approximation (TEA) approach [8]_. In the TEA-based approach, the matrix elements of :math:`\mathbf{B}` can be rewritten as :math:`B_{\alpha\beta}=C_\alpha b_{\alpha\beta} D_{\alpha\beta}`, and equation :eq:`ermak-dr` can be recast as
+In SOP-GPU program, we utilized an exact approach of computing :math:`\mathbf{B}` using Cholesky decomposition of :math:`\mathbf{D}`, as well as fast Truncated Expansion approximation (TEA) approach [Geyer2009]_. In the TEA-based approach, the matrix elements of :math:`\mathbf{B}` can be rewritten as :math:`B_{\alpha\beta}=C_\alpha b_{\alpha\beta} D_{\alpha\beta}`, and equation :eq:`ermak-dr` can be recast as
 
 .. math::
    \Delta r_\alpha = \frac{h}{\zeta}
@@ -154,7 +154,7 @@ where :math:`\epsilon=\langle D_{\alpha\beta}/D_{\alpha\alpha}\rangle`. This lin
 
 Cholesky algorithm is implemented by-the-book, i.e. straightforward computation of lower-left-triangular matrix :math:`B` is carried out with :math:`O(N^3)` complexity. Due to implementation design, the single trajectory can not contain more than 128 particles is Cholesky factorization is applied.
 
-There is no agreement regarding the value of the hydrodynamic radius :math:`a_{HD}`. The proposed values vary between :math:`a_{HD}=1.5-5.3` Å [9]_ [10]_. However, one must keep in mind that, although the TEA handles overlaps correctly, the RPY tensor is better suited for description of non-overlapping beads. Since the inter-bead :math:`C_{\alpha}-C_{\alpha}`-distance in a polypeptide chain is about :math:`3.8` Å, which corresponds to the length of a peptide bond, :math:`a_{HD}` should not exceed :math:`1.9` Å. 
+There is no agreement regarding the value of the hydrodynamic radius :math:`a_{HD}`. The proposed values vary between :math:`a_{HD}=1.5-5.3` Å [Cieplak2009]_ [Frembgen-Kesner2009]_. However, one must keep in mind that, although the TEA handles overlaps correctly, the RPY tensor is better suited for description of non-overlapping beads. Since the inter-bead :math:`C_{\alpha}-C_{\alpha}`-distance in a polypeptide chain is about :math:`3.8` Å, which corresponds to the length of a peptide bond, :math:`a_{HD}` should not exceed :math:`1.9` Å. 
 
 For hydrodynamic interactions parameters see Section :ref:`par-hd`.
 
@@ -164,7 +164,7 @@ For hydrodynamic interactions parameters see Section :ref:`par-hd`.
 Pulling simulations
 -------------------
 
-Pulling simulations were designed to mimic force-ramp and force-clamp AFM experiments. In this regime, cantilever base is represented by the virtual particle, connected by a harmonic spring to a specified ("pulled") amino acid, mimicking adsorption of residues on the cantilever tip. The system particles specified as "fixed" will be firmly constrained mimicking molecule absorption on the surface. The cantilever base moving with constant velocity (:math:`\nu_f`) extends the cantilever spring, translating into the molecule extension, with the time-dependent force (force-ramp) :math:`{\bf f}(t)=f(t){\bf n}` in the pulling direction :math:`{\bf n}`. The force magnitude, :math:`f(t)=r_f t`, applied to cantilever tip, i.e. to the pulled end of the molecule, increases linearly in time :math:`t` with the force-loading rate :math:`r_f=\kappa \nu_f` [11]_. 
+Pulling simulations were designed to mimic force-ramp and force-clamp AFM experiments. In this regime, cantilever base is represented by the virtual particle, connected by a harmonic spring to a specified ("pulled") amino acid, mimicking adsorption of residues on the cantilever tip. The system particles specified as "fixed" will be firmly constrained mimicking molecule absorption on the surface. The cantilever base moving with constant velocity (:math:`\nu_f`) extends the cantilever spring, translating into the molecule extension, with the time-dependent force (force-ramp) :math:`{\bf f}(t)=f(t){\bf n}` in the pulling direction :math:`{\bf n}`. The force magnitude, :math:`f(t)=r_f t`, applied to cantilever tip, i.e. to the pulled end of the molecule, increases linearly in time :math:`t` with the force-loading rate :math:`r_f=\kappa \nu_f` [Zhmurov2011]_. 
 
 For pulling simulation parameters see Section :ref:`par-pull`. When pulling is enabled, program will save additional output file (usual format *.dat*) with pulling data. This file has following columns:
 
@@ -202,7 +202,7 @@ where :math:`r_{tip}^0` is the initial position of spherical tip center (:math:`
 
 The substrate surface is also modeled using Lennard-Jones potential with parameters of interactions :math:`\varepsilon_{surf}` and :math:`\sigma_{surf}` and factors :math:`A_{surf}` and :math:`B_{surf}` (see Eq. :eq:`utip`). The surface is represented by a number of particles and interaction potential is calculated between each particle in system and particles on the surface. 
 
-The cantilever base moving with constant velocity (:math:`\nu_f`) exerts (through the tip) the time-dependent force (force-ramp) :math:`{\bf f}(t)=f(t){\bf n}` in the direction :math:`{\bf n}` perpendicular to the particle surface. The force magnitude, :math:`f(t)=r_f t`, exerted on the particle increases linearly in time :math:`t` with the force-loading rate :math:`r_f=\kappa \nu_f` [12]_ [13]_ .
+The cantilever base moving with constant velocity (:math:`\nu_f`) exerts (through the tip) the time-dependent force (force-ramp) :math:`{\bf f}(t)=f(t){\bf n}` in the direction :math:`{\bf n}` perpendicular to the particle surface. The force magnitude, :math:`f(t)=r_f t`, exerted on the particle increases linearly in time :math:`t` with the force-loading rate :math:`r_f=\kappa \nu_f` [Kononova2013b]_ [Kononova2014]_ .
 
 For force indentation simulation parameters see Section :ref:`par-indent`. The results of indentation will be saved in additional output file (usual format *.dat*) with the following columns:
 
@@ -1368,34 +1368,29 @@ Output parameters
  Purpose: Filename for the final coordinates.
 
 
-References
-==========
+.. [Hyeon2006] \C. Hyeon, R. I. Dima, and D. Thirumalai (2006) "Pathways and kinetic barriers in mechanical unfolding and refolding of RNA and proteins", *Structure* **14** (11): 1633-1645.
 
-.. [1] C. Hyeon, R. I. Dima, and D. Thirumalai (2006) "Pathways and kinetic barriers in mechanical unfolding and refolding of RNA and proteins", *Structure* **14** (11): 1633-1645.
+.. [Mickler2007] \M. Mickler, R. I. Dima, H. Dietz, C. Hyeon, D. Thirumalai, and M. Rief (2007) "Revealing the bifurcation in the unfolding pathways of GFP using single molecule experiments and simulations",  *Proc. Natl. Acad. Sci. USA* **104** (51): 20268–20273.
 
-.. [2] M. Mickler, R. I. Dima, H. Dietz, C. Hyeon, D. Thirumalai, and M. Rief (2007) "Revealing the bifurcation in the unfolding pathways of GFP using single molecule experiments and simulations",  *Proc. Natl. Acad. Sci. USA* **104** (51): 20268–20273.
+.. [Zhmurov2010] \A. Zhmurov, R. I. Dima, and V. Barsegov (2010) "Order statistics theory of unfolding of multimeric proteins", *Biophys. J.* **99**: 1959.
 
-.. [3] A. Zhmurov, R. I. Dima, and V. Barsegov (2010) "Order statistics theory of unfolding of multimeric proteins", *Biophys. J.* **99**: 1959.
+.. [Kononova2013a] \O. Kononova, L. Jones, and V. Barsegov (2013) "Order statistics inference for describing topological coupling and mechanical symmetry breaking in multidomain proteins", *J. Chem. Phys.* **139** (12): 121913.
 
-.. [4] O. Kononova, L. Jones, and V. Barsegov (2013) "Order statistics inference for describing topological coupling and mechanical symmetry breaking in multidomain proteins", *J. Chem. Phys.* **139** (12): 121913.
+.. [Ermak1978] \D. Ermak and J. A. McCammon (1978) "Brownian dynamics with hydrodynamic interactions", *J. Chem. Phys.* **69** (4): 1352.
 
-.. [5] D. Ermak and J. A. McCammon (1978) "Brownian dynamics with hydrodynamic interactions", *J. Chem. Phys.* **69** (4): 1352.
+.. [Rotne1969] \J. Rotne and S. Prager (1969) "Variational Treatment of Hydrodynamic Interaction in Polymers", *J. Chem. Phys.* **50** (11): 4831-4837.
 
-.. [6] J. Rotne and S. Prager (1969) "Variational Treatment of Hydrodynamic Interaction in Polymers", *J. Chem. Phys.* **50** (11): 4831-4837.
+.. [Yamakawa1970] \H. Yamakawa (1970) "Transport Properties of Polymer Chains in Dilute Solution: Hydrodynamic Interaction", *J. Chem. Phys.* **53** (1): 436-443.
 
-.. [7] H. Yamakawa (1970) "Transport Properties of Polymer Chains in Dilute Solution: Hydrodynamic Interaction", *J. Chem. Phys.* **53** (1): 436-443.
+.. [Geyer2009] \T. Geyer and U. Winter (2009) "An :math:`O(N^2)` approximation for hydrodynamic interactions in Brownian dynamics simulations", *J. Chem. Phys.* **130** : 114905.
 
-.. [8] T. Geyer and U. Winter (2009) "An :math:`O(N^2)` approximation for hydrodynamic interactions in Brownian dynamics simulations", *J. Chem. Phys.* **130** : 114905.
+.. [Cieplak2009] \M. Cieplak and S. Niewieczerzal (2009) "Hydrodynamic interactions in protein folding", *J. Chem. Phys.* **130** : 124906.
 
-.. [9] M. Cieplak and S. Niewieczerzal (2009) "Hydrodynamic interactions in protein folding", *J. Chem. Phys.* **130** : 124906.
+.. [Frembgen-Kesner2009] \T. Frembgen-Kesner and A. H. Elcock (2009) "Striking Effects of Hydrodynamic Interactions on the Simulated Diffusion and Folding of Proteins", *J. Chem. Theory. Comput.* **5** : 242-256.
 
-.. [10] T. Frembgen-Kesner and A. H. Elcock (2009) "Striking Effects of Hydrodynamic Interactions on the Simulated Diffusion and Folding of Proteins", *J. Chem. Theory. Comput.* **5** : 242-256.
+.. [Zhmurov2011] \A. Zhmurov, A. E. X. Brown, R. I. Litvinov, R. I. Dima, J. W. Weisel, and V. Barsegov (2011) "Mechanism of fibrin(ogen) forced unfolding", *Structure* **19** (11): 1615-1624.
 
-.. [11] A. Zhmurov, A. E. X. Brown, R. I. Litvinov, R. I. Dima, J. W. Weisel, and V. Barsegov (2011) "Mechanism of fibrin(ogen) forced unfolding", *Structure* **19** (11): 1615-1624.
+.. [Kononova2013b] \O. Kononova, J. Snijder, M. Brasch, J. Cornelissen, R. I. Dima, K. A. Marx, G. J. L. Wuite, W. H. Roos, and V. Barsegov (2013) "Structural transitions and energy landscape for cowpea chlorotic mottle virus capsid mechanics from nanomanipulation *in vitro* and *in silico*", *Biophys. J.* **105** (8): 1893-1903.
 
-.. [12] O. Kononova, J. Snijder, M. Brasch, J. Cornelissen, R. I. Dima, K. A. Marx, G. J. L. Wuite, W. H. Roos, and V. Barsegov (2013) "Structural transitions and energy landscape for cowpea chlorotic mottle virus capsid mechanics from nanomanipulation *in vitro* and *in silico*", *Biophys. J.* **105** (8): 1893-1903.
-
-.. [13] O. Kononova, Y. Kholodov, K. E. Theisen, K. A. Marx, R. I. Dima, F. I. Ataullakhanov, E. L. Grishchuk, and V. Barsegov (2014) "Tubulin bond energies and microtubule biomechanics determined from nanoindentation *in silico*", *J. Am. Chem. Soc.* **136** (49): 17036-17045.
-
-
+.. [Kononova2014] \O. Kononova, Y. Kholodov, K. E. Theisen, K. A. Marx, R. I. Dima, F. I. Ataullakhanov, E. L. Grishchuk, and V. Barsegov (2014) "Tubulin bond energies and microtubule biomechanics determined from nanoindentation *in silico*", *J. Am. Chem. Soc.* **136** (49): 17036-17045.
 

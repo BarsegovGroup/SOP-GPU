@@ -171,6 +171,12 @@ htmlhelp_basename = 'SOP-GPUdoc'
 
 # -- Options for LaTeX output --------------------------------------------------
 
+_PREAMBLE = r"""
+\usepackage{amssymb}
+\usepackage{caption}
+\captionsetup[figure]{labelformat=empty}
+"""
+
 latex_elements = {
 # The paper size ('letterpaper' or 'a4paper').
 #'papersize': 'letterpaper',
@@ -179,19 +185,21 @@ latex_elements = {
 #'pointsize': '10pt',
 
 # Additional stuff for the LaTeX preamble.
-#'preamble': '',
+    'preamble': _PREAMBLE,
+# Use boring chapters
+    'fncychap': '',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'SOP-GPU.tex', u'SOP-GPU Documentation',
-   u'Artem Zhmurov, Andrey Alekseenko, Olga Kononova and Valeri Barsegov', 'manual'),
+   ur'Artem Zhmurov \and Andrey Alekseenko \and Olga Kononova \and Valeri Barsegov', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-#latex_logo = None
+latex_logo = 'SOPGPULogo-blue.png'
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.

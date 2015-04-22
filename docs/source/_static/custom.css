@@ -23,3 +23,7 @@ div.body p.caption {
     color: red;
 }
 
+td.label {
+    width: 150px;
+}
+
