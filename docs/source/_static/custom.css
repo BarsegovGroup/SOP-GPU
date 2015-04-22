@@ -1,7 +1,16 @@
 @import url("default.css");
 
-blockquote {
+div.section > blockquote > div > p {
     margin-top: 0em;
-    margin-bottom: 0em;
+    margin-bottom: 0.2em;
     line-height: 100%;
 }
+
+div.section > blockquote {
+    margin-top: 0.2em;
+}
+
+ul.simple {
+    margin-bottom: 0.2em;
+}
+
