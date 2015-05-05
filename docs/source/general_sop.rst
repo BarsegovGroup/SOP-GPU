@@ -5,6 +5,9 @@
 General notes on SOP model
 ==========================
 
+Method
+------
+
 In the topology-based Self-Organized Polymer (SOP) model, each amino acid residue is represented either by a single interaction center described by the corresponding :math:`C_\alpha`-atom, or two interaction centers described by the corresponding :math:`C_\alpha` and :math:`C_\beta` atoms. The first case makes the protein backbone to be represented by a collection of the :math:`C_\alpha-C_\alpha` covalent bonds only. In the second case, backbone atoms are replaced by :math:`C_\alpha` atom and side-chain atoms are replaced by one :math:`C_\beta`-atom, connected covalently to the :math:`C_\alpha` atom of the same amino acid. All the covalent bonds have distance of :math:`a=3.8` Å (peptide bond length) for both cases. Displayed in Figure 1 is an idealized schematic for the coarse-graining procedure using the one interaction center representation of the chain. The potential energy function of a protein conformation :math:`U_{SOP}`, specified in terms of the coordinates of the :math:`C_\alpha` and :math:`C_\beta`-atoms :math:`\{r_i\} = r_1, r_2,\dots, r_N`, where :math:`N` is the total number of particles in coarse-grained model, is given by [Hyeon2006]_ [Mickler2007]_
 
 
@@ -45,6 +48,76 @@ In Eq. :eq:`ld`, :math:`U_i(r_i)` is the total potential energy, which accounts 
    :figwidth: 50%
 
    **Figure 1:** Coarse-graining procedure for constructing a Self Organized Polymer (SOP) model of a polypeptide chain. Panel **A** exemplifies coarse-graining of the atomic structure of the :math:`\alpha\beta`-tubulin dimer -- the structural unit of the microtubule cylinder. The amino acid residues are replaced by single interaction centers (spherical beads) with the coordinates of the :math:`C_\alpha`-atoms (represented by the black circles). Four representative circles are shown to exemplify the coarse-graining process. Consequently, the protein backbone is replaced by a collection of the :math:`C_\alpha-C_\alpha` covalent bonds with the bond distance of :math:`3.8` Å.  Panel **B** depicts the results of coarse-graining of a small fragment of microtubule cylinder. Four identical copies of the tubulin dimer structure, coarse-grained as described in panel **A**, form a :math:`C_\alpha`-based model of the fragment.
+
+Benchmark simulations
+---------------------
+
+We have tested the performance of the SOP-GPU package (written in CUDA - a dialect of C and C++ programming languages) on a NVIDIA GPU Tesla C1060 (MIPT), and have compared the results against the performance of the optimized C code (SOP program) on a dual Quad Core Xeon 2.83 GHz of a similar level of technology. We have analyzed the results of CPU- and GPU-based computations by comparing the force spectra, i.e. :math:`f` versus :math:`X` force-extension profiles, the distributions of unfolding forces (peak forces in the force spectra), and the average temperature :math:`\langle T\rangle`, for the all-:math:`\beta` sheet WW-domain. Aside from small deviations due to the different initial conditions, the profiles of :math:`f(X)` and :math:`\langle T\rangle`, and the unfolding force histograms, obtained on the CPU and on the GPU, agree very well (Figure 2).
+
+.. figure:: sop-benchmark1.png
+   :align: center
+   :figwidth: 90%
+
+   **Figure 2:** Comparison of the results of pulling simulations for the WW-domain obtained on a GPU and on a CPU (pulling speed :math:`\nu_f=2.5 \mu m/s`). Panel (a): Representative examples of the force spectrum (force-extension curves). Panel (b): The histograms of unfolding forces. Panel (c): The average temperature of the system as a function of time :math:`\langle T(t)\rangle`.
+
+We have compared the overall performance of an end-to-end application of the SOP-GPU program with the heavily tuned CPU-based implementation (SOP program) in describing the Langevin dynamics of the WW domain at equilibrium. We profiled the computational performance of the SOP-GPU program as a function of the number of independent trajectories :math:`s` running concurrently on the GPU (**many-runs-per-GPU approach**). While the single CPU core generates one trajectory at a time, the GPU device is capable of running many trajectories at the same time. The results (see Figure 3a) show that, for the WW domain (:math:`N=34`), the GPU accelerates computations starting from 3 independent runs, which is equivalent to a single run for a system of :math:`N \approx 10^2` residues (**one-run-per-GPU approach**). This is the so-called break-even point. While the simulation time on the CPU scales linearly with :math:`s` (or with :math:`N`), the scaling on the GPU in this regime is sublinear (nearly constant) up to :math:`N \approx 10^4` (:math:`s \approx 300` for the WW domain). At this point, the GPU shows significant performance gains relative to the CPU reaching the maximum 80-90-fold speedup (see Figure 3b). The amount of GPU on-board memory, i.e. ~4 GB (Tesla C1060), is sufficient to describe long Langevin dynamics for large biomolecular systems of :math:`\sim 10^4` residues.
+
+.. figure:: sop-benchmark2.png
+   :align: center
+   :figwidth: 80%
+
+   **Figure 3:**  Panel (a): The log-log plot of the computational time per 1,000 steps of the simulations on a CPU and on a GPU versus the system size, :math:`N` (**one-run-per-GPU approach**), and versus the number of independent trajectories running concurrently on a GPU :math:`s` (**many-runs-per-GPU approach**), for the all-:math:`\beta`-strand WW domain. The GPU performance is tested for the thread blocks of size B = 64, 128, 256, and 512. Panel (b): The log-linear plot of the relative CPU/GPU performance (computational speedup) as a function of :math:`N` and :math:`s`. The performance is compared for the SOP-GPU program, and when it is accelerated by using texture cache, and texture cache plus intrinsic mathematical functions.
+
+.. _rng:
+
+Generation of pseudo-random numbers on graphics processors
+==========================================================
+
+Pseudo-random number generators are used in many computer applications such as simulations of stochastic systems, numerical analysis, probabilistic algorithms, etc. Numerical modeling of biological systems and processes, e.g., all-atom MD simulations in implicit solvent [Brooks1983]_, [Haberthur2008]_, Langevin simulations [Zhmurov2010b]_, and Monte Carlo simulations [Press1992]_, all require generation of a large number of independent random variables at each step of a simulation run. We developed two approaches for implementation of random number generators (RNGs) on a graphics processing unit (GPU). In the **one-RNG-per-thread approach**, one RNG produces a stream of random numbers in each thread of execution, whereas the **one-RNG-for-all-threads** method builds on the ability of different threads to communicate, thus, sharing random seeds across an entire GPU device. An RNG produces a sequence of random numbers, :math:`u_i`, which is supposed to imitate independent and uniformly distributed random variates from the unit interval :math:`(0,1)`. There are three main requirements for a numerical implementation of an RNG: (1) good statistical properties, (2) high computational speed, and (3) low memory usage. Because a deterministic sequence of random numbers comes eventually to a starting point, :math:`u_{n+p}=u_n`, an RNG should also have a long period :math:`p` [LEcuyer2007]_. In addition, an RNG must pass rigorous statistical tests of randomness (i.e., for independence and for uniformity), and some application-based tests of randomness that offer exact solutions to the test applications [LEcuyer2007]_, [Marsaglia1996]_, [Mascagni2000]_, [Soto1999]. Indeed, using random numbers of poor statistical quality might result in insufficient sampling, unphysical correlations, and even unrealistic results, which might lead to errors in practical applications. We developed the GPU-based realizations of several RNGs, which provide pseudo-random numbers of high statistical quality, using the cycle division paradigm [Zhmurov2011b]_. 
+
+.. _rng-method:
+
+Method
+------
+
+Different methods are used to generate the Gaussian distributed random variates :math:`g_i` from the uniformly distributed random numbers :math:`u_i,  (i=1,2,...,n)` [Tsang2000]_, [Marsaglia1964]_, [Box1958]_. Here, we adopt the most commonly used `Box-Mueller transformation <http://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform>`_  [Box1958]_. In the one-RNG-per-thread approach, the basic idea is to partition a single sequence of random numbers among many computational threads running concurrently across an entire GPU device, each producing a stream of random numbers. Since most RNG algorithms, including LCG, Ran2, and Hybrid Taus, are based on sequential transformations of the current state [Press1994]_, then the most common way of partitioning the sequence is to provide each thread with different seeds while also separating the threads along the sequence so as to avoid possible inter-stream correlations (see Figure 4, left panel). On the other hand, several generators, including the `Mersenne Twister <http://en.wikipedia.org/wiki/Mersenne_Twister>`_ and `Lagged Fibonacci <http://en.wikipedia.org/wiki/Lagged_Fibonacci_generator>`_ algorithms, which employ recursive transformations, allow one to leap ahead in a sequence of random variates and to produce the :math:`(n+1)`-st random number without knowing the previous, :math:`n`-th number [Mascagni2004]_. The leap size, which, in general, depends on a choice of parameters for an RNG, can be properly adjusted to the number of threads (number of particles :math:`N`), or multiples of :math:`N` :math:`(M \times N)`. Then, all :math:`N` random numbers can be obtained simultaneously, i.e. the :math:`j`-th thread produces numbers :math:`j, j+N, j+2N,...,` etc. :math:`(j=1,2,...,n)`. At the end of each simulation step, threads of execition must be syncronized to update the current RNG state. Hence, the same RNG state can be shared by all threads, each updating just one elements of the state. We refer to this as the one-RNG-for-all-threads approach (Figure 4, right panel).
+
+.. figure:: rng.png
+   :align: center
+   :figwidth: 70%
+
+   **Figure 4:** A simplified schematic of the one-RNG-per-thread approach (*left panel*) and the one-RNG-for-all-threads approach (*right panel*). In the one-RNG-per-thread approach, one RNG produces a stream of pseudo-random numbers in each :math:`j`-th thread of execution :math:`(j=1,2,...,n)`, i.e., the same RNG algorithm (realized in many RNGs) is running in each thread generating different subsequences of the same sequence of random numbers. The one-RNG-for-all-threads approach builds on the ability of different threads to communicate, and, hence, to share the state of just one RNG across an entire GPU device.
+
+We employed these methods to develop GPU-based implementations of the Linear Congruent Generator (LCG) [Press1992]_, and the Ran2 [Press1992]_, Hybrid Taus [Press1992]_, [Tausworthe1965]_, and additive Lagged Fibonacci algoritms [Press1992]_, [[Mascagni2004]_. These generators have been incorporated into the program for Langevin simulations of biomolecules fully implemented on the GPU. 
+
+.. _rng-bench:
+
+Benchmark simulations
+---------------------
+
+We tested RNGs implemented on a GPU in Langevin simulations of :math:`N` Brownian oscillators using the Hybrid Taus and additive Lagged Fibonacci algorithms. We compared the computational time as a function of the system size :math:`N` for three different implementations of Langevin simulations:
+
+- random numbers and Langevin Dynamics are generated on a CPU;
+- random numbers, obtained on the CPU, are transfered to the GPU and used to generate Langevin Dynamics on the GPU;
+- random numbers and Langevin Dynamics are generated on the GPU.
+
+The results obtained for the 2.83 GHz Intel Core i7 930 CPU, for the 1.15GHz Tesla C2050 (MIPT) show that starting from :math:`\approx10^2` particles, it becomes computationally expensive to generate random numbers on the CPU and transfer them to the GPU in order to generate stochastic trajectories on the GPU (Figure 3, left panel). We observed a ~10−250-fold speedup for Langevin simulations of :math:`N=10^3-10^6` Brownian particles on the GPU (Figure 5, right panel).
+
+.. figure:: rng-benchmark1.png
+   :align: center
+   :figwidth: 80%
+
+   **Figure 5:** *Left panel:* The computational time for Langevin Dynamics (LD) of :math:`N` Brownian oscillators with the Hybrid Taus and additive Lagged Fibonacci RNGs. Considered are three implementations, where random numbers and LD are generated on the CPU (Hybrid Taus (CPU) + Dynamics (CPU)), random numbers are obtained on the CPU, transfered to the GPU and used to propagate LD on the GPU (Hybrid Taus (CPU) + Dynamics (GPU)), and random numbers and LD are generated on the GPU (Hybrid Taus (GPU) + Dynamics (GPU) and Lagged Fibonacci (GPU) + Dynamics (GPU)). *Right panel:* The computational speedup (CPU time/GPU time) for LD simulations fully implemented on the GPU and on the single CPU core. Compared are two options when an RNG (Hybrid Taus or Lagged Fibonacci) is organized in a separate kernel or is inside the main (integration) kernel. 
+
+We also benchmarked the computational efficiency of the GPU-based realizations of the Ran2, Hybrid Taus, and Lagged Fibonacci algorithms using Langevin simulations of :math:`N` Brownian oscillators in three dimensions. For each system size :math:`N`, we ran one trajectory for :math:`10^6` simulation steps. All :math:`N` threads were synchronized at the end of each step to emulate an LD simulation run of a biomolecule on a GPU. The associated execution time and memory usage are profiled in Figure 6 below.
+
+.. figure:: rng-benchmark2.png
+   :align: center
+   :figwidth: 80%
+
+   **Figure 6:** The computational performance of LCG, and the Ran2, Hybrid Taus, and Lagged Fibonacci algorithms in Langevin simulations of :math:`N` Brownian oscillators on the GPU device. *Left panel:* The execution time (CPU time for Langevin simulations with Ran2 and Hybrid Taus RNGs is shown for comparison). *Right panel:* The memory demand, i.e. the amount of memory needed for an RNG to store its current state. Step-wise increases in the memory usage for Lagged Fibonacci are due to the change of constant parameters for this RNG.
+
+On a GPU Ran2 is the most demanding generator as compared to the Hybrid Taus, and Lagged Fibonacci RNGs (Figure 6, left panel). Using Ran2 in Langevin simulations to obtain a single trajectory over :math:`10^9` steps for a system of :math:`N=10^4` particles requires additional ~264 hours of wall-clock time. The associated memory demand for Ran2 RNG is quite high, i.e. >250MB for :math:`N=10^6` (Figure 6, right panel). Because in biomolecular simulations a large memory area is needed to store parameters of the force field, Verlet lists, interparticle distances, etc., the high memory demand might prevent one from using Ran2 in the simulations of a large system. Also, implementing the Ran2 RNG in Langevin simulations on the GPU does not lead to a substantial speedup (Figure 6, left panel). By contrast, the Hybrid Taus and Lagged Fibonacci RNGs are both light and fast in terms of the memory usage and the execution time (Figure 6). These generators require a small amount of memory, i.e. <15-20MB, even for a large system of as many as :math:`N=10^6` particles.
 
 .. _use-sop:
 
@@ -1393,4 +1466,33 @@ Output parameters
 .. [Kononova2013b] \O. Kononova, J. Snijder, M. Brasch, J. Cornelissen, R. I. Dima, K. A. Marx, G. J. L. Wuite, W. H. Roos, and V. Barsegov (2013) "Structural transitions and energy landscape for cowpea chlorotic mottle virus capsid mechanics from nanomanipulation *in vitro* and *in silico*", *Biophys. J.* **105** (8): 1893-1903.
 
 .. [Kononova2014] \O. Kononova, Y. Kholodov, K. E. Theisen, K. A. Marx, R. I. Dima, F. I. Ataullakhanov, E. L. Grishchuk, and V. Barsegov (2014) "Tubulin bond energies and microtubule biomechanics determined from nanoindentation *in silico*", *J. Am. Chem. Soc.* **136** (49): 17036-17045.
+
+.. [Brooks1983] \B. R. Brooks, R. E. Bruccoleri, B. D. Olafson, D. J.  States,  S. Swaminathan and M. Karplus (1983) "CHARMM: A program for macromolecular energy, minimization, and dynamics calculations", *J. Comput. Chem.* **4**: 187-217.
+
+.. [Haberthur2008] \U. Haberthür, A. Caflisch (2008) "FACTS: Fast analytical continuum treatment of solvation", *J. Comput. Chem.* **29**: 701-715.
+
+.. [Zhmurov2010b] \A. Zhmurov, R. I. Dima, Y. Kholodov and V. Barsegov (2010) "SOP-GPU: Accelerating biomolecular simulations in the centisecond timescale using graphics processors", *Proteins* **78**: 2984-2999. 
+
+.. [Press1992] \W. H. Press, S. A. Teukolsky, W. T. Vetterling and B. P. Flannery. "Numerical Recipes in C", 2nd ed. *The Art of Scientific Computing*, Cambridge University Press, 1992.
+
+.. [LEcuyer2007] \P. L'Ecuyer and R. Simard (2007) "TestU01: A C library for empirical testing of random number generators", *ACM T. Math. Software.*  **33**: 22.
+
+.. [Marsaglia1996] \G. Marsaglia (1996) "DIEHARD: A battery of tests of Randomness" (http://stat.fsu.edu/geo/diehard.html).
+
+.. [Mascagni2000] \M. Mascagni and A. Srinivasan (2000) "Algorithm 806: SPRNG: A scalable library for pseudorandom number generation", *ACM T. Math. Software.* **26**: 436-461.
+
+.. [Soto1999] \J. Soto (1999) "Statistical testing of random number generators" (http://csrc.nist.gov/rng/).
+
+.. [Zhmurov2011b] \A. Zhmurov, K. Rybnikov, Y. Kholodov and V. Barsegov (2011) "Generation of random numbers on graphics processors: Forced indentation *in silico* of the bacteriophage *HK97*", *J. Phys. Chem. B* **115**: 5278-5288. 
+
+.. [Tsang2000] \W. W. Tsang and G. Marsaglia (2000) "The Ziggurat Method for Generating Random Variables", *J. Stat. Softw.* **5**.
+
+.. [Marsaglia1964] \G. Marsaglia and T. A. Bray (1964) "A convenient method for generating normal variables", *SIAM Rev.* **6**: 260-264.
+
+.. [Box1958] \G. E. P. Box and M. E. Mueller (1958) "A note on the generation of normal random deviates", *Ann. Math. Stat.* **29**: 610-611.
+
+.. [Mascagni2004] \M. Mascagni and A. Srinivasan (2004) "Parameterizing parallel multiplicative lagged Fibonacci generators", *Parallel Comput.* **30**: 899-916.
+
+.. [Tausworthe1965] \R. C. Tausworthe (1965) "Random numbers generated by linear recurrence modulo two", *Math. Comput.* **19**: 201-209.
+
 
