@@ -36,7 +36,7 @@ The non-native (non-bonded) interactions are treated as repulsive:
    U_{NB}^{REP} = \sum_{repulsive}\varepsilon_l \left(\frac{\sigma_l}{r_{ij}} \right)^6
    :label: urep
 
-In Eq. :eq:urep), the values for the parameters are :math:`\varepsilon_l=1` kcal/mol and :math:`\sigma_l=3.8` Å. These define the strength and the range of the repulsion. 
+In Eq. :eq:`urep`, the values for the parameters are :math:`\varepsilon_l=1` kcal/mol and :math:`\sigma_l=3.8` Å. These define the strength and the range of the repulsion. 
 
 The dynamics of the system is obtained by solving numerically the Langevin equations of motion for each particle position :math:`r_i` in the over-damped limit:
 
