@@ -26,7 +26,7 @@ The SOP-GPU package, where SOP stands for the Self Orginized Polymer Model fully
 
    general_sop.rst
 
-Examples of SOP-GPU configurational files can be found `here <https://github.com/zhmurov/SOP-GPU/tree/master/examples>_`.
+Examples of SOP-GPU configurational files can be found `here <https://github.com/zhmurov/SOP-GPU/tree/master/examples>`_.
 
 
 
