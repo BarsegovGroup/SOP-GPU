@@ -2,38 +2,41 @@
 
 .. _theor-sop:
 
-General notes on SOP model
-==========================
+Self-Organized Polymer model
+============================
 
 Method
 ------
 
-In the topology-based Self-Organized Polymer (SOP) model, each amino acid residue is represented either by a single interaction center described by the corresponding :math:`C_\alpha`-atom, or two interaction centers described by the corresponding :math:`C_\alpha` and :math:`C_\beta` atoms. The first case makes the protein backbone to be represented by a collection of the :math:`C_\alpha-C_\alpha` covalent bonds only. In the second case, backbone atoms are replaced by :math:`C_\alpha` atom and side-chain atoms are replaced by one :math:`C_\beta`-atom, connected covalently to the :math:`C_\alpha` atom of the same amino acid. All the covalent bonds have distance of :math:`a=3.8` Å (peptide bond length) for both cases. Displayed in Figure 1 is an idealized schematic for the coarse-graining procedure using the one interaction center representation of the chain. The potential energy function of a protein conformation :math:`U_{SOP}`, specified in terms of the coordinates of the :math:`C_\alpha` and :math:`C_\beta`-atoms :math:`\{r_i\} = r_1, r_2,\dots, r_N`, where :math:`N` is the total number of particles in coarse-grained model, is given by [Hyeon2006]_ [Mickler2007]_
+In the structure-based Self-Organized Polymer (SOP) model, each amino acid residue is usually represented by a single interaction center described by the corresponding :math:`C_\alpha`-atom, or two interaction centers described by the corresponding :math:`C_\alpha` and :math:`C_\beta` atoms. In the first case the protein backbone is represented by a collection of the :math:`C_\alpha-C_\alpha` covalent bonds. In the second case, backbone atoms are replaced by :math:`C_\alpha` bead and side-chain atoms are replaced by one :math:`C_\beta` bead, connected covalently to the :math:`C_\alpha` bead of the same amino acid. The coarse-graining procedure with one interaction center representating each residue is illustrated on Figure 1. The potential energy function of a protein conformation :math:`U_{SOP}` is specified in terms of the coordinates of the :math:`C_\alpha` and :math:`C_\beta`-beads :math:`\{r_i\} = r_1, r_2,\dots, r_N`, where :math:`N` is the total number of beads in coarse-grained model. :math:`U_{SOP}` is given by [Hyeon2006]_, [Mickler2007]_:
 
-
-.. math:: 
-   U_{SOP} = U_{FENE} + U_{NB}^{ATT} + U_{NB}^{REP}
+.. math::
+   U_{SOP} = U_{FENE} + U_{NB}^{ATT} + U_{NB}^{REP}.
    :label: usop
 
-In Eq. :eq:`usop`, the first term is the finite extensible nonlinear elastic (FENE) potential:
+Eq. :eq:`usop`, the first term is the finite extensible nonlinear elastic (FENE) potential:
 
 .. math::
-   U_{FENE}=-\sum_{covalent}\frac{k R_0}{2}\log \left(1-\frac{(r_{ij}-r_{ij}^0)^2}{R_0^2}\right)
+   U_{FENE}=-\sum_{covalent}\frac{k R_0}{2}\log \left(1-\frac{(r_{ij}-r_{ij}^0)^2}{R_0^2}\right).
    :label: ufene
 
-where :math:`k=14` N/m is the spring constant, and the tolerance in the change of the covalent bond distance is :math:`R_0=2` Å. The FENE potential describes the backbone chain connectivity (:math:`C_\alpha-C_\alpha`) and side-chain connectivity (:math:`C_\alpha-C_\beta`). The distance between the particles (:math:`C_\alpha-C_\alpha` or :math:`C_\alpha-C_\beta`) :math:`i` and :math:`j`, is :math:`r_{ij}`, and :math:`r^0_{ij}` is its value in the native  structure. The summation is performed over all the covalent bonds in the system. To account for the non-covalent (non-bonded) interactions that stabilize the native state, the Lennard-Jones potential is used:
+Here, :math:`k=14` N/m is the spring constant, and :math:`R_0=2.0` Å is the tolerance to the change of the covalent bond length. The FENE potential describes the backbone chain connectivity (:math:`C_\alpha-C_\alpha`), side-chain connectivity (:math:`C_\alpha-C_\beta`) and other covalent links (e.g. disulfide bonds). The distance between the particles (:math:`C_\alpha-C_\alpha` or :math:`C_\alpha-C_\beta`) :math:`i` and :math:`j`, is :math:`r_{ij}`, and :math:`r^0_{ij}` is its value in the native structure. The summation (:math:`\Sigma_{bonds}`) is performed over all pairs of beads :math:`i` and :math:`j` that are covalently bonded. 
+
+To account for the non-covalent (non-bonded) interactions that stabilize the native state, the Lennard-Jones potential is used:
 
 .. math::
-   U_{NB}^{ATT} = \sum_{native}\varepsilon_h\left[ \left( \frac{r_{ij}^0}{r_{ij}} \right)^{12} - 2\left( \frac{r_{ij}^0}{r_{ij}} \right)^{6} \right]\Delta_{ij}
+   U_{NB}^{ATT} = \sum_{native}\varepsilon_h\left[ \left( \frac{r_{ij}^0}{r_{ij}} \right)^{12} - 2\left( \frac{r_{ij}^0}{r_{ij}} \right)^{6} \right].
    :label: uatt
 
-In Eq. :eq:`uatt`, it's assumed that if the non-covalently linked particles :math:`i` and :math:`j` (:math:`|i-j|>2`) are within the cut-off distance :math:`R_C` in the native state, then :math:`\Delta_{ij}=1`; :math:`\Delta_{ij}=0` otherwise. The distance :math:`R_C=8.0` Å for :math:`C_\alpha-C_\alpha` bonds, :math:`R_C=` :todo:`Artem` Å :math:`C_\alpha-C_\beta` bonds and :math:`R_C=` :todo:`Artem` Å :math:`C_\beta-C_\beta` bonds}. The value of :math:`\varepsilon_h` quantifies the strength of the non-bonded interactions. The non-native (non-bonded) interactions are treated as repulsive:
+Here, the :math:`r_{ij}` is the distance between two beads :math:`i` and :math:`j` and :math:`r^0_{ij}` is the equilibrium distance taken from the initial structure. The value of :math:`\varepsilon_h` quantifies the strength of the non-bonded interactions. The summation :math:`\sum_{native}` goes over all beads :math:`i` and :math:`j` that are assumed forming native contacts. The definition of the native contact can vary, the most general definition follows. If the two be beads :math:`i` and :math:`j` are separated by more than 2 covalent bonds and :math:`r_{ij}<R_C` then they form native contact. The typical cut-off distances are :math:`R_C=8.0` Å for :math:`C_\alpha-C_\alpha` and :math:`C_\alpha-C_\beta` contacts and :math:`R_C=5.2` Å for :math:`C_\beta-C_\beta` bonds. The value of :math:`\varepsilon_h` quantifies the strength of the non-bonded interactions and sets the energy scale. This parameter can be estimated based on the results of all-atom MD simulations.
+
+The non-native (non-bonded) interactions are treated as repulsive:
 
 .. math::
-   U_{NB}^{REP} = \sum_{repulsive}^{N-2}\varepsilon_l \left(\frac{\sigma_l}{r_{ij}} \right)^6 + \sum_{repulsive}\varepsilon_l \left( \frac{\sigma_l}{r_{ij}} \right)^6(1-\Delta_{ij})
+   U_{NB}^{REP} = \sum_{repulsive}\varepsilon_l \left(\frac{\sigma_l}{r_{ij}} \right)^6
    :label: urep
 
-In Eq. :eq:`urep`, a constraint is imposed on the bond angle between the particles :math:`i`, :math:`i+1`, and :math:`i+2` by including the repulsive potential with parameters :math:`\varepsilon_l=1` kcal/mol and :math:`\sigma_l=3.8` A. These define the strength and the range of the repulsion. In the SOP model, parameter :math:`\varepsilon_h` sets the energy scale. This parameter can be estimated based on the results of all-atom MD simulations.
+In Eq.(\ref{eq:urep}), the values for the parameters are :math:`\varepsilon_l=1` kcal/mol and :math:`\sigma_l=3.8` Å. These define the strength and the range of the repulsion. 
 
 The dynamics of the system is obtained by solving numerically the Langevin equations of motion for each particle position :math:`r_i` in the over-damped limit:
 
@@ -336,10 +339,237 @@ For the overdamped Langevin dynamics the characteristic time is :math:`\tau_H=\z
 
 In the pulling/indentation simulation, cantilever velocity is defined as :math:`\nu_f=\Delta x/(n_{av} \cdot h \cdot \tau_H)` where :math:`\Delta x` is  displacement of virtual bead, representing cantilever base, during :math:`n_{av}` steps, it is given in Å. The force is calculated in kcal/(molÅ), to get the force in pN, one need to multiplied by :math:`70`. Therefore, the cantilever spring constant :math:`\kappa` should be also specified in the units of kcal/(mol :math:`Å^{2}`).
 
+
 .. _theor-top:
 
 Topology
 ========
+
+The SOP-GPU package includes two utilities for coarse-graining the system. The old one, ``sop-top`` can only create :math:`C_\alpha`-based model, but there is a functionality to make tandems out of the monomer. The new utility ``sop-top2`` uses a flexible coarse-graining configuration config, which allows one to create various coarse-grained models (e.g. :math:`C_\alpha` or :math:`C_\alpha-C_\beta`).
+
+Old sop-top utility
+-------------------
+
+Creating of coarse-grained structure with corresponding topology file can be performed running ``sop-top`` utility as follow::
+
+  sop-top top_config_file.top
+
+As with the main program, configuration file should be passed as the first parameter to ``sop-top``. Executing the command above will generate new, coarse-grained PDB file and the topology file in Gromacs TOP format. The PDB file is used only to store coordinates of the particles and all the connectivities are described in TOP file. This configuration file can use the same features as configuration file for SOP-GPU, as described in Section :ref:`par-input`. Topology is created from the original (full-atomic) PDB file using its ``ATOM`` and ``SSBOND`` entries. All :math:`C_\alpha` atoms are added into ``[ atoms ]`` section of topology file generated. Backbone connectivity and disulfide bonds along with their equilibrium (PDB) distances are collected into ``[ bonds]`` section. Native contacts are determined based on two cut-off distances. The first one relates to a maximum :math"`C_\alpha-C_\alpha` distance for two amino-acids in native contact (*simple Go definition*), the second one is the cut-off for the minimal distance of two heavy atoms in corresponding amino-acids side-chains (*full Go definition*). Along with the indexes of amino-acids :math:`i` and :math:`j`, PDB distance :math:`r^0_{ij}` and value of :math:`\varepsilon_h` are saved for each pair qualify. :math:`\varepsilon_h` can be specified as constant value for all native pairs or can be taken from occupancy of beta columns of original PDB. In later case, geometric average of two values listed for amino-acids :math:`i` and :math:`j` are taken. 
+
+New sop-top (sop-top2) utility
+------------------------------
+
+In some cases, the :math:`C_\alpha`-representation is not just sufficient. The ``sop-top2`` utility allows for the custom coarse-graining of the initial full-atomic system. The coarse-graining in this case relies on the coarse-graining configuration file, in which one can find a description on how to coarse-grain a particular amino-acid. For the convinience, two configs are supplied with the SOP-GPU package: one to get the :math:`C_\alpha` representation and the other --- to get the :math:`C_\alpha-C_\beta` representation of the protein system. The ``sop-top2`` program takes the path to the configuration file as an argument. In this file, one should specify the following parameters as an input: the path to the initial (all-atom) PDB file and the path to the coarse-grained configuration file. 
+
+The coarse-graining configuration: :math:`C_\alpha-C_\beta` model
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The coarse-graining configuration file starts with the list of masses for all the atoms present in the system::
+
+  MASS     1 H      1.00800  ! Hydrogen
+  MASS     2 C     12.01100  ! Carbon
+  MASS     3 N     14.00700  ! Nitrogen
+  MASS     4 O     15.99900  ! Oxygen
+  MASS     5 S     32.06000  ! Sulphur
+
+The description of the coarse-graining for each amino-acid follows. For instance, in the :math:`C_\alpha-C_\beta` approach, the alanine entry will be::
+
+  RESI ALA
+  BEAD CA CA
+  REPR N HN CA HA C O
+  COOR CA
+  CHAR 0.0
+  CONN +CA CB
+  ENDBEAD
+  BEAD CB SC
+  REPR CB HB1 HB2 HB3
+  COOR CB
+  CHAR 0.0
+  ENDBEAD
+  ENDRESI
+
+Here, ``RESI`` and ``ENDRESI`` keywords encapsulate the description of the residue, which contain two beads entries: one for the :math:`C_\alpha`-bead and one for the side-chain (:math:`C_\beta`) bead. Each bead starts with the keyword `BEAD` followed by the name and type of the bead. For each bead, the following information should be provided: (1) Which atoms this bead represents (their names as they are in the initial PDB file are listed after ``REPR`` keyword). (2) Where the created bead should be placed (the name (or names) for the positioning atoms should be provided after ``COOR`` keyword). (3) The charge (``CHAR``) is the charge assigned to the bead (not used in SOP model). The entry ``CONN`` lists the covalent bonds that should be added for a particular bead. After this keyword listed are the names of the beads with which the current bead is connected to. The syntax resembles the CHARMM forcefield topology file: the ``+`` sign means that the connection is with the next residue in the polypeptide chain, ``-`` --- with the preceeding. Each covalent bond should be added once (i.e. if :math:`C_\alpha-C_\beta` bond is added for the :math:`C_\alpha`-atom, there is no necessity to add this bond for the :math:`C_\beta`-atom, as the alanine entry above illustrates). In the entry above, the :math:`C_\alpha`-bead (``CA``) is connected to the :math:`C_\alpha`-bead of the next residue (``+CA``) and to the :math:`C_\beta`-bead of the same residue (``CB``). There is no ``CONN`` entry for the :math:`C_\beta`-bead, since the :math:`C_\alpha-C_\beta` is already listed in the the :math:`C_\alpha` bead section.
+
+In other words, the entry for the alanine above, reads: In the residue ``ALA``, first bead is the ``CA`` (:math:`C_\alpha`) bead of the type ``CA`` (``BEAD CA CA``). It represents the atoms of the backbone (``REPR N HN CA HA C O``) and should be placed on the position of the :math:`C_\alpha`-atom of the alanine residue (``COOR CA``). Its charge is zero (``CHAR 0.0``). It is covalently connected to the :math:`C_\alpha`-bead of the next residue and the side-chain (:math:`C_\beta`) bead of the same residue. The second bead of the alanine residue is the ``CB`` (:math:`C_\beta`) bead of type ``SC`` (``BEAD CB SC``). It represents the side-chain atoms (``REPR CB HB1 HB2 HB3``) and should be placed on the position of the :math:`C_\beta`-atom from the initial all-atom PDB (``COOR CB``). Its charge is also zero (``CHAR 0.0``). The description of the bead and residue ends here.
+
+The corse-graining configuration file should provide similar description for all the residues in the initial PDB file (in general the description of the coarse-graining for all 20 essential amino-acids should be suffitient). If you system has some non-standart residues, sugars, nucleic acids, etc., you will need to add the coarse-graining description to the coarse-graining config file you use. To do so, you need to decide, how many beads for the residue you want to add, where you want to place them, which atoms they represent, what is the total charge of these atoms. The connection entry for each bead should include the covalent connectivity within the residue and(or) the connectivity to the next (preceding) residues, marked with ``+`` (``-``) sign.
+
+The provided with SOP-GPU :math:`C_\alpha-C_\beta` coarse-graining configuration file is called ``aa_to_cg.inp`` and includes the following description for the side chains of 20 essential amino-acids: (i) there is no side-chain for GLY; (ii) for the aliphatic amino acids (ALA, VAL, LEU, and ILE), the :math:`C_\beta`-bead is placed at the position of the center of mass of the side-chain; (iii) for residues THR and SER, the :math:`C_\beta`-atom is placed at the position of the hydroxyl oxygen; (iv) the side-chain of the acidic amino acids (ASP and GLU) is placed at the center of mass of the :math:`COO`-group; (v) the side-chain of the basic amino acids (LYS and ARG) is placed at the center of mass of the :math:`NH_3+`-group; (vi) for ASN and GLN, the :math:`C_\beta`-atom is placed at the position of the center of mass of the group :math:`CO-NH_2`; (vii) aromatic side-chains in PHE and TYR are represented by a single :math:`C$_\beta`-bead placed at the geometrical center of the rings (for TYR, the bead representing the :math:`OH`-group is also added); (viii) TRP side-chain having a double-ring structure is represented by two beads placed in the geometrical centers of the rings; (ix) HIS is represented by a single bead placed at the geometrical center of the five-member ring forming the side-chain; (x) sulfur-containing amino acids (MET, CYS) are represented by a side-chain bead, placed at the position of the sulfur atom; and (xi) the :math:`C_\gamma`-atom in PRO is represented by the :math:`C_\beta`-bead linked to its :math:`C_\alpha` bead and to the :math:`C_\alpha` bead of the residue before, thus forming a cyclic bond structure.
+
+The coarse-graining configuration: :math:`C_\alpha` model
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The coarse-graining configuration file :math:`C_\alpha`-based model is also provided with the package. It is called ``aa_to_cg_ca.inp``. The entry for Alanine residue in this file is::
+
+  RESI ALA
+  BEAD CA CA
+  REPR CA
+  COOR CA
+  CHAR 0.0
+  CONN +CA
+  ENDBEAD
+  ENDRESI
+
+Here, only one :math:`C_\alpha` bead of type ``CA`` is added (``BEAD CA CA``) on the position of the :math:`C_\alpha` atom (``COOR CA``). It has zero charge (``CHAR 0.0``) and connected to the :math:`C_\alpha` bead of the next residue in the polypeptide chain (``CONN +CA``).
+
+Additional covalent bonds
+-------------------------
+
+In many proteins, the covalent bonding is not limited by the polypeptide backbone. The most common example is the disilfide bonding. In the ``sop-top2`` utility, these bonds can be added by providing additional file, that contain the list of additional bonds to be added. The path to this file can be specified by the parameter **additional_bonds**. If this parameter is absent, no additional bonds will be added. In this file, each line correspond to one bond and starts with the ``CONN`` keyword followed by the chain-residue-name triplet for two beads to be connected::
+
+  CONN A 49 SG B 76 SG
+
+The line above tell the programm to add the disulfide bond between the residue 49 from the chain A and residue 76 of the chain B. The names ``SG`` for both of these residues are the names for the side-chain atoms of the cystene residues in the :math:`C_\alpha-C_\beta` coarse-graining approach. Since there are no SG beads in the :math:`C_\alpha` model, the same disulfide bond would be::
+
+  CONN A 49 CA B 76 CA
+
+Topology file
+-------------
+
+There are three types of interactions in SOP model: covalent interactions, native interactions and repulsive pairs. All these should be listed in Gromacs-style topology file (*.top*). SOP topology file has four sections: ``[ atoms ]``, that lists all the particles (:math:`C_\alpha` and :math:`C_\beta` atoms) in the system (including information about residue ID, residue and chain name, etc.), and three sections that correspond to three types of interactions: ``[ bonds ]`` for covalent bonds, ``[ native ]`` for native interactions and ``[ pairs ]`` for repulsive pairs. The ``[ atoms ]`` section follows the Gromacs-style atom description::
+
+  [atoms]
+  ;   nr       type  resnr residue  atom   cgnr     charge       mass
+       0         CA      1    LEU     CA      A       0.00     56.044
+       1         CG      1    LEU     CG      A       0.00     57.116
+       2         CA      2    ILE     CA      A       0.00     56.044
+       3         CD      2    ILE     CD      A       0.00     57.116
+  ...
+
+Here, the columns correspond to particle ID, particle type, number of residue, particle atom name, charge and mass.
+
+The last three sections consist of the list of interacting particles IDs, function type and set of specific parameters. Particle IDs correspond to internal program indexes and start from 0, function type column is set to 1 for all pairs and ignored, parameters are specific for each interaction type as described below. More details on file format can be found in Gromacs Manual.
+
+``[ bonds ]`` section
+^^^^^^^^^^^^^^^^^^^^^
+
+Typical ``[ bonds ]`` section includes lines similar to the following::
+
+  [ bonds ]
+  ;  ai    aj funct            c0            c1            c2            c3
+      0     1     1    3.81188
+      1     2     1    3.77232
+      2     3     1    3.79319
+  ...
+
+Covalent bonds include backbone interactions and disulfide S-S bonds. Potential energy function term that corresponds to covalent bonds interaction is described by :math:`U_{FENE}` (Eq. :eq:`ufene`) in Eq. :eq:`usop`, where summation is made over all lines in ``[ bonds ]`` section of the topology file, :math:`i` and :math:`j` correspond to the particles IDs listed in the line, distance :math:`r_{ij}` is computed from particles coordinates, :math:`r^0_{ij}` is the distance between two corresponding :math:`C_{\alpha}` atoms in native state (PDB file), listed as the first parameter in the line (column ``c0``, see sample listing above).
+
+``[ native ]`` section
+^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+  [ native ]
+  ;  ai    aj funct            c0            c1            c2            c3
+      5     9     1    5.85792    1.50000
+      5    10     1    7.06482    1.50000
+      5    35     1    6.64479    1.50000
+  ...
+
+In SOP model, native interactions (:math:`U^{ATT}_{NB}`, see Eq. :eq:`usop`) are described by full Lennard-Jones potential (Eq. :eq:`uatt`). Each term in the sum corresponds to one line in ``[ native ]`` section. Apart from IDs of interacting particles, equilibrium distance :math:`r^0_{ij}` (column ``c0``) and the strength of non-bonded energy interaction, :math:`\varepsilon_h` (column ``c1``), are listed. :math:`r^0_{ij}` is the distance between :math:`C_\alpha` atoms in native state (PDB file), value of :math:`\varepsilon_h` is usually between :math:`1.0` and :math:`1.5` kcal/mol and can be obtained from att-atom MD simulations.
+
+``[ pairs ]`` section
+^^^^^^^^^^^^^^^^^^^^^
+
+:: 
+
+  [ pairs ]
+  ;  ai    aj funct            c0            c1            c2            c3
+      0     2     1
+      0     3     1
+      0     4     1
+  ...
+
+Pairs section correspond the third term in Eq. :eq:`usop` (Eq. :eq:`urep`). There is no pair-specific parameters in this section, only indexes are listed. Note, that this list scales as :math:`\sim N^2` with the system size :math:`N`, and saving all possible repulsive pairs in the topology file would lead to very large files. In SOP-GPU program, this section is used only for small systems and when trajectory massive-production is employed. When large system is simulated, dual-range cut-off algorithm is utilized and only pairs withing bigger cut-off are kept (pairlist). Pairlist is updated using exclusion principle: only those pairs that are withing cut-off distance but not in the list of excluded pairs added. Verlet list is built from this pairlist based on smaller cut-off distance and used when potential function and forces are computed. Excluded pairs are those already listed in ``[ bonds ]`` and ``[ native ]`` sections.
+
+
+Parameter for the topology creation
+-----------------------------------
+
+Both ``sop-top`` and ``sop-top2`` use the parameters file, path to which is passed as a first argument. The parameters one can use are:
+
+- **structure** *<filename>*
+
+ Type: Path to the file.
+
+ Status: Required.
+
+ Purpose: Path to the initial (all-atomic) PDB file.
+
+
+- **additional_bonds** *<filename>*
+
+ Type: Path to the file.
+
+ Status: Optional.
+
+ Purpose: Path to the file with the list of additional bonds (e.g. S-S bonds)
+
+
+- **topology** *<filename>*
+
+ Type: Path to the file.
+
+ Status: Required.
+
+ Purpose: Path to the output topology (*.top*) file.
+
+
+- **coordinates** *<filename>*
+
+ Type: Path to the file.
+
+ Status: Required.
+ 
+ Purpose: Path to the output coarse-grained *.pdb* file.
+
+
+- **topology_psf** *<filename>*
+
+ Type: Path to the file.
+
+ Status: Optional. Uses with ``sop-top2`` only.
+
+ Purpose: The path to save the topology in *.psf* (NAMD) format (for VMD visualisation).
+
+
+- **topology_natpsf** *<filename>*
+
+ Type: Path to the file.
+
+ Status: Optional. Uses with ``sop-top2`` only.
+
+ Purpose: The path to save the topology in *.psf* (NAMD) format (for VMD visualisation). Native contacts will be saved instead of covalent bonds in the corresponding section. Convinient for the native contacts inspection.
+
+
+- **R_limit_bond** *<cut-off distance>*
+
+ Type: Float.
+
+ Status: Required.
+ 
+ Purpose: The cut-off value for the distance between beads. If two beads are within this distance in the provided structure, they considered to form native contact.
+
+
+- **SC_limit_bond** *<cut-off distance>*
+
+ Type: Float.
+
+ Status: Optional.
+
+ Default value: 
+
+ Purpose: The cut-off value for the distance between side-chain beads. If two atoms listed in the ``REPR`` section of the amino acid are within this distance in the provided structure, the beads considered to form native contact.
+
+
+- **eh** *<native energy scale>*
+
+ Type: Float or ``O``/``B``.
+
+ Status: Required.
+
+ Purpose: The value for the :math:`\varepsilon_h` parameter. If the float value is given, the value is the same for all contacts. If the ``O`` or ``B`` is specified, the value is taken as a geometric average of the beta or occupancy column value.
+
 
 .. _par-input:
 
