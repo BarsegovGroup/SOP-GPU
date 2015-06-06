@@ -37,8 +37,8 @@ DcdOutputManager::DcdOutputManager(){
 	dcd_filenames.resize(gsop.Ntr);
 	restart_filenames.resize(gsop.Ntr);
 	for(traj = 0; traj < gsop.Ntr; traj++){
-        dcd_filenames[traj] = parameters::DCDfile.replace("<run>", traj);
-        restart_filenames[traj] = parameters::restartname.replace("<run>", traj);
+        dcd_filenames[traj] = parameters::DCDfile.replace("<run>", traj + gsop.firstrun);
+        restart_filenames[traj] = parameters::restartname.replace("<run>", traj + gsop.firstrun);
 		int particleCount = sop.aminoCount;
 
 		if(sop.additionalAminosCount > 0){
