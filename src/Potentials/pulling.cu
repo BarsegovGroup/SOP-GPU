@@ -99,6 +99,9 @@ PullingPotential::PullingPotential(){
 		}
 		for(j = 0; j < this->pulled.size(); j++){
 			i = this->pulled[j];
+			if (i > sop.aminoCount || i < 0) {
+				DIE("Invalid pulling bead #%d; should be >=0 and <%d", i, sop.aminoCount);
+			}
 			if(traj == 0){
 				printf("Pulling bead #%d (%s %d chain %c).\n", i, sop.aminos[i].resName, sop.aminos[i].resid, sop.aminos[i].chain);
 			}
@@ -107,6 +110,9 @@ PullingPotential::PullingPotential(){
 		}
 		for(j = 0; j < this->fixed.size(); j++){
 			i = this->fixed[j];
+			if (i > sop.aminoCount || i < 0) {
+				DIE("Invalid fixed bead #%d; should be >=0 and <%d", i, sop.aminoCount);
+			}
 			if(traj == 0){
 				printf("Fixing bead #%d (%s %d chain %c).\n", i, sop.aminos[i].resName, sop.aminos[i].resid, sop.aminos[i].chain);
 			}
