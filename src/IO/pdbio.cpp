@@ -34,7 +34,13 @@
  */
 
 void PDB::read(const char* filename){
-	printf("Reading %s.\n", filename);
+	printf("Reading '%s'.\n", filename);
+	this->is_xyz = (!strcmp(filename + strlen(filename)-4, ".xyz"));
+	if (this->is_xyz) {
+		this->readXYZ(filename);
+		this->ssCount = 0;
+		return;
+	}
 	int ss_count = 0, atoms_count = 0;
 	char buffer[BUF_SIZE];
 	FILE* file = safe_fopen(filename, "r");
@@ -65,7 +71,7 @@ void PDB::read(const char* filename){
 			current_ss++;
 		}
 		if(strcmp(pch, "ATOM") == 0){
-            this->atoms[current_atom].parse(buffer);
+			this->atoms[current_atom].parse(buffer);
 			current_atom ++;
 		}
 
@@ -180,7 +186,7 @@ void PDBSSBond::parse(const char* line){
 	char chain;
 	char resid[5];
 	chain = line[15];
-    resid[4] = '\0';
+	resid[4] = '\0';
 	strncpy(resid, &line[17], 4);
 	this->chain1 = chain;
 	this->resid1 = atoi(resid);
@@ -311,7 +317,7 @@ void PDB::write(const char* filename, bool printConnections) const {
  * 		atomData: PDBAtom object to print
  */
 void PDBAtom::print() const {
-    // TODO: use PDBAtom::fprint
+	// TODO: use PDBAtom::fprint
 	printf("ATOM  %5d %-4s%c%3s %c%4d    %8.3f%8.3f%8.3f%6.2f%6.2f\n",
 			id,
 			name,
@@ -349,16 +355,31 @@ void PDBAtom::fprint(FILE* file) const {
 
 void readCoord(const char* filename, SOP& sop){
 	//printf("Reading coordinates from '%s'.\n", filename);
+	int is_xyz = 0;
 	char buffer[BUF_SIZE+1];
 	FILE* file = safe_fopen(filename, "r");
 	if(file == NULL){
 		printf("ERROR: Coordinates file %s can not be found.\n", filename);
 		exit(-1);
 	}
+	if (!strcmp(filename + strlen(filename)-4, ".xyz")) {
+		is_xyz = 1;
+		safe_fgets(buffer, BUF_SIZE, file);
+		safe_fgets(buffer, BUF_SIZE, file);
+	}
 	int index = 0;
 	while(fgets(buffer, BUF_SIZE, file) != NULL){
-		//char* pch = strtok(buffer, " ");
-		if(strncmp(buffer, "ATOM", 4) == 0){
+		if(is_xyz){
+			char *pch = strtok(buffer, " \t\r\n");
+			pch = strtok(NULL, " \t\r\n");
+			sop.aminos[index].x = atof(pch);
+			pch = strtok(NULL, " \t\r\n");
+			sop.aminos[index].y = atof(pch);
+			pch = strtok(NULL, " \t\r\n");
+			sop.aminos[index].z = atof(pch);
+			index++;
+		}
+		if(!is_xyz && strncmp(buffer, "ATOM", 4) == 0){
 			char x[9], y[9], z[9];
 			strncpy(x, &buffer[30], 9);
 			strncpy(y, &buffer[38], 9);
@@ -372,12 +393,45 @@ void readCoord(const char* filename, SOP& sop){
 			index++;
 		}
 	}
+	fclose(file);
 	if(index == 0){
 		printf("ERROR: Can't read pdb file.\n");
-		fclose(file);
 		exit(-1);
 	}
-	fclose(file);
+	if(index != sop.aminoCount){
+		printf("ERROR: Read coordinates for %d beads, yet topology has %d beads.\n", index, sop.aminoCount);
+		exit(-1);
+	}
 	//printf("Done reading coordinates.\n");
+}
+
+void PDB::readXYZ(const char* filename){
+	printf("Reading %s.\n", filename);
+	char buffer[BUF_SIZE];
+	FILE* file = safe_fopen(filename, "r");
+	safe_fgets(buffer, BUF_SIZE, file);
+	atomCount = atoi(buffer);
+	safe_fgets(buffer, BUF_SIZE, file);
+	atoms = (PDBAtom*)calloc(this->atomCount, sizeof(PDBAtom));
+	int i;
+	char* pch;
+	for(i = 0; i < atomCount; i++){
+		safe_fgets(buffer, BUF_SIZE, file);
+		pch = strtok(buffer, " \t\r\n");
+		strncpy(atoms[i].name,pch,4);
+		pch = strtok(NULL, " \t\r\n");
+		atoms[i].x = atof(pch);
+		pch = strtok(NULL, " \t\r\n");
+		atoms[i].y = atof(pch);
+		pch = strtok(NULL, " \t\r\n");
+		atoms[i].z = atof(pch);
+		atoms[i].id = atoms[i].resid = i+1;
+		atoms[i].chain = 'X';
+		strcpy(atoms[i].resName, "XXX");
+		atoms[i].altLoc = 0;
+		atoms[i].occupancy = atoms[i].beta = 0.0;
+	}
+	printf("Done reading '%s'.\n", filename);
+	fclose(file);
 }
 

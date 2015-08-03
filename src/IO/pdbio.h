@@ -50,9 +50,11 @@ struct PDB {
 	PDBConnect connections;
 
     void read(const char *filename);
+    void readXYZ(const char *filename);
     void write(const char *filename, bool printConnections = false) const;
     void fromSOP(const SOP& sop);
     void toSOP(SOP& sop) const;
+    bool is_xyz;
 };
 
 void savePDB(const char* filename, const SOP& sop);
