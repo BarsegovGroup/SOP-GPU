@@ -146,10 +146,10 @@ void OutputManager::computeTemperatures(){
 	int i, traj;
 	double tempav = 0.0;
 	for(traj = 0; traj < gsop.Ntr; traj++){
-		for(i = 0; i < sop.aminoCount; i++){
-			tempav += gsop.h_T[traj*sop.aminoCount + i];
+		for(i = 0; i < sop.aminos.size(); i++){
+			tempav += gsop.h_T[traj*sop.aminos.size() + i];
 		}
-		tempav /= ((double)(sop.aminoCount*gsop.nav));
+		tempav /= ((double)(sop.aminos.size()*gsop.nav));
 		this->temperatures[traj] = tempav;
 	}
 }
@@ -165,14 +165,14 @@ void OutputManager::computeNativeCounts(){
 	int i, j, k, traj;
 	for(traj = 0; traj < gsop.Ntr; traj++){
 		int natCount = 0;
-		for(k = 0; k < sop.nativeCount; k++){
+		for(k = 0; k < sop.natives.size(); k++){
 			i = sop.natives[k].i;
 			j = sop.natives[k].j;
 			float dr;
 			float3 r;
-			r.x = gsop.h_coord[traj*sop.aminoCount + i].x - gsop.h_coord[traj*sop.aminoCount + j].x;
-			r.y = gsop.h_coord[traj*sop.aminoCount + i].y - gsop.h_coord[traj*sop.aminoCount + j].y;
-			r.z = gsop.h_coord[traj*sop.aminoCount + i].z - gsop.h_coord[traj*sop.aminoCount + j].z;
+			r.x = gsop.h_coord[traj*sop.aminos.size() + i].x - gsop.h_coord[traj*sop.aminos.size() + j].x;
+			r.y = gsop.h_coord[traj*sop.aminos.size() + i].y - gsop.h_coord[traj*sop.aminos.size() + j].y;
+			r.z = gsop.h_coord[traj*sop.aminos.size() + i].z - gsop.h_coord[traj*sop.aminos.size() + j].z;
 			dr = sqrtf(r.x*r.x+r.y*r.y+r.z*r.z);
 			if(dr < this->R_limit_bond || fabs(sop.natives[k].r0 - dr) <= this->R_limit){
 				natCount ++;
@@ -196,10 +196,10 @@ void OutputManager::computeRgs(){
 	double rg = 0.0f;
 	int i, traj;
 	for(traj = 0; traj < gsop.Ntr; traj++){
-		for(i = traj*sop.aminoCount; i < (traj+1)*sop.aminoCount; i++){
+		for(i = traj*sop.aminos.size(); i < (traj+1)*sop.aminos.size(); i++){
 			rg += h_rgs[i];
 		}
-		rg = sqrt(rg/(double)(sop.aminoCount*sop.aminoCount));
+		rg = sqrt(rg/(double)(sop.aminos.size()*sop.aminos.size()));
 		this->rgs[traj] = rg;
 	}
 }

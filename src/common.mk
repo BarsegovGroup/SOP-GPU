@@ -3,7 +3,7 @@ dir_guard=@mkdir -p $(@D)
 $(OBJDIR)/%.cpp.o: %.cpp
 	$(dir_guard)
 	$(CXX) $(CFLAGS) $(CXXFLAGS) -MMD -o $@ -c $<
- 
+
 $(OBJDIR)/%.cu.o: %.cu
 	$(dir_guard)
 	$(NVCC) $(CFLAGS) $(CXXFLAGS) $(INCLUDES) -o $@ -c $<
@@ -11,5 +11,5 @@ $(OBJDIR)/%.cu.o: %.cu
 
 objects = $(patsubst %.cu, $(OBJDIR)/%.cu.o, \
 		  $(patsubst %.cpp, $(OBJDIR)/%.cpp.o, \
-  		  $(1))) 
+  		  $(1)))
 

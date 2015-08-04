@@ -8,6 +8,7 @@
 //
 
 #include <map>
+#include <vector>
 #include <string>
 #include <sstream>
 #include <stdexcept>
@@ -24,14 +25,27 @@ V get_map_wd(const std::map <K,V> &m, const K &key, const V &defval ) {
 }
 
 // Convert anything to string
-template <typename T> 
+template <typename T>
 inline std::string any2str(const T& in) {
     std::stringstream s;
     s << in;
     return s.str();
 }
 
-template <typename T> 
+template <>
+inline std::string any2str(const std::vector<int>& in) {
+    if(in.empty()){
+        return std::string("empty");
+    }
+    std::stringstream s;
+    for(typename std::vector<int>::const_iterator it = in.begin(), ite = in.end(); it != ite; ++it){
+        s << *it << " ";
+    }
+    return s.str();
+}
+
+
+template <typename T>
 inline T str2any(const char* in) {
     std::stringstream s(in);
     T out = T();
@@ -50,7 +64,7 @@ inline T str2any(const std::string& in) {
     return out;
 }
 
-template <> 
+template <>
 inline std::string str2any<std::string>(const char *in) {
     std::string ret(in);
     ret.erase( 0                                , ret.find_first_not_of( " \t" ) );
@@ -67,7 +81,12 @@ std::string string_replace(const std::string& str, const std::string& oldStr, co
 }
 
 // ToLower function
-std::string lower(const std::string& str);
+std::string to_lower(const std::string& str);
+// Trim leading and ending spaces
+std::string trim(const std::string &str);
+
+// Case-insensitive string comparison
+bool striequals(const std::string& a, const std::string& b);
 
 // Function to calculate gretest common divisor
 // Not like it belongs here or anything...

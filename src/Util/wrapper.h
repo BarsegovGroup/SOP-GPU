@@ -5,7 +5,7 @@
 # define _DEF_NULL = NULL
 #else
 # include <stdio.h>
-# define _DEF_NULL 
+# define _DEF_NULL
 #endif
 
 // Die and print some message (and may be stacktrace!)
@@ -24,7 +24,7 @@ void die(const char *msg _DEF_NULL, ...) __attribute__ ((__noreturn__));
 
 #ifdef __cplusplus
 // x != NULL or die
-template <typename T> 
+template <typename T>
 inline void check(T x, const char *msg = NULL) {
     if (!x) die(msg);
 };

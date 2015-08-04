@@ -21,10 +21,31 @@ std::string string_replace(const std::string& str, const std::string& oldStr, co
     return ret;
 }
 
-
-std::string lower(const std::string& str) {
+std::string to_lower(const std::string& str){
     std::string ret(str);
     std::transform(ret.begin(), ret.end(), ret.begin(), ::tolower);
     return ret;
+}
+
+std::string trim(const std::string& str){
+    std::string::const_iterator it = str.begin();
+    while (it != str.end() && isspace(*it)) it++;
+
+    std::string::const_reverse_iterator rit = str.rbegin();
+    while (rit.base() != it && isspace(*rit)) rit++;
+
+    return std::string(it, rit.base());
+}
+
+bool striequals(const std::string& a, const std::string& b)
+{
+    // Taken from http://stackoverflow.com/a/4119881/929437
+    size_t sz = a.size();
+    if (b.size() != sz)
+        return false;
+    for (size_t i = 0; i < sz; ++i)
+        if (std::tolower(a[i]) != std::tolower(b[i]))
+            return false;
+    return true;
 }
 

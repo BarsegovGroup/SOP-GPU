@@ -15,7 +15,7 @@ struct PullingPlaneConstant{
 
 PullingPlaneConstant hc_pullingPlane;
 __device__ __constant__ PullingPlaneConstant c_pullingPlane;
-// TODO: add function to potential to copy these parameters to constant memory 
+// TODO: add function to potential to copy these parameters to constant memory
 
 __global__ void pullingPlane_kernel(){
 	int d_i = blockIdx.x*blockDim.x + threadIdx.x;

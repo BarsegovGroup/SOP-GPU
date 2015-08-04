@@ -20,7 +20,7 @@ PARAMETER_MANDATORY(tempFreq, int, "steps", "...")
 PARAMETER_MANDATORY(initialT, float, "?", "...")
 PARAMETER_MANDATORY(deltaT, float, "?", "...")
 
-PARAMETER_LAZY(seed, int, time(NULL), "", "...") 
+PARAMETER_LAZY(seed, int, time(NULL), "", "...")
 
 class LangevinIntegrator : public SOPIntegrator {
 public:

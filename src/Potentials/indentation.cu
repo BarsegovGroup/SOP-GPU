@@ -56,7 +56,7 @@ void createIndentationPotential(){
 			updaters[updatersCount] = aminoUpdater;
 			updatersCount++;
 		} else {
-			sop.additionalAminosCount = 0;
+			sop.additionalAminos.resize(0);
 		}
 
 		potentials[potentialsCount] = pot;
@@ -254,25 +254,30 @@ IndentationAminoUpdater::IndentationAminoUpdater(){
 	// Generating additional amino-acids to represent cantilever and surface
 	hc_indentation.surfaceSize = parameters::indentationSurfaceSize.get();
 	hc_indentation.surfaceStep = parameters::indentationSurfaceStep.get();
-	sop.additionalAminosCount = 2 + hc_indentation.surfaceSize*hc_indentation.surfaceSize;
-	sop.additionalAminos = (PDBAtom*)calloc(sop.additionalAminosCount, sizeof(PDBAtom));
+	sop.additionalAminos.resize( 2 + hc_indentation.surfaceSize*hc_indentation.surfaceSize );
 
 	// Cantilever base amino acid
-	sop.additionalAminos[0].id = sop.aminoCount;
+	sop.additionalAminos[0].id = sop.aminos.size();
 	strcpy(sop.additionalAminos[0].resName, "TIP");
+	strcpy(sop.additionalAminos[0].name, "CA");
 	sop.additionalAminos[0].chain = 'T';
 	sop.additionalAminos[0].x = chipCoord.x;
 	sop.additionalAminos[0].y = chipCoord.y;
 	sop.additionalAminos[0].z = chipCoord.z;
 	sop.additionalAminos[0].resid = 1;
+	sop.additionalAminos[0].beta = sop.additionalAminos[0].occupancy = 0.0f;
+	sop.additionalAminos[0].altLoc = ' ';
 	// Cantilever tip amino acid
-	sop.additionalAminos[1].id = sop.aminoCount + 1;
+	sop.additionalAminos[1].id = sop.aminos.size() + 1;
 	strcpy(sop.additionalAminos[1].resName, "TIP");
+	strcpy(sop.additionalAminos[1].name, "CA");
 	sop.additionalAminos[1].chain = 'T';
 	sop.additionalAminos[1].x = tipCoord.x;
 	sop.additionalAminos[1].y = tipCoord.y;
 	sop.additionalAminos[1].z = tipCoord.z;
 	sop.additionalAminos[1].resid = 2;
+	sop.additionalAminos[1].beta = sop.additionalAminos[1].occupancy = 0.0f;
+	sop.additionalAminos[1].altLoc = ' ';
 
 	// Shifting cantilever base amino for representation purpose
 	// Finding vector, perpendicular to indentation direction
@@ -342,13 +347,18 @@ IndentationAminoUpdater::IndentationAminoUpdater(){
 			r.x = r0.x + i1*displ*r1.x + i2*displ*r2.x;
 			r.y = r0.y + i1*displ*r1.y + i2*displ*r2.y;
 			r.z = r0.z + i1*displ*r1.z + i2*displ*r2.z;
-			sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].id =
-					sop.aminoCount + 2 + i*hc_indentation.surfaceSize+j;
-			strcpy(sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].resName, "MIC");
-			sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].chain = 'M';
-			sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].x = r.x;
-			sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].y = r.y;
-			sop.additionalAminos[2+i*hc_indentation.surfaceSize+j].z = r.z;
+			int amino_id = 2+i*hc_indentation.surfaceSize+j;
+			sop.additionalAminos[amino_id].id =
+					sop.aminos.size() + 2 + i*hc_indentation.surfaceSize+j;
+			strcpy(sop.additionalAminos[amino_id].resName, "MIC");
+			strcpy(sop.additionalAminos[amino_id].name, "CA");
+			sop.additionalAminos[amino_id].chain = 'M';
+			sop.additionalAminos[amino_id].resid = 1;
+			sop.additionalAminos[amino_id].x = r.x;
+			sop.additionalAminos[amino_id].y = r.y;
+			sop.additionalAminos[amino_id].z = r.z;
+			sop.additionalAminos[amino_id].beta = sop.additionalAminos[amino_id].occupancy = 0.0f;
+			sop.additionalAminos[amino_id].altLoc = ' ';
 			hc_indentation.surfacePointsR0[i*hc_indentation.surfaceSize + j] = r; // These will use in case discrete surface representation is selected
 		}
 	}

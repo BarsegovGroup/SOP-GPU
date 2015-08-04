@@ -9,6 +9,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include "IO/pdbio.h"
 #include "IO/topio.h"
 
@@ -38,9 +39,9 @@ int checkPossiblePairs(int i, int j);
 float getR0(int i, int j);
 float getEh(int i, int j);
 
-char pdb_filename[FILENAME_LENGTH];
-char top_filename[FILENAME_LENGTH];
-char coord_filename[FILENAME_LENGTH];
+std::string pdb_filename;
+std::string top_filename;
+std::string coord_filename;
 
 float a;
 float eh;
@@ -85,7 +86,7 @@ int checkCovalent(int i, int j){
 	}
 	// For SS-bonds
 	int k;
-	for(k = 0; k < pdbdata.ssCount; k++){
+	for(k = 0; k < pdbdata.ssbonds.size(); k++){
 		if((pdbdata.atoms[i1].resid == pdbdata.ssbonds[k].resid1) && (pdbdata.atoms[i1].chain == pdbdata.ssbonds[k].chain1) &&
 				(pdbdata.atoms[i2].resid == pdbdata.ssbonds[k].resid2) && (pdbdata.atoms[i2].chain == pdbdata.ssbonds[k].chain2)){
 			if(getDistanceAtoms(i1, i2) < SS_cutoff){

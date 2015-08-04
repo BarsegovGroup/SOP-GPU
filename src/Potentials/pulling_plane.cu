@@ -63,7 +63,7 @@ PullingPlanePotential::PullingPlanePotential(){
     this->d = - dot(this->planeCoord, this->pullVector);
     this->cant_d = this->d;
 
-	for(i = 0; i < sop.aminoCount; i++){
+	for(i = 0; i < sop.aminos.size(); i++){
 		this->h_extForces[i] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 	}
 	for(j = 0; j < this->pulled.size(); j++){
@@ -77,7 +77,7 @@ PullingPlanePotential::PullingPlanePotential(){
 		this->h_extForces[i] = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 
-	for(i = 0; i < sop.aminoCount; i++){
+	for(i = 0; i < sop.aminos.size(); i++){
 		sop.aminos[i].beta = this->h_extForces[i].w;
 	}
 	cudaMemcpy(this->d_extForces, this->h_extForces, gsop.aminoCount*sizeof(float4), cudaMemcpyHostToDevice);

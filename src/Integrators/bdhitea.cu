@@ -3,7 +3,7 @@
  *
  *  Created on: Mar 01, 2013
  *	  Author: alekseenko
- * 
+ *
  * The description of algorithm is available in Geyer & Winter, 2009 [doi:10.1063/1.3089668]
  * All the equations referenced here are from the very same paper
  */
@@ -33,7 +33,7 @@ TeaIntegrator::TeaIntegrator() : LangevinIntegrator() {
 		DIE("Using minimization with BDHI integrator is not supported and will never be.");
 	}
 
-	hc_tea.namino = sop.aminoCount;
+	hc_tea.namino = sop.aminos.size();
 	hc_tea.a = parameters::tea_a.get();
     this->exact = parameters::tea_exact.get();
     if (!this->exact){
@@ -132,7 +132,7 @@ TeaUpdater::TeaUpdater(TeaIntegrator *tea_integrator){
 
 void TeaUpdater::update(){
 	const int update_epsilon = (gsop.step % this->frequency) == 0;
-	const int N = sop.aminoCount;
+	const int N = sop.aminos.size();
 	if (update_epsilon){
 		// Calculate relative coupling
 		if (tea->unlisted)

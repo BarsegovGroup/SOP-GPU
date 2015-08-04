@@ -37,7 +37,7 @@ PairList::PairList(){
 	// Building a map
 	int totalPairs = 0;
 	int i, j, k;
-	for(k = 0; k < sop.pairCount; k++){
+	for(k = 0; k < sop.pairs.size(); k++){
 		i = sop.pairs[k].i;
 		j = sop.pairs[k].j;
 
@@ -57,12 +57,12 @@ PairList::PairList(){
 	//Duplicating data for mass-production (if gsop.Ntr > 1)
 	int traj;
 	for(traj = 1; traj < gsop.Ntr; traj++){
-		for(i = 0; i < sop.aminoCount; i++){
+		for(i = 0; i < sop.aminos.size(); i++){
 			for(k = 0; k < this->max_possiblePairs; k++){
-				this->h_possiblePairs[traj*sop.aminoCount + i + k*gsop.aminoCount] =
-						this->h_possiblePairs[i + k*gsop.aminoCount] + traj*sop.aminoCount;
+				this->h_possiblePairs[traj*sop.aminos.size() + i + k*gsop.aminoCount] =
+						this->h_possiblePairs[i + k*gsop.aminoCount] + traj*sop.aminos.size();
 			}
-			this->h_possiblePairsCount[traj*sop.aminoCount + i] =
+			this->h_possiblePairsCount[traj*sop.aminos.size() + i] =
 					this->h_possiblePairsCount[i];
 		}
 	}

@@ -66,7 +66,7 @@ void CovalentPotential::buildMap(){
 	int totalCovalent = 0;
 	int i, j, k;
 	printf("Constructing map of covalent bonds.\n");
-	for(k = 0; k < sop.bondCount; k++){
+	for(k = 0; k < sop.bonds.size(); k++){
 		i = sop.bonds[k].i;
 		j = sop.bonds[k].j;
 		this->h_bonds[this->h_covalentCount[i]*gsop.aminoCount + i].i2 = j;
@@ -84,14 +84,14 @@ void CovalentPotential::buildMap(){
 	// Multiplying data for many trajectories (Many-runs-per-GPU)
 	int traj;
 	for(traj = 1; traj < gsop.Ntr; traj++){
-		for(i = 0; i < sop.aminoCount; i++){
+		for(i = 0; i < sop.aminos.size(); i++){
 			for(k = 0; k < this->max_covalent; k++){
-				this->h_bonds[traj*sop.aminoCount + i + k*gsop.aminoCount].i2 =
-							this->h_bonds[i + k*gsop.aminoCount].i2 + traj*sop.aminoCount;
-				this->h_bonds[traj*sop.aminoCount + i + k*gsop.aminoCount].r0 =
+				this->h_bonds[traj*sop.aminos.size() + i + k*gsop.aminoCount].i2 =
+							this->h_bonds[i + k*gsop.aminoCount].i2 + traj*sop.aminos.size();
+				this->h_bonds[traj*sop.aminos.size() + i + k*gsop.aminoCount].r0 =
 							this->h_bonds[i + k*gsop.aminoCount].r0;
 			}
-			this->h_covalentCount[traj*sop.aminoCount + i] = this->h_covalentCount[i];
+			this->h_covalentCount[traj*sop.aminos.size() + i] = this->h_covalentCount[i];
 		}
 	}
 

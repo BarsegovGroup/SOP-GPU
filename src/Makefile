@@ -7,7 +7,7 @@ CFLAGS				:= -O3 -g $(INCLUDES)
 LDFLAGS				:= $(LIBS) -lrt -lm -lcudart
 
 # compilers
-NVCC				:= $(CUDA_INSTALL_PATH)/bin/nvcc -arch $(CUDA_ARCH) --ptxas-options=-v -use_fast_math 
+NVCC				:= $(CUDA_INSTALL_PATH)/bin/nvcc -arch $(CUDA_ARCH) --ptxas-options=-v -use_fast_math
 CXX					:= g++
 LINKER				:= g++ -fPIC
 
@@ -33,7 +33,8 @@ SOPTOP_SOURCES 	:= \
 	IO/configreader.cpp \
 	IO/topio.cpp \
 	IO/pdbio.cpp \
-	Util/wrapper.cpp
+	Util/mystl.cpp \
+	Util/wrapper.cpp \
 
 SOPTOP2_SOURCES 	:= \
 	sop-top2.cpp \
@@ -42,6 +43,7 @@ SOPTOP2_SOURCES 	:= \
 	TopologyCreator/psfio.cpp \
 	TopologyCreator/topio.cpp \
 	IO/configreader.cpp \
+	Util/mystl.cpp \
 	Util/parameters.cpp \
 	Util/wrapper.cpp
 
