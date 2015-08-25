@@ -147,7 +147,9 @@ void TeaUpdater::update(){
 			for (int i = 0; i < N; ++i){
 				epsilon += this->tea->h_epsilon[t*N + i];
 			}
-			epsilon /= 3.*N*(3.*N - 3.); // Averaging, off-diagonal elements only
+			if (N>1){
+				epsilon /= 3.*N*(3.*N - 3.); // Averaging, off-diagonal elements only
+			}
 			if (epsilon > 1.0){
 				if (tea->capricious){
 					DIE("HI tensor is not diagonal enough for trajectory %d: epsilon = %lf -> 1.0!\n", t, epsilon);
