@@ -49,6 +49,7 @@ void PossiblepairList::update(){
 
 void PossiblepairList::updateParametersOnGPU(){
     hc_possiblepairList.pairsThreshold = this->pairsThreshold;
+	hc_possiblepairList.Ntr = gsop.Ntr;
 	cudaMemcpyToSymbol(c_possiblepairList, &hc_possiblepairList, sizeof(PossiblepairListConstant), 0, cudaMemcpyHostToDevice);
 	checkCUDAError();
 }

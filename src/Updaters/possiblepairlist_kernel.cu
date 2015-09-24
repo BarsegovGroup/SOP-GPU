@@ -9,6 +9,7 @@
 
 struct PossiblepairListConstant{
     float pairsThreshold;
+    int Ntr;
 };
 
 PossiblepairListConstant hc_possiblepairList;
@@ -26,8 +27,10 @@ __global__ void generate_possiblepairs(){
 #endif
 		// Number of pairs counter
 		counter = 0;
+		int aminosPerTraj = c_gsop.aminoCount/c_gsop.Ntr;
+		int traj = d_i/aminosPerTraj;
 		// Iterate over all possible pairs from t_possiblepairs map
-		for(int i = 0; i < c_gsop.aminoCount; i++){
+		for(int i = traj*aminosPerTraj; i < (traj+1)*aminosPerTraj; i++){
 			if(i != d_i){
 #ifdef NOTEXTURE
 				float4 r2 = c_gsop.d_coord[i];

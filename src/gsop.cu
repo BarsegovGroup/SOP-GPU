@@ -84,9 +84,9 @@ void initFF(){
 	createPullingPotential(); // External force
 	createPullingPlanePotential();
 
-	if(gsop.Ntr == 1){
+	//if(gsop.Ntr == 1){
 		createPossiblepairlistUpdater(); // Updates the list of all pairs (for Verlet list)
-	}
+	//}
 	createOutputManager(); // Save dat output
 	createPairlistUpdater(); // Verlet list
 	createDCDOutputManager(); // Save coordinates (dcd + pdb restart)
