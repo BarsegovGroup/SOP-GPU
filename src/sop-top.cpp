@@ -127,15 +127,16 @@ void createModel(){
 	}
 	printf("Found %d residues.\n", sop_aminoCount);
 
+	sop.aminos.resize(sop_aminoCount);
 	pdbRef = (int*)malloc(sop.aminos.size()*sizeof(int));
 	firstAtomInResid = (int*)malloc(sop.aminos.size()*sizeof(int));
 	lastAtomInResid = (int*)malloc(sop.aminos.size()*sizeof(int));
 	aminoRef = (int*)malloc(pdbdata.atoms.size()*sizeof(int));
-	sop.aminos.resize(sop_aminoCount);
 	/*nativeContacts = (char**)malloc(sop.aminos.size()*sop.aminos.size()*sizeof(char));
 	for(i = 0; i < sop.aminos.size(); i++){
 		nativeContacts[i] = (char*)malloc(sop.aminos.size()*sizeof(char));
 	}*/
+
 
 	int index = 0;
 	for(i = 0; i < pdbdata.atoms.size(); i++){
