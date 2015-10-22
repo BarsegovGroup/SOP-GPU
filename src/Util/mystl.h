@@ -38,7 +38,7 @@ inline std::string any2str(const std::vector<int>& in) {
         return std::string("empty");
     }
     std::stringstream s;
-    for(typename std::vector<int>::const_iterator it = in.begin(), ite = in.end(); it != ite; ++it){
+    for(std::vector<int>::const_iterator it = in.begin(), ite = in.end(); it != ite; ++it){
         s << *it << " ";
     }
     return s.str();
