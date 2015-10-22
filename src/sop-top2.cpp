@@ -29,6 +29,8 @@ PARAMETER(SC_limit_bond, float, 5.0f, "A", "Cutoff distance for side-chain atoms
 PARAMETER_MANDATORY(eh, std::string, "value/key", "Either value for eh or the 'O' ('B') key to take the value from occupancy(beta) column.")
 PARAMETER(Ks, float, 20.0f, "kcal/mol", "Covalent spring constant")
 
+PARAMETER(use_chains, bool, false, "true/false", "If YES, the structure will be split into chains according to the 'chain' column of the initial PDB file. By default done using segment. Chains are preferable for small systems.")
+
 CGConfig conf;
 PDB pdb;
 
@@ -191,9 +193,13 @@ int main(int argc, char* argv[]){
 	int i, b;
 	unsigned int j, k, l, m, n, o;
 
-	for(i = 0; i < pdb.atomCount; i++){
-		sprintf(pdb.atoms[i].segment, "%c", pdb.atoms[i].chain);
+	if(parameters::use_chains.get()){
+		printf("Using chain entries to separate polypeptide chains.\n");
+		for(i = 0; i < pdb.atomCount; i++){
+			sprintf(pdb.atoms[i].segment, "%c", pdb.atoms[i].chain);
+		}
 	}
+	printf("Using segment entries to separate polypeptide chains.\n");
 
 	for(i = 0; i < pdb.atomCount; i++){
 		bool found = false;
@@ -379,7 +385,7 @@ int main(int argc, char* argv[]){
 					bond13.i = i;
 					bond13.j = k;
 					bonds13.push_back(bond13);
-					printf("%d-%d-%d\n", i, j, k);
+					//printf("%d-%d-%d\n", i, j, k);
 				}
 			}
 		}
@@ -410,7 +416,7 @@ int main(int argc, char* argv[]){
 				eh = sqrt(beads.at(j).beta*beads.at(k).beta);
 			} else if(atof(ehstring.c_str()) != 0){
 				eh = atof(ehstring.c_str());
-				printf("%f\n", eh);
+				//printf("%f\n", eh);
 			} else {
 				exit(0);
 			}
