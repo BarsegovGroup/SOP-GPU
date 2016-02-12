@@ -15,7 +15,7 @@ SOP-GPU package
 
 The SOP-GPU package, where SOP stands for the Self Orginized Polymer Model fully implemented on a GPU, is a scientific software package designed to perform Langevin Dynamics Simulations of the mechanical or thermal unfolding, and mechanical pulling/indentation of large biomolecular systems in the experimental subsecond (millisecond-to-second) timescale. The SOP-GPU package utilizes the :math:`C_\alpha` and :math:`C_\alpha`-:math:`C_\beta` based coarse-grained description of proteins combined with computational power of modern Graphics Processing Units (GPUs).
 
-`Download SOP-GPU package <https://github.com/zhmurov/SOP-GPU/archive/master.zip>`_; `View code in repository <https://github.com/zhmurov/SOP-GPU>`_
+`Download SOP-GPU package <https://github.com/BarsegovGroup/SOP-GPU/archive/master.zip>`_; `View code in repository <https://github.com/BarsegovGroup/SOP-GPU>`_
 
 .. only:: html
 
@@ -26,7 +26,7 @@ The SOP-GPU package, where SOP stands for the Self Orginized Polymer Model fully
 
    general_sop.rst
 
-Examples of SOP-GPU configurational files can be found `here <https://github.com/zhmurov/SOP-GPU/tree/master/examples>`_.
+Examples of SOP-GPU configurational files can be found `here <https://github.com/BarsegovGroup/SOP-GPU/tree/master/examples>`_.
 
 
 
