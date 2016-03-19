@@ -632,13 +632,13 @@ void addConnection(SOPBead bead, Atom conn, unsigned int j){
 	} else
 	if(conn.name[0] == '-'){
 		l = j - 1;
-		while(l >= 0 && beads.at(l).resid != bead.resid - 1){
+		while(l > 0 && beads.at(l).resid != bead.resid - 1){
 			l --;
 		}
-		while(l >= 0 && strcmp(beads.at(l).name, &conn.name[1]) != 0){
+		while(l > 0 && strcmp(beads.at(l).name, &conn.name[1]) != 0){
 			l --;
 		}
-		if(l >= 0 && strcmp(beads.at(j).segment, beads.at(l).segment) == 0){
+		if(l > 0 && strcmp(beads.at(j).segment, beads.at(l).segment) == 0){
 			addBond(j, l, parameters::Ks.get(), getDistance(bead, beads.at(l)));
 			printf("Added: - %d-%d\n", j, l);
 		}

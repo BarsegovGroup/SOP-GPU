@@ -183,6 +183,7 @@ void parseAtomLine(PDB* pdbData, char* line, int currentAtom){
 	char x[9], y[9], z[9];
 	char occupancy[7];
 	char beta[7];
+	char segment[5];
 	strncpy(id, &line[6], 5);
 	id[5] = '\0';
 	strncpy(atomName, &line[12], 4);
@@ -203,6 +204,14 @@ void parseAtomLine(PDB* pdbData, char* line, int currentAtom){
 	occupancy[6] = '\0';
 	strncpy(beta, &line[60], 6);
 	beta[6] = '\0';
+	strncpy(segment, &line[72], 4);
+	segment[4] = '\0';
+	int i;
+	for(i = 0; i < 5; i++){
+		if(segment[i] == '\n' || segment [i] == '\r'){
+			segment[i] = ' ';
+		}
+	}
 	strcpy(pdbData->atoms[currentAtom].name, strtok(atomName, " "));
 	pdbData->atoms[currentAtom].altLoc = altLoc;
 	pdbData->atoms[currentAtom].name[4] = 0;
@@ -216,6 +225,7 @@ void parseAtomLine(PDB* pdbData, char* line, int currentAtom){
 	pdbData->atoms[currentAtom].z = atof(z);
 	pdbData->atoms[currentAtom].occupancy = atof(occupancy);
 	pdbData->atoms[currentAtom].beta = atof(beta);
+	strcpy(pdbData->atoms[currentAtom].segment, segment);
 	if(strncmp(line, "HETATM", 6) == 0){
 		pdbData->atoms[currentAtom].isHETATM = 1;
 	} else {

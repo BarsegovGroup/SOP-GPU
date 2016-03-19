@@ -46,15 +46,6 @@ __global__ void integrateLangevin_kernel(){
 			}
 		}
 
-		if(c_gsop.pullingPlaneOn == 1){
-			float4 extF = c_pullingPlane.d_extForces[d_i];
-			if(extF.w == 1.0f){
-				f.x = 0.0f;
-				f.y = 0.0f;
-				f.z = 0.0f;
-            }
-        }
-
 		// Integration step
 		float mult = c_langevin.hOverZeta;
 		float3 dr = make_float3(mult*f.x, mult*f.y, mult*f.z);
