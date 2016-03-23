@@ -40,7 +40,6 @@ void PDB::read(const char* filename){
 		this->readXYZ(filename);
 		return;
 	}
-	int ss_count = 0, atoms_count = 0;
 
 	char buffer[BUF_SIZE];
 	FILE* file = safe_fopen(filename, "r");
