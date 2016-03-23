@@ -1,15 +1,17 @@
-CUDA_INSTALL_PATH	:= /usr/local/cuda
+CUDA_INSTALL_PATH		:= /usr/local/cuda
 CUDA_ARCH 			:= sm_20
 
 INCLUDES			+= -I$(CUDA_INSTALL_PATH)/include
 LIBS				+= -L$(CUDA_INSTALL_PATH)/lib64
-CFLAGS				:= -O3 -g $(INCLUDES)
-LDFLAGS				:= $(LIBS) -lrt -lm -lcudart
+CXXFLAGS			:= -O3 -g $(INCLUDES)
+LDFLAGS				:= -fPIC -lrt -lm -lcudart $(LIBS)
+# If you are getting compilation error in string.h, try uncommenting the following line:
+#CPPFLAGS			+= -D_FORCE_INLINES
 
 # compilers
-NVCC				:= $(CUDA_INSTALL_PATH)/bin/nvcc -arch $(CUDA_ARCH) --ptxas-options=-v -use_fast_math
-CXX					:= g++
-LINKER				:= g++ -fPIC
+CXX				:= g++
+LINKER				:= $(CXX)
+NVCC				:= $(CUDA_INSTALL_PATH)/bin/nvcc -arch $(CUDA_ARCH) --ptxas-options=-v -use_fast_math -ccbin=$(CXX)
 
 OBJDIR				:= obj
 include common.mk
