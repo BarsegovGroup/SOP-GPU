@@ -31,10 +31,10 @@ Citations
  5. [Kononova, O., Snijder, J., Brasch, M., Cornelissen, J., Dima, R.I., Marx, K.A., Wuite, G.J.L., Roos, W.H., & Barsegov, V. Structural transitions and energy landscape for Cowpea Chlorotic Mottle Virus capsid mechanics from nanomanipulation in vitro and in silico. Biophys. J. 105, 1893–903 (2013)][Kononova2013a]
  6. [Kononova, O., Snijder, J., Kholodov, Y., Marx, K.A., Wuite, G.J.L., Roos, W.H., & Barsegov, V. Fluctuating nonlinear spring model of mechanical deformation of biological particles. PLOS Comput. Biol. 12, e1004729 (2016)][Kononova2016]
  7. [Kononova, O., Kholodov, Y, Theisen, K.E., Marx, K.A., Dima, R.I., Ataullakhanov, F.I., Grishchuk, E.L., & Barsegov, V. Tubulin bond energies and microtubule biomechanics determined from nanoindentation in silico. J. Am. Chem. Soc. 136(49), 17036–45 (2014)][Kononova2013b]
- 8. [Theisen, K.E., Zhmurov, A., Newberry, M.E., Barsegov, V., & Dima, R.I. Multiscale modeling of the nanomechanics of microtubule protofilaments. J. Phys. Chem. B 116(29), 8545-8555 (2012).][Theisen2012]
+ 8. [Theisen, K.E., Zhmurov, A., Newberry, M.E., Barsegov, V., & Dima, R.I. Multiscale modeling of the nanomechanics of microtubule protofilaments. J. Phys. Chem. B 116(29), 8545–8555 (2012).][Theisen2012]
  9. [Theisen, K.E., Desai, N.J., Volski, A.M., & Dima, R.I. Mechanics of severing for large microtubule complexes revealed by coarse-grained simulations. J. Chem. Phys. 139(12), 121926 (2013).][Theisen2013]
- 10. [Duan, L., Zhmurov, A., Barsegov, V., & Dima, R.I. Exploring the mechanical stability of the C2 domains in human synaptotagmin 1. J. Phys. Chem. B 115(33), 10133-10146 (2011).][Duan2011]
- 11. [Bodmer, N.K., Theisen, K.E., & Dima, R.I. Molecular investigations into the mechanics of a muscle anchoring complex. Biophys. J 108(9), 2322-2332 (2015).][Bodmer2015] 
+ 10. [Duan, L., Zhmurov, A., Barsegov, V., & Dima, R.I. Exploring the mechanical stability of the C2 domains in human synaptotagmin 1. J. Phys. Chem. B 115(33), 10133–10146 (2011).][Duan2011]
+ 11. [Bodmer, N.K., Theisen, K.E., & Dima, R.I. Molecular investigations into the mechanics of a muscle anchoring complex. Biophys. J 108(9), 2322–2332 (2015).][Bodmer2015] 
 
 [Zhmurov2010]: http://dx.doi.org/10.1002/prot.22824
 [Zhmurov2011]: http://dx.doi.org/10.1021/jp109079t
