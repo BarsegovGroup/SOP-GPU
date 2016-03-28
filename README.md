@@ -5,7 +5,7 @@ SOP-GPU software package is used for coarse-grained simulations of proteins and 
 
 It is fully-implemented on GPU using NVIDIA CUDA technology, with focus on high-performance, ease of use, and extensibility [[1][Zhmurov2010],[2][Zhmurov2011]]. SOP-GPU provides out-of-the-box caabilities for numerical simulations of nanoindentation experiments, as well as force-ramp and force-clamp protein pulling. One of the features is optinal support for inclusion of hydrodynamics interactions [[3]][Alekseenko2016].
 
-SOP-GPU have been successfully used to model such system as Fibrin(ogen) molecules [[4]][Zhmurov2011a], CCMV capsid [[5][Kononova2013a],[6][Kononova2016]], microtubule protofilament [[7][Kononova2013b],[8][Theisen2012],[9][Theisen2013]], human synaptotagmin 1 [[9][Duan2011]], and muscle anchoring complex [[10][Bodmer2015]].
+SOP-GPU have been successfully used to model such system as Fibrin(ogen) molecules [[4]][Zhmurov2011a], CCMV capsid [[5][Kononova2013a],[6][Kononova2016]], microtubule protofilament [[7][Kononova2013b],[8][Theisen2012],[9][Theisen2013]], human synaptotagmin 1 [[10][Duan2011]], and muscle anchoring complex [[11][Bodmer2015]].
 
 Documentation
 -------------
