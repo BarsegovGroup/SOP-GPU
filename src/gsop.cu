@@ -92,7 +92,7 @@ void initFF(){
 	createDCDOutputManager(); // Save coordinates (dcd + pdb restart)
 
 	// Create integrator
-	if (parameters::tea_on.get()){
+	if (parameters::hi_on.get()){
 		createTeaIntegrator();
 		integratorTea = 1;
 	}else{

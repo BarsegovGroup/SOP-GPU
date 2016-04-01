@@ -12,13 +12,13 @@
 
 // TODO: Rename this module, since it not inly implements TEA-HI, but also exact (Cholesky-based) HI
 
-PARAMETER(tea_on, bool, false, "true/false", "enable/disable TEA")
-PARAMETER(tea_exact, bool, false, "true/false", "use Cholesky-based HI treatment; it's not TEA anymore")
-PARAMETER(tea_a, float, 1.8f, "A", "set hydrodynamic radii of single bead")
-PARAMETER_MANDATORY(tea_epsilon_freq, int, "steps", "frequncy of updating ersatz coefficients")
-PARAMETER(tea_capricious, bool, true, "true/false", "whether to abort execution on weird values of HI tensor")
-PARAMETER(tea_unlisted, bool, true, "true/false", "whether to calculate all-to-all interactions, or just the ones in pairlist")
-PARAMETER(tea_epsmax, float, 999.f, "", "Abort simulation if epsilon reaches this value and tea_capricious=on; because epsilon will never exceed 1, by default will never trigger")
+PARAMETER(hi_on, bool, false, "true/false", "enable/disable TEA")
+PARAMETER(hi_exact, bool, false, "true/false", "use Cholesky-based HI treatment; it's not TEA anymore")
+PARAMETER(hi_a, float, 1.8f, "A", "set hydrodynamic radii of single bead")
+PARAMETER_MANDATORY(hi_epsilon_freq, int, "steps", "frequncy of updating ersatz coefficients")
+PARAMETER(hi_capricious, bool, true, "true/false", "whether to abort execution on weird values of HI tensor")
+PARAMETER(hi_unlisted, bool, true, "true/false", "whether to calculate all-to-all interactions, or just the ones in pairlist")
+PARAMETER(hi_epsmax, float, 999.f, "", "Abort simulation if epsilon reaches this value and hi_capricious=on; because epsilon will never exceed 1, by default will never trigger")
 
 // max. size of matrix for single system when using cholesky integrator
 #define CHOLSIZE ((3*128))

@@ -34,13 +34,13 @@ TeaIntegrator::TeaIntegrator() : LangevinIntegrator() {
 	}
 
 	hc_tea.namino = sop.aminos.size();
-	hc_tea.a = parameters::tea_a.get();
-    this->exact = parameters::tea_exact.get();
+	hc_tea.a = parameters::hi_a.get();
+    this->exact = parameters::hi_exact.get();
     if (!this->exact){
-    	this->capricious = parameters::tea_capricious.get();
-	    this->epsilon_freq = parameters::tea_epsilon_freq.get();
-    	this->epsmax = parameters::tea_epsmax.get();
-    	this->unlisted = parameters::tea_unlisted.get();
+    	this->capricious = parameters::hi_capricious.get();
+	    this->epsilon_freq = parameters::hi_epsilon_freq.get();
+    	this->epsmax = parameters::hi_epsmax.get();
+    	this->unlisted = parameters::hi_unlisted.get();
     }
 
 	cudaMalloc(&hc_tea.rforce, gsop.aminoCount * sizeof(float4));
@@ -157,7 +157,7 @@ void TeaUpdater::update(){
 				epsilon = 1.0;
 			}
 			if (epsilon > tea->epsmax){
-				DIE("HI tensor is not diagonal enough for trajectory %d: epsilon = %lf > %f = tea_epsmax!\n", t, epsilon, tea->epsmax);
+				DIE("HI tensor is not diagonal enough for trajectory %d: epsilon = %lf > %f = hi_epsmax!\n", t, epsilon, tea->epsmax);
 			}
 			double a = (3.*N-1.)*epsilon*epsilon - (3.*N-2.)*epsilon;
 			if (fabs(a) < 1e-7){ // To avoid 0/0 division in eq. (26) we explicitly handle small a's
