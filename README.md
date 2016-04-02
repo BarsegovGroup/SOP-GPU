@@ -1,9 +1,9 @@
 SOP-GPU
 =======
 
-SOP-GPU software package is used for coarse-grained simulations of proteins and other biological macromolecular assemblies.
+The SOP-GPU package, where SOP-GPU stands for the Self Orginized Polymer Model fully implemented on a Graphics Processing Unit (GPU), is a scientific software package designed to perform Langevin Dynamics simulations of the mechanical unfolding/deformation of large biomolecular systems on the experimental subsecond (millisecond-to-second) timescale. The SOP-GPU package utilizes the Cα-atom based coarse-grained description of proteins combined and Langevin Dynamics in overdamped limit.
 
-It is fully-implemented on GPU using NVIDIA CUDA technology, with focus on high-performance, ease of use, and extensibility [[1][Zhmurov2010],[2][Zhmurov2011]]. SOP-GPU provides out-of-the-box caabilities for numerical simulations of nanoindentation experiments, as well as force-ramp and force-clamp protein pulling. One of the features is optinal support for inclusion of hydrodynamics interactions [[3]][Alekseenko2016].
+The package is fully-implemented on GPU using NVIDIA CUDA technology with focus on high-performance, ease of use, and extensibility [[1][Zhmurov2010],[2][Zhmurov2011]]. SOP-GPU provides out-of-the-box capabilities for numerical simulations of nanoindentation experiments, as well as force-ramp and force-clamp protein pulling. One of the features is optinal support for inclusion of hydrodynamics interactions [[3]][Alekseenko2016].
 
 SOP-GPU have been successfully used to model such system as Fibrin(ogen) molecules [[4]][Zhmurov2011a], CCMV capsid [[5][Kononova2013a],[6][Kononova2016]], microtubule protofilament [[7][Kononova2013b],[8][Theisen2012],[9][Theisen2013]], human synaptotagmin 1 [[10][Duan2011]], and muscle anchoring complex [[11][Bodmer2015]].
 
