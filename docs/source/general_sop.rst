@@ -1319,7 +1319,7 @@ Force indentation parameters
 
  Status: Required.
 
- Purpose: Position of the substrate surface surface.
+ Purpose: Position of the substrate surface.
 
 
 - **indentationSurfaceN** *<direction vector x, y, z>*
