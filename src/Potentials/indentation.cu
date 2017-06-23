@@ -441,7 +441,8 @@ void IndentationTipUpdater::update(){
 		f.z /= (float)this->frequency;
 		f.w = sqrtf(f.x*f.x + f.y*f.y + f.z*f.z);
 		// Move chip or surface
-		hc_indentation.dx += hc_indentation.V;//(step/nav)*hc_indentation.chipV;
+		//hc_indentation.dx += hc_indentation.V;//(step/nav)*hc_indentation.chipV;
+        hc_indentation.dx = (gsop.step/this->frequency)*hc_indentation.V;//(step/nav)*hc_indentation.chipV;
 		if(hc_indentation.moveSurface == 1){
 			if(this->indentation->discreteSurf){
 				for(i = 0; i < hc_indentation.surfaceBeadsCount; i++){
