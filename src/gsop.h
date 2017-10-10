@@ -12,6 +12,7 @@
 #include <math.h>
 #include <vector_types.h>
 #include <cuda.h>
+#include <cuda_runtime_api.h>
 #include "IO/topio.h"
 #include "Util/wrapper.h"
 #include "Util/parameters.h"
